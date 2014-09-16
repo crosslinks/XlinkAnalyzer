@@ -1,0 +1,3173 @@
+import math
+import string
+import csv
+import os
+
+from collections import defaultdict
+
+from os.path import relpath, exists, join, normpath, commonprefix, basename,\
+                    dirname
+import chimera
+from chimera import selection
+import xlinkanalyzer
+
+from chimera.baseDialog import ModelessDialog
+from chimera import runCommand
+from chimera.widgets import MoleculeScrolledListBox, ModelScrolledListBox, ModelScrolledListBoxBase, MoleculeItems, ModelItems
+
+from chimera.mplDialog import MPLDialog
+from chimera.tkoptions import ColorOption
+from chimera import UserError,MaterialColor
+
+from numpy import unique
+from operator import mul
+
+import Pmw
+import Tkinter
+import tkFileDialog
+import tkMessageBox
+
+import _molecule
+
+from Pmw import ScrolledFrame, EntryField
+
+from Tkinter import Toplevel,LabelFrame,Button,StringVar,Entry,\
+                    OptionMenu,Label,Frame,BooleanVar,Checkbutton,Canvas,\
+                    TclError
+
+from platform import system
+
+from tkFont import Font
+
+import ttk
+
+from xlinkanalyzer import Model,XlinkDataMgr
+
+from MultAlignViewer.parsers import readFASTA
+
+import pyxlinks
+
+from pyxlinks import XlinksSet
+
+DEBUG_MODE = False
+
+
+class XlinkAnalyzer_Dialog(ModelessDialog):
+
+    title = 'Xlink Analyzer'
+    name = 'Xlink Analyzer'
+    buttons = ('Close')
+    help = 'blah.html'
+
+
+    loadDataTabName = 'Setup'
+
+    models = []
+    dataMgrs = []
+
+    def __init__(self, **kw):
+        from chimera.extension import manager
+        manager.registerInstance(self)
+
+        chimera.triggers.addTrigger('newAssemblyCfg')
+        chimera.triggers.addTrigger('componentAdded')
+        chimera.triggers.addTrigger('modelLoaded')
+        chimera.triggers.addTrigger('configUpdated')
+        chimera.triggers.addTrigger('lengthThresholdChanged')
+        chimera.triggers.addTrigger('activeDataChanged')
+        chimera.triggers.addTrigger('afterAllUpdate')
+
+        self.height = 1000
+
+        self._handlers = []
+
+        ModelessDialog.__init__(self, **kw)
+
+
+        self.assemblyCfgs = []
+
+        self.assemblyCfgsFrames = []
+
+    def destroy(self):
+        self.modelSelect.destroy()
+
+        ModelessDialog.destroy(self)
+        chimera.triggers.deleteTrigger('newAssemblyCfg')
+        chimera.triggers.deleteTrigger('componentAdded')
+        chimera.triggers.deleteTrigger('modelLoaded')
+        chimera.triggers.deleteTrigger('configUpdated')
+        chimera.triggers.deleteTrigger('lengthThresholdChanged')
+        chimera.triggers.deleteTrigger('activeDataChanged')
+        chimera.triggers.deleteTrigger('afterAllUpdate')
+
+    def _deleteHandlers(self):
+        if not self._handlers:
+            return
+        while self._handlers:
+            triggers, trigName, handler = self._handlers.pop()
+            triggers.deleteHandler(trigName, handler)
+
+    def fillInUI(self, parent):
+        self.notebook=Pmw.NoteBook(parent)
+
+        self.notebook.pack(fill = 'both', expand = 1, padx = 10, pady = 10)
+
+        self.createLoadDataTab()
+        self.notebook.page(self.loadDataTabName).focus_set()
+        print xlinkanalyzer.get_gui()
+        self.addTab('Subunits', ComponentsTabFrame)
+        self.addTab('Data manager', DataMgrTabFrame)
+
+        self.addTab('Xlinks', XlinkMgrTabFrame)
+        # self.addTab('Interacting', InteractingResiMgrTabFrame)
+
+        self.notebook.setnaturalsize()
+
+    def createLoadDataTab(self):
+
+        tab = self.notebook.add(self.loadDataTabName)
+        self.assemblyFrame = AssemblyFrame(tab, mainWindow=self)
+
+        self.modelSelect = ModelSelect()
+
+    def setTitle(self,string):
+        self._toplevel.title("Xlink Analyzer - " + string)
+
+    def update_loadDataTab_assemblyCfgsOptionMenu(self, trigName, sth, cfg):
+        self.loadDataTab_assemblyCfgsOptionMenu['menu'].add_command(label=cfg.name, command=Tkinter._setit(self.loadDataTab_assemblyCfgsOptionMenu.var, cfg.name))
+        self.loadDataTab_assemblyCfgsOptionMenu.var.set(cfg.name)
+
+
+    def show_addComponentFrame(self, cfgName, sth1, sth2):
+        self.currAddComponentFrame.grid(row=self.configureAssemblyFrameRow, column=0, sticky='w')
+
+    def hide_addComponentFrame(self):
+        if self.currAddComponentFrame is not None:
+            self.currAddComponentFrame.grid_forget()
+
+    def getAssemblyConfig(self, name):
+        for cfg in self.assemblyCfgs:
+            if cfg.name == name:
+                return cfg
+
+    def addComponentToCfg(self, cfgName, name, color=None, chains=None):
+        cfg = self.getAssemblyConfig(cfgName)
+
+        if cfgName is None:
+            Tkinter.tkMessageBox.showwarning(
+                'No such assembly', cfgName
+            )
+            return
+
+        if cfg is not None:
+            cfg.addItem(name, color=color, chains=chains)
+
+        print help(chimera.triggers.activateTrigger)
+        chimera.triggers.activateTrigger('componentAdded', [name, cfg])
+
+    def addComponentToCfgCB(self):
+        cfgName = self.loadDataTab_assemblyCfgsOptionMenu.var.get()
+        name = self.currAddComponentFrame.componentNameEntryField.get()
+        color = self.currAddComponentFrame.coloropt.get()
+        chains = self.currAddComponentFrame.chainEntryField.get()
+        chains = [x.strip() for x in chains.split(',')]
+        print 'chain', chains
+
+        self.addComponentToCfg(cfgName, name, color=color, chains=chains)
+
+
+    def updateActiveData(self):
+        for mgr in self.dataMgrs:
+            if hasattr(mgr, 'pbg'):
+                # mgr.pbg.destroy()
+                chimera.openModels.close(mgr.pbg)
+
+        self.dataMgrs = []
+
+        groupedByType = {}
+        for item in self.data.items:
+            if item.active:
+                if item.type not in groupedByType:
+                    groupedByType[item.type] = [item]
+                else:
+                    groupedByType[item.type].append(item)
+
+
+        for model in self.models:
+            if model.active:
+                if xlinkanalyzer.XQUEST_DATA_TYPE in groupedByType:
+                    self.dataMgrs.append(xlinkanalyzer.XlinkDataMgr(model, groupedByType[xlinkanalyzer.XQUEST_DATA_TYPE]))
+
+                if xlinkanalyzer.INTERACTING_RESI_DATA_TYPE in groupedByType:
+                    self.dataMgrs.append(xlinkanalyzer.InteractingResiDataMgr(model, groupedByType[xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]))
+
+    def getDataMgrsForModel(self, model):
+        out = []
+        for dataMgr in self.dataMgrs:
+            if dataMgr.model is model:
+                out.append(dataMgr)
+
+        return out
+
+
+    def addTab(self, name, cls):
+        tab = self.notebook.add(name)
+        tabCls = cls(tab)
+        tabCls.pack(fill='both', expand=1)
+
+        ############ debugging code ############
+        setattr(self, name, tabCls)
+        ########################################
+
+    def loadFile(self, parent):
+        #CARE! DEBUG SETTINGS!
+        #TODO: Hide the freaking hidden Files!
+        return tkFileDialog.askopenfilename(parent=parent,title="Choose file",\
+                                            initialdir="/home/kai/xlinkanalyzer/test")
+
+
+chimera.dialogs.register(XlinkAnalyzer_Dialog.name, XlinkAnalyzer_Dialog)
+
+
+def show_dialog():
+    from chimera import dialogs
+    return dialogs.display(XlinkAnalyzer_Dialog.name)
+
+class ComponentsOptionMenu(Tkinter.OptionMenu):
+    def __init__(self, master, defOption, config):
+        self.var = Tkinter.StringVar(master)
+        defOption = defOption
+        self.var.set(defOption)
+
+        options = [defOption] + config.getComponentNames()
+        Tkinter.OptionMenu.__init__(self, master, self.var, *options)
+        self.config(font=('calibri',(10)),bg='white',width=20)
+        self['menu'].config(font=('calibri',(10)), bg='white')
+
+class ComponentsHandleOptionMenu(Tkinter.OptionMenu):
+    def __init__(self, master):
+        self.var = Tkinter.StringVar(master)
+        defOption = 'Select'
+        self.var.set(defOption)
+
+        options = [
+            'Select',
+            'Show',
+            'Show only',
+            'Hide'
+        ]
+        Tkinter.OptionMenu.__init__(self, master, self.var, *options)
+        self.config(font=('calibri',(10)),bg='white',width=12)
+        self['menu'].config(font=('calibri',(10)), bg='white')
+
+
+class ShowModifiedFrame(Tkinter.Frame):
+    def __init__(self, parent, xlinkMgrTabFrame, *args, **kwargs):
+        Tkinter.Frame.__init__(self, parent, *args, **kwargs)
+
+        self.xlinkMgrTabFrame = xlinkMgrTabFrame
+
+
+        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+                text='This panel allows coloring modified residues (i.e. mono-linked and/or cross-linked residues)').pack(anchor='w', fill = 'both', pady=1)
+
+        modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+        modelSelect.pack(anchor='w', fill = 'both', pady=1)
+
+        btn = Tkinter.Button(self,
+            text='Color modified',
+            command=self.showModifiedMap)
+        btn.pack()
+
+
+
+        self.showVars = {
+            'Monolinked': Tkinter.BooleanVar(),
+            'Cross-linked': Tkinter.BooleanVar(),
+            'Expected': Tkinter.BooleanVar(),
+            'NotExpected': Tkinter.BooleanVar(),
+            'NotExpectedByLength': Tkinter.BooleanVar(),
+            'NotExpectedByPredictor': Tkinter.BooleanVar()
+        }
+
+        for varName, showVar in self.showVars.iteritems():
+            showVar.set(True)
+            if varName in ('Expected', 'NotExpected', 'NotExpectedByLength', 'NotExpectedByPredictor') and not self._isSequenceMappingComplete():
+                showVar.set(False)
+
+        def updateCB(name, *args):
+            newstate = self.getvar(name)
+            # self.showModifiedMap()
+
+        btn = Tkinter.Checkbutton(self, text='Mono-linked', foreground='blue', variable=self.showVars['Monolinked'])
+        btn.pack(anchor='w')
+        btn.var = self.showVars['Monolinked']
+        btn.var.trace("w", updateCB)
+
+        btn = Tkinter.Checkbutton(self, text='Cross-linked', foreground='blue', variable=self.showVars['Cross-linked'])
+        btn.pack(anchor='w')
+        btn.var = self.showVars['Cross-linked']
+        btn.var.trace("w", updateCB)
+
+        btn = Tkinter.Checkbutton(self, text='Expected to be mono-linked', foreground='red', variable=self.showVars['Expected'])
+        btn.pack(anchor='w')
+        btn.var = self.showVars['Expected']
+        btn.var.trace("w", updateCB)
+        if not self._isSequenceMappingComplete():
+            btn.configure(state='disabled')
+
+
+        btn = Tkinter.Checkbutton(self, text='Not expected to be mono-linked', foreground='yellow', variable=self.showVars['NotExpected'])
+        btn.pack(anchor='w')
+        btn.var = self.showVars['NotExpected']
+        btn.var.trace("w", updateCB)
+        if not self._isSequenceMappingComplete():
+            btn.configure(state='disabled')
+
+        f = Tkinter.LabelFrame(self, bd=4, relief="groove", text='Expected/Not Expected criteria')
+        f.pack(anchor='w')
+
+        btn = Tkinter.Checkbutton(f,text='By peptide length (min: 6, max: 50)', variable=self.showVars['NotExpectedByLength'])
+        btn.pack(anchor='w', ipadx=10)
+        btn.var = self.showVars['NotExpectedByLength']
+        btn.var.trace("w", updateCB)
+        if not self._isSequenceMappingComplete():
+            btn.configure(state='disabled')
+
+        btn = Tkinter.Checkbutton(f, text='Observability prediction', variable=self.showVars['NotExpectedByPredictor'])
+        btn.pack(anchor='w', ipadx=10)
+        btn.var = self.showVars['NotExpectedByPredictor']
+        btn.var.trace("w", updateCB)
+        if not self._isSequenceMappingComplete():
+            btn.configure(state='disabled')
+
+        btn = Tkinter.Button(self,
+            text='Update',
+            command=self.showModifiedMap)
+        btn.pack(anchor='e')
+
+    def _isSequenceMappingComplete(self):
+        config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        compMapped = [True if c in config.getSequences() else False \
+                      for c in config.getComponentNames()]
+        return reduce(mul,compMapped,1)
+
+    def showModifiedMap(self):
+        dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.showModifiedMap(colorMonolinked=self.showVars['Monolinked'].get(),
+                    colorXlinked=self.showVars['Cross-linked'].get(),
+                    colorExpected=self.showVars['Expected'].get(),
+                    colorNotExpected=self.showVars['NotExpected'].get(),
+                    byPredictor=self.showVars['NotExpectedByPredictor'].get(),
+                    byLength=self.showVars['NotExpectedByLength'].get())
+
+#new implementation
+
+from xlinkanalyzer import minify_json
+import json
+
+
+class Item(object):
+    def __init__(self,name,assembly):
+        self.type = "item"
+        self.name = name
+        self.assembly = assembly
+
+    def commaList(self,l):
+        return reduce(lambda x,y: x+","+str(y),l,"")[1:]
+
+    def getList(self,commaString):
+        return [s.strip() for s in commaString.split(",")]
+
+    def serialize(self):
+        _dict = dict([(k,v) for k,v in self.__dict__.items()])
+        _dict.pop("assembly")
+        return _dict
+
+    def deserialize(self,_dict):
+        for key,value in _dict.items():
+            self.__dict__[key] = value
+
+    def validate(self):
+        return True if type(self.name) == str and len(self.name) > 0 else False
+
+
+class Component(Item):
+    def __init__(self,name,assembly):
+        Item.__init__(self,name,assembly)
+        self.type = "component"
+        self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
+        self.chainIds = []
+        self.selection = ""
+        self.chainToComponent = {}
+        self.componentToChain = {}
+        self.sequence = ""
+        self.domains = None
+
+    def setColor(self,colorCfg):
+        color = chimera.MaterialColor(*[0.0]*4)
+        if isinstance(colorCfg, basestring):
+            color = chimera.colorTable.getColorByName(colorCfg)
+        elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
+            color = chimera.MaterialColor(*[x for x in colorCfg])
+        else:
+            color = colorCfg
+        self.color = color
+
+    def setChainIds(self,ids):
+        self.chainIds = ids
+
+    def setSelection(self,sel):
+        self.selection = sel
+
+    def setChainToComponent(self,mapping):
+        self.chainToComponent = mapping
+
+    def createChainToComponentFromChainIds(self, chainIds):
+        return dict([(chain, self.name) for chain in chainIds])
+
+    def createComponentSelectionFromChains(self, chainIds):
+        return ':'+','.join(['.'+s for s in chainIds])
+
+    def setComponentToChain(self,mapping):
+        self.componentToChain = mapping
+
+    def setDomains(self,domains):
+        self.domains = domains
+
+    def setSequence(self,seq):
+        self.sequence = seq
+
+    def readJson(self,filename):
+        """
+        Reads JsonFile to JsonObject (Dict/Lists)
+        """
+
+        with open(filename) as f:
+            data = self.convert(json.loads(minify_json.json_minify(f.read())))
+        return data
+
+    def convert(self,_input):
+        """
+        Encodes Unicode, List and Dict instances to utf-8
+        """
+        if isinstance(_input, dict):
+            return dict([(self.convert(key), self.convert(value)) \
+                        for key, value in _input.iteritems()])
+        elif isinstance(_input, list):
+            return [self.convert(element) for element in _input]
+        elif isinstance(_input, unicode):
+            return _input.encode('utf-8')
+        else:
+            return _input
+
+    def serialize(self):
+        _dict = super(Component,self).serialize()
+        _dict["color"] = self.color.rgba()
+        return _dict
+
+    def deserialize(self,_dict):
+        super(Component,self).deserialize(_dict)
+        if type(_dict["color"]) == list:
+            self.color = chimera.MaterialColor(*_dict["color"])
+
+    def __str__(self):
+        s = "Component: \n \
+             -------------------------\n\
+             Name:\t%s\n\
+             Color:\t%s\n\
+             Chains:\t%s\n"%(self.name,self.color.rgba(),self.chainIds)
+        return str(s)
+
+    def __repr__(self):
+        return self.__str__()
+
+class SimpleDataItem(Item):
+    def __init__(self,name,assembly,data):
+        super(SimpleDataItem,self).__init__(name,assembly)
+        self.type = "simpleData"
+        self.informed = False
+        self.data = data
+
+    def __str__(self):
+        s = "SimpleDataItem: \n \
+             -------------------------\n\
+             Name:\t%s\n\
+             Type:\t%s\n\
+             Structure:\t%s\n"%(self.name,self.type,self.data)
+        return str(s)
+
+    def __repr__(self):
+        return self.__str__()
+
+class InteractingResidueItem(SimpleDataItem):
+    def __init__(self,name,assembly,data):
+        super(InteractingResidueItem,self).__init__(name,assembly,data)
+        self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
+        self.active = True
+
+    def deserialize(self):
+        #mirror the old structure
+        self.config = self.data
+        self.active = True
+
+class DataItem(Item):
+    def __init__(self,name,assembly,resource,mapping=None):
+        super(DataItem,self).__init__(name,assembly)
+        self.type = "data"
+        self.mapping = mapping or {}
+        self.resource = resource
+        self.active = True
+        self.informed = False
+
+    def __str__(self):
+        s = "DataItem: \n \
+             -------------------------\n\
+             Name:\t%s\n\
+             Type\t%s\n\
+             Files:\t%s\n"%(self.name,self.type,self.resource)
+        return str(s)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __getitem__(self,key):
+        if key in self.mapping:
+            return self.mapping[key][0]
+        else:
+            return None
+
+    def __setitem__(self,key,value):
+        if type(value) != list:
+            if key in self.mapping:
+                self.mapping[key].append(value)
+            else:
+                self.mapping[key]=[value]
+        else:
+            self.mapping[key] = value
+
+    def __contains__(self,key):
+        return key in self.mapping
+
+    def updateData(self):
+        pass
+
+    def locate(self):
+        formatedRes = []
+        locatedRes = []
+        missing = []
+        root = self.assembly.root
+        #check for windows paths in unix systems
+        for r in self.resource:
+            if '\\' in r and system() == 'Linux':
+                formatedRes.append(r.replace('\\','/'))
+            else:
+                formatedRes.append(r)
+        for r in formatedRes:
+            if exists(r):
+                locatedRes.append(relpath(r,root))
+            elif exists(join(root,r)):
+                locatedRes.append(join(root,r))
+            else:
+                missing.append(r)
+        if missing and not self.informed:
+            title = "Missing Files"
+            fileList = reduce(lambda x,y: x+"%s\n"%(y),missing,"")
+            message = "These files could not be found:\n %s"%(fileList)
+            mBox  = tkMessageBox.showinfo(title,message)
+            self.informed = True
+        self.resource = locatedRes
+
+    def resourcePaths(self):
+        self.locate()
+        paths = []
+        root = self.assembly.root
+
+        for res in self.resource:
+            res = normpath(res)
+            path = normpath(join(root,res))
+            if os.path.exists(path):
+                paths.append(path)
+        return paths
+
+    def serialize(self):
+        self.locate()
+        _dict = super(DataItem,self).serialize()
+        if "data" in _dict:
+            _dict.pop("data")
+        return _dict
+
+    def validate(self):
+        allExist = reduce(lambda x,y: x and y, [os.path.exists(resPath) \
+                          for resPath in self.resourcePaths()],True)
+        return True if super(DataItem,self).validate() and allExist else False
+
+    def getProteinsByComponent(self,name):
+        return [k for k,v in self.mapping.items() if name in v]
+
+class XQuestItem(DataItem):
+    def __init__(self,name,assembly,resource,mapping=None):
+        super(XQuestItem,self).__init__(name,assembly,resource,mapping)
+        self.type = xlinkanalyzer.XQUEST_DATA_TYPE
+        self.data={}
+        self.xQuestNames = []
+        self.xlinksSets = []
+        self.resource = resource
+        self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            xlinksSets = []
+            for f in self.resourcePaths():
+                xlinksSets.append(XlinksSet(f,description=self.name))
+
+            self.xlinksSets = sum(xlinksSets)
+            self.xQuestNames = self.xlinksSets.get_protein_names()
+
+            self.data = self
+
+            self.xQuestNames = list(self.xlinksSets.get_protein_names())
+
+    def serialize(self):
+        _dict = super(XQuestItem,self).serialize()
+        _dict.pop("xlinksSets")
+        return _dict
+
+
+class SequenceItem(DataItem):
+    def __init__(self,name,assembly,resource,mapping=None):
+        super(SequenceItem,self).__init__(name,assembly,resource,mapping)
+        self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
+        self.sequences = {}
+        self.data = {}
+        for i,fileName in enumerate(self.resourcePaths()):
+            sequences = readFASTA.parse(fileName)[0]
+            for sequence in sequences:
+                self.sequences[sequence.name] = sequence
+        self.locate()
+
+    def serialize(self):
+        _dict = super(SequenceItem,self).serialize()
+        _dict.pop("sequences")
+        return _dict
+
+class InteractionSiteItem(Item):
+    def __init__(self,name,assembly,resourceFile):
+        Item.__init__(self,name,assembly,resourceFile)
+
+
+class ModelXlinkStatsTable(Tkinter.Frame):
+    def __init__(self, master, xlinkMgrTabFrame, *args, **kwargs):
+        Tkinter.Frame.__init__(self, master, *args, **kwargs)
+
+        self.xlinkMgrTabFrame = xlinkMgrTabFrame
+        self.detailsFrame = None
+
+        self.xlinkToolbar = XlinkToolbar(self, self.xlinkMgrTabFrame.ld_score_var, self.xlinkMgrTabFrame.lengthThreshVar, self.xlinkMgrTabFrame)
+
+        self.render()
+        self._handlers = []
+
+        # self._addHandlers()
+
+    def _addHandlers(self):
+        # handler = chimera.triggers.addHandler('modelLoaded', lambda x, y, z: self.render(), None)
+        # self._handlers.append((chimera.triggers, 'modelLoaded', handler))
+
+        handler = chimera.triggers.addHandler('activeDataChanged', lambda x, y, z: self.render(), None)
+        self._handlers.append((chimera.triggers, 'activeDataChanged', handler))
+
+    def _deleteHandlers(self):
+        if not self._handlers:
+            return
+        while self._handlers:
+            triggers, trigName, handler = self._handlers.pop()
+            triggers.deleteHandler(trigName, handler)
+
+    def clear(self):
+        # for child in self.winfo_children():
+        #     child.destroy()
+
+        for child in self.winfo_children():
+            if isinstance(child, XlinkToolbar): #destroying XlinkToolbar was making problems with bound ld_score_var
+                child.pack_forget()
+            else:
+                child.destroy()
+
+
+    def render(self):
+        self.clear()
+        self.detailsFrame = None
+
+        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+                    text='This panel allows performing statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
+
+        legendFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
+        legendFrame.pack(anchor='w', pady='4')
+
+        Tkinter.Label(legendFrame, anchor='w',
+                    text='Counting xlinks with ld Score above ' + str(self.xlinkMgrTabFrame.ld_score_var.get())
+                    ).grid(row=0, column=0, sticky="w")
+
+        Tkinter.Label(legendFrame, anchor='w',
+                    foreground = 'red',
+                    text=u'Violated: xlinks longer than %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
+                    ).grid(row=1, column=0, sticky="w")
+
+        Tkinter.Label(legendFrame, anchor='w',
+                    foreground = 'blue',
+                    text=u'Satisfied: xlinks shorter or equal to %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
+                    ).grid(row=2, column=0, sticky="w")
+
+        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render, padx=4, pady=4)
+        updateBtn.grid(row=0, rowspan=3, column=1)
+
+
+
+        modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+        modelSelect.pack(anchor='w', fill = 'both', pady=1)
+
+
+        models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
+
+        colNames = [' ', 'id', 'All xlinks', 'Satisfied', 'Violated', 'Satisfied [%]', 'Violated [%]', 'model']
+
+        tableData = [colNames[2:]]
+
+        modelListFrame = Tkinter.Frame(self, background="black")
+        modelListFrame.pack(fill='both', pady='4')
+
+        for col in range(len(colNames)):
+            if colNames[col] == 'id':
+                width = 5
+            else:
+                width = 12
+            label = Tkinter.Label(modelListFrame, text="%s" % colNames[col],
+                             borderwidth=0, width=width)
+            label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
+
+        rowData = []
+
+        for row in range(1, len(models) + 1):
+            col = 0
+            model = models[row-1]
+            xlinkDataMgrs = self.getDataMgrsForModel(model)
+
+            for xlinkDataMgr in xlinkDataMgrs:
+                xlinkStats = xlinkDataMgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+
+                col = 0
+
+                showBtn = Tkinter.Button(modelListFrame, text="Details", command=lambda rebindItem=xlinkDataMgr: self.showDetails(rebindItem))
+                showBtn.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+                col = col + 1
+
+                label = Tkinter.Label(modelListFrame, text=str(model.chimeraModel.id),
+                                 borderwidth=0)
+                label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+                col = col + 1
+
+                statsToShow = ['all', 'satisfied', 'violated', 'satisfied %', 'violated %']
+
+
+
+                for key in statsToShow:
+                    if key.startswith('satisfied'):
+                        foreground = 'blue'
+                    elif key.startswith('violated'):
+                        foreground = 'red'
+                    else:
+                        foreground = None
+
+                    label = Tkinter.Label(modelListFrame, text=str(xlinkStats[key]),
+                                     borderwidth=0, foreground=foreground)
+
+                    label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+                    col = col + 1
+
+                    rowData.append(xlinkStats[key])
+
+            if len(rowData) > 0:
+                label = Tkinter.Label(modelListFrame, text=model.chimeraModel.name,
+                                 borderwidth=0)
+                label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+
+                rowData.append(model.chimeraModel.name)
+
+                tableData.append(rowData)
+
+
+        self.tableData = tableData
+        modelListFrame.grid_columnconfigure(len(colNames)-1, minsize=10, weight=1)
+
+        exportTableBtn = Tkinter.Button(self, text="Export table", command=self.exportTable)
+        exportTableBtn.pack(anchor='e', padx=4)
+
+        self.xlinkToolbar.pack(padx=4, pady=4)
+
+    def exportTable(self):
+        #TODO: change initialdir to project dir
+        f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".csv", initialdir=None, parent=self)
+        if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+            return
+
+        quoting = csv.QUOTE_NONNUMERIC
+
+        fieldnames = self.tableData[0]
+        data = self.tableData[1:]
+
+        wr = csv.writer(f, quoting=quoting)
+        wr.writerow(fieldnames) #do not use wr.writeheader() to support also python 2.6
+        wr.writerows(data)
+
+        f.close()
+
+    def getDataMgrsForModel(self, model):
+        out = []
+        for dataMgr in self.xlinkMgrTabFrame.getXlinkDataMgrs():
+            if dataMgr.model is model:
+                out.append(dataMgr)
+
+        return out
+
+    def showDetails(self, xlinkDataMgr):
+        if self.detailsFrame:
+            self.detailsFrame.destroy()
+        text = 'Details for #%s: %s' % (str(xlinkDataMgr.model.chimeraModel.id), xlinkDataMgr.model.chimeraModel.name)
+
+        self.detailsFrame = DetailXlinkStats(self, xlinkDataMgr, text=text)
+        self.xlinkToolbar.pack_forget()
+        self.detailsFrame.pack(fill='x')
+        self.xlinkToolbar.pack(padx=4, pady=4)
+
+class DetailXlinkStats(Tkinter.LabelFrame):
+    def __init__(self, master, xlinkDataMgr, *args, **kwargs):
+        Tkinter.LabelFrame.__init__(self, master, *args, **kwargs)
+
+        xlinkStats = xlinkDataMgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+
+        # Tkinter.Label(self, text='dupa', foreground='red').pack()
+
+        buttonsFrame = Tkinter.Frame(self)
+        buttonsFrame.pack(fill='both', pady='4')
+
+        xlinksHistogramBtn = Tkinter.Button(buttonsFrame, text="Histogram of distances", command=lambda: self.showHistogram(xlinkStats, xlinkDataMgr))
+        xlinksHistogramBtn.pack(side='left', anchor='w', padx=4)
+
+        xlinksHistogramBtn = Tkinter.Button(buttonsFrame, text="Export xlinks with distances", command=lambda: self.exportXlinkList(xlinkStats, xlinkDataMgr))
+        xlinksHistogramBtn.pack(side='left', anchor='w', padx=4)
+
+        body = Pmw.ScrolledFrame(self,
+            horizflex='expand',
+            usehullsize = 1,
+            hull_height = 500
+            )
+        body.pack(fill='x', padx=4)
+
+        byCompViolatedListFrame = ByCompViolatedListFrame(body.interior(), xlinkStats, xlinkDataMgr)
+        byCompViolatedListFrame.pack(fill='x', padx=4)
+
+        byPairViolatedListFrame = ByPairViolatedListFrame(body.interior(), xlinkStats, xlinkDataMgr)
+        byPairViolatedListFrame.pack(fill='x', padx=4)
+
+    def showHistogram(self, xlinkStats, xlinkDataMgr):
+        XlinksHistogram(xlinkStats, xlinkDataMgr)
+
+    def exportXlinkList(self, xlinkStats, xlinkDataMgr):
+        xlinks = []
+        for xlinkBond in xlinkStats['reprXlinks']:
+            oriXlinks = xlinkDataMgr.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
+            comp1 = pyxlinks.get_protein(xlinkBond.xlink, 1)
+            comp2 = pyxlinks.get_protein(xlinkBond.xlink, 2)
+
+            for xlink in oriXlinks:
+                xlink['distance'] = xlinkBond.pb.length()
+                xlink['Subunit1'] = comp1
+                xlink['Subunit2'] = comp2
+
+            xlinks.extend(oriXlinks)
+
+        if len(xlinks) > 0:
+            fieldnames = xlinkDataMgr.xlinksSetsMerged.fieldnames
+            if 'distance' not in fieldnames:
+                fieldnames.append('distance')
+            if 'Subunit1' not in fieldnames:
+                fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
+            if 'Subunit2' not in fieldnames:
+                fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
+            xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
+
+            #TODO: change initialdir to project dir
+            f = tkFileDialog.asksaveasfilename(defaultextension=".csv", initialdir=None, parent=self)
+            if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            if f:
+                xlinksSet.save_to_file(f, quoting=csv.QUOTE_NONNUMERIC)
+        else:
+            raise UserError("No cross-links.\n \
+                No crosslinks found in current data sets above current score threshold.")
+
+class ViolatedListFrame(Tkinter.LabelFrame):
+    """Abstract class"""
+    def __init__(self, master, xlinkStats, xlinkDataMgr, text, *args, **kwargs):
+        Tkinter.LabelFrame.__init__(self, master, text=text, *args, **kwargs)
+
+        self.xlinkStats = xlinkStats
+        self.xlinkDataMgr = xlinkDataMgr
+
+        self.createList()
+
+        self.createListFrame()
+
+        buttonsFrame = Tkinter.Frame(self)
+        buttonsFrame.pack(anchor='w')
+        highlightSelBtn = Tkinter.Button(buttonsFrame, text="Highlight selected in structure", command=self.highlightCB)
+        highlightSelBtn.pack(side='left')
+
+        exportSelBtn = Tkinter.Button(buttonsFrame, text="Export selected xlinks", command=self.exportSelectedXlinkList)
+        exportSelBtn.pack(side='left')
+
+    def createList(self):
+        raise NotImplementedError("To implement in subclasses")
+
+    def getData(self):
+        raise NotImplementedError("To implement in subclasses")
+
+    def getName(self, item):
+        raise NotImplementedError("To implement in subclasses")
+
+
+    def createListFrame(self):
+        itemListFrame = Pmw.ScrolledFrame(self,
+            usehullsize = 1,
+            hull_height = 100
+            )
+        itemListFrame.pack(anchor='w', fill='x')
+
+        row = 0
+        for item in self.items:
+            var = Tkinter.BooleanVar()
+            if row == 0:
+                var.set(True)
+                item['toHighlight'] = True
+            else:
+                var.set(False)
+
+            btn = Tkinter.Checkbutton(itemListFrame.interior(),
+                variable=var,
+                command=lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar))
+            btn.var = var
+
+            btn.grid(row = row, column=0)
+
+            Tkinter.Label(itemListFrame.interior(), text=str(len(item['violated'])), foreground='red').grid(row=row, column=1, sticky='w')
+
+            name = self.getName(item)
+            Tkinter.Label(itemListFrame.interior(), text=name).grid(row=row, column=2, sticky='w')
+
+            row += 1
+
+        noOfCols = 3
+        for col in range(noOfCols):
+            itemListFrame.interior().grid_columnconfigure(col, pad=2)
+
+    def toggleActive(self, item, var):
+        item['toHighlight'] = var.get()
+
+    def getSelected(self):
+        bondsToHighlight = []
+        for item in self.items:
+            if item['toHighlight']:
+                for xlinkSet in item['violated']:
+                    for x in xlinkSet:
+                        if x.pb.display:
+                            if x not in bondsToHighlight:
+                                bondsToHighlight.append(x)
+
+        return bondsToHighlight
+
+    def highlightCB(self):
+        selection.setCurrent(selection.ItemizedSelection([x.pb for x in self.getSelected()]))
+
+    def exportSelectedXlinkList(self):
+        xlinks = []
+        seen = []
+        for xlinkBond in self.getSelected():
+            oriXlinks = self.xlinkDataMgr.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
+            comp1 = pyxlinks.get_protein(xlinkBond.xlink, 1)
+            comp2 = pyxlinks.get_protein(xlinkBond.xlink, 2)
+
+            for xlink in oriXlinks:
+                xlink['distance'] = xlinkBond.pb.length()
+                xlink['Subunit1'] = comp1
+                xlink['Subunit2'] = comp2
+
+            xlinks.extend(oriXlinks)
+
+        if len(xlinks) > 0:
+            fieldnames = self.xlinkDataMgr.xlinksSetsMerged.fieldnames
+            if 'distance' not in fieldnames:
+                fieldnames.append('distance')
+            if 'Subunit1' not in fieldnames:
+                fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
+            if 'Subunit2' not in fieldnames:
+                fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
+            xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
+
+            #TODO: change initialdir to project dir
+            f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".csv", initialdir=None, parent=self)
+            if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+
+            xlinksSet.save_to_file(f, quoting=csv.QUOTE_NONNUMERIC)
+
+        else:
+            raise UserError("No cross-links.\n \
+                No crosslinks found in current data sets above current score threshold.")
+
+class ByCompViolatedListFrame(ViolatedListFrame):
+    def __init__(self, master, xlinkStats, xlinkDataMgr, *args, **kwargs):
+        ViolatedListFrame.__init__(self, master, xlinkStats, xlinkDataMgr, text='Subunits with violated xlinks', *args, **kwargs)
+
+    def createList(self):
+        self.items = []
+        for comp, violated in self.getData():
+            item = {
+                'toHighlight': False,
+                'comp': comp,
+                'violated': violated
+                }
+
+            self.items.append(item)
+
+    def getData(self):
+        return self.xlinkStats['sorted_by_component_violated']
+
+    def getName(self, item):
+        return item['comp']
+
+class ByPairViolatedListFrame(ViolatedListFrame):
+    def __init__(self, master, xlinkStats, xlinkDataMgr, *args, **kwargs):
+        ViolatedListFrame.__init__(self, master, xlinkStats, xlinkDataMgr, text='Pairs of subunits with violated xlinks', *args, **kwargs)
+
+    def createList(self):
+        self.items = []
+        for comps, violated in self.getData():
+            comps = list(comps)
+
+            if len(comps) == 1: #intra_link
+                comps.append(comps[0])
+
+            item = {
+                'toHighlight': False,
+                'comps': comps,
+                'violated': violated
+                }
+
+            self.items.append(item)
+
+    def getData(self):
+        return self.xlinkStats['sorted_by_pair_violated']
+
+    def getName(self, item):
+        return ' - '.join(item['comps'])
+
+class XlinksHistogram(MPLDialog):
+
+    help = "blah"
+    buttons = ("Close" )
+
+    def __init__(self, xlinkStats, xlinkDataMgr):
+        self.title = "#%s: %s - histogram of measured C-alpha distances between cross-linked residues" \
+            % (xlinkDataMgr.model.chimeraModel.id, xlinkDataMgr.model.chimeraModel.name)
+
+        MPLDialog.__init__(self)
+
+
+        reprXlinks = xlinkStats['reprXlinks']
+
+        self.lengths = []
+        for xlink in reprXlinks:
+            self.lengths.append(xlink.pb.length())
+
+        if len(self.lengths) > 0:
+            ax = self.add_subplot(1,1,1)
+            self.subplot = ax
+            self._displayData()
+        else:
+            raise UserError("No cross-links.\n \
+                No crosslinks found in current data sets above current score threshold.")
+
+    def fillInUI(self, parent):
+        Tkinter.Label(parent, text='control stuff here').pack(pady=5)
+
+        f = Tkinter.Frame(parent)
+        f.pack(fill="both", expand=True)
+        MPLDialog.fillInUI(self, f)
+
+    def _displayData(self):
+        ax = self.subplot
+        ax.clear()
+
+        binsize = 3
+        maxLength = max(self.lengths)
+        bins = range(0, int(math.ceil(maxLength)), binsize)
+
+        bins = bins[1:] #strip 0
+        bins.append(bins[-1]+3)
+
+
+        colors = []
+        for bin in bins:
+            if bin >= xlinkanalyzer.XLINK_LEN_THRESHOLD:
+                colors.append('#CC0000')
+            else:
+                colors.append('#348ABD') #blue
+            print bin, colors[-1]
+        n, bins, patches = ax.hist(self.lengths, bins=bins, rwidth=.5)
+        for c, p in zip(colors, patches):
+            p.set_color(c)
+        ticks = map(int, bins)
+        ax.set_xticks(ticks)
+        ax.set_ylabel("Number of cross-links")
+        ax.set_xlabel(r"Euclidan C$\alpha$ pair distance [$\AA$]")
+        ax.yaxis.grid(True)
+        self.draw()
+
+    def _recalcLengths(self):
+        '''
+        Return lengths which compress long distances
+        into single bin > (XLINK_LEN_THRESHOLD + 3)
+        '''
+        lengths = []
+        for l in self.lengths:
+            if l > xlinkanalyzer.XLINK_LEN_THRESHOLD + 3:
+                lengths.append(xlinkanalyzer.XLINK_LEN_THRESHOLD + 3 + 1)
+            else:
+                lengths.append(l)
+        return lengths
+
+class ItemFrame(LabelFrame):
+    def __init__(self,master,item,assemblyFrame,active=False,*args,**kwargs):
+        LabelFrame.__init__(self,master,*args,**kwargs)
+        self.master = master
+        self.item = item
+        self.frame = assemblyFrame
+        self.assembly = item.assembly
+        self.active = active
+        self.layout = {"padx":5,"pady":3}
+        if active:
+            self.nameField = EntryField(self,labelpos="w",\
+                                             label_text="Name: ",\
+                                             entry_width=10,\
+                                             command=self.populate)
+            self.nameField.grid(sticky='W',row = 0,column=0,**self.layout)
+            if issubclass(item.__class__,Component):
+                self.chainField = EntryField(self,labelpos="w",\
+                                                  label_text="Chains: ",\
+                                                  entry_width=10,\
+                                                  command=self.populate)
+                self.chainField.grid(sticky='W',row = 0,column=1,**self.layout)
+                self.colorField = ColorOption(self,0,None,None,self.populate,\
+                                              startCol=2,**self.layout)
+            elif issubclass(item.__class__,DataItem):
+                Button(self,text="Browse files",command=self.onSource)\
+                      .grid(row=0,column=1,sticky="w",**self.layout)
+
+                self.sourceVar = StringVar("")
+                self.menu = OptionMenu(self,self.sourceVar,"")
+                self.menu.config(width=20)
+                self.menu.grid(row=0,column=2,sticky="w",**self.layout)
+
+                self.typeVar = StringVar("")
+                self.typeVar.set("Data Type")
+                self.typeMenu = OptionMenu(self,\
+                                       self.typeVar,\
+                                       xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
+                                       xlinkanalyzer.XQUEST_DATA_TYPE,\
+                                       xlinkanalyzer.SEQUENCES_DATA_TYPE)
+                self.typeMenu.config(width=10)
+                self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
+                self.resource = []
+        else:
+            self.nameField = EntryField(self,label_text="Name: ",\
+                                        labelpos="w",\
+                                        entry_width=10,\
+                                        command=self.onEdit)
+            self.nameField.grid(sticky='W',row = 0,column=0,**self.layout)
+            self.nameField.setvalue(item.name)
+            if issubclass(item.__class__,Component):
+                self.chainField = EntryField(self,\
+                                        label_text="ChainIds: ",\
+                                        labelpos="w",\
+                                        entry_width=10,\
+                                        command=self.onEdit)
+                self.chainField.grid(row=0,column=1)
+                self.chainField.setvalue(item.commaList(item.chainIds))
+                ColorOption(self,0,None,None,self.populate,\
+                            startCol=2,**self.layout).set(item.color)
+                self.apply = Button(self,text=unichr(10004),\
+                                    command=self.onEdit)
+                self.createToolTip(self.apply,"Apply Changes")
+                self.apply.grid(row=0,column=3,sticky="w",**self.layout)
+                self.delete = Button(self,text="x",command=self.onDelete)
+                self.delete.grid(row=0,column=4,sticky="w",**self.layout)
+                self.createToolTip(self.delete,"Delete")
+
+            elif issubclass(item.__class__,DataItem):
+                Button(self,text="Configure",command=self.configureMenu)\
+                    .grid(sticky='W',row=0,column=1,**self.layout)
+                self.sourceVar = StringVar("")
+                if type(item.resource)==list:
+                    try:
+                        self.sourceVar.set(item.resource[0])
+                    except IndexError:
+                        print item
+                else:
+                    self.sourceVar.set(item.resource)
+                self.menu = OptionMenu(self,self.sourceVar,*item.resource)
+                self.menu.config(width=30)
+                self.menu.grid(row=0,column=2,sticky="w",**self.layout)
+                self.delete = Button(self,text="x",command=self.onDelete)
+                self.delete.grid(row=0,column=3,sticky="w",**self.layout)
+                self.createToolTip(self.delete,"Delete")
+            elif issubclass(item.__class__,SimpleDataItem):
+                self.delete = Button(self,text="x",command=self.onDelete)
+                self.delete.grid(row=0,column=3,sticky="w",**self.layout)
+                self.createToolTip(self.delete,"Delete")
+
+    def onEdit(self):
+        self.populate()
+        self.frame.update()
+
+    def onDelete(self):
+        self.assembly.deleteItem(self.item)
+        self.frame.update()
+
+    def onSource(self):
+
+        self.resource = tkFileDialog.askopenfilenames(parent=self.master)
+        
+        #FIX: http://stackoverflow.com/questions/4116249/parsing-the-results-of-askopenfilenames
+        if isinstance(self.resource, basestring):
+            self.resource = self.master.tk.splitlist(self.resource)
+
+        if self.resource:
+            for source in self.resource:
+                self.menu['menu'].add_command(label=source)
+            self.menu['menu'].delete(0)
+            self.sourceVar.set(self.resource[0])
+            self.populate()
+
+    def populate(self,colorOption= None):
+        oldName = self.item.name
+        self.item.name = self.nameField.get()
+        if type(self.item) == Component:
+            self.item.chainIds = self.item.getList(self.chainField.get())
+            self.item.selection = self.item.createComponentSelectionFromChains(self.item.chainIds)
+            self.item.setChainToComponent(self.item.createChainToComponentFromChainIds(self.item.chainIds))
+            if colorOption:
+                self.item.color = colorOption.get()
+        elif type(self.item) == DataItem:
+            self.item.resource = self.resource
+            if self.typeVar.get() == xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE:
+                self.item = XQuestItem(self.item.name,\
+                                       self.item.assembly,\
+                                       self.item.resource)
+            elif self.typeVar.get() == xlinkanalyzer.XQUEST_DATA_TYPE:
+                self.item = XQuestItem(self.item.name,\
+                                       self.item.assembly,\
+                                       self.item.resource)
+            elif self.typeVar.get() == xlinkanalyzer.SEQUENCES_DATA_TYPE:
+                self.item = SequenceItem(self.item.name,\
+                                         self.item.assembly,\
+                                         self.item.resource)
+        self.update()
+        if oldName != self.item.name:
+            for item in [i for i in self.assembly.items \
+                         if issubclass(i.__class__, DataItem)]:
+                if item.mapping:
+                    if oldName in item.mapping:
+                        item.mapping[self.item.name] = item.mapping[oldName]
+                        item.mapping.pop(oldName)
+                    for k,v in item.mapping.iteritems():
+                        if oldName in v and oldName:
+                            item.mapping[k].remove(oldName)
+                            item.mapping[k].append(self.item.name)
+        return self.item.validate()
+
+    def populateMapping(self):
+        if type(self.item) == XQuestItem:
+            self.item.mapping = dict([(xQN,[self.userNames[i].get()]) for\
+                                i,xQN in enumerate(self.item.xQuestNames)])
+        elif type(self.item) == SequenceItem:
+            self.item.mapping = dict([(sqN,[self.userNames[i].get()]) \
+                                        for i,sqN in enumerate(\
+                                            self.item.sequences.keys())])
+        self.item.updateData()
+        chimera.triggers.activateTrigger('configUpdated', self.assembly)
+        self.menu.destroy()
+
+    def empty(self):
+        if self.active:
+            self.nameField.setvalue("")
+            if issubclass(self.item.__class__,Component):
+                self.chainField.setvalue("")
+                self.colorField.set(MaterialColor(*[0.0,0.0,0.0,1.0]))
+            elif issubclass(self.item.__class__,DataItem):
+                self.sourceVar.set("")
+                self.menu = OptionMenu(self,self.sourceVar,"")
+                self.menu.config(width=20)
+                self.menu.grid(row=0,column=2,sticky="w",**self.layout)
+
+                self.typeVar = StringVar("")
+                self.typeVar.set("")
+                self.typeMenu = OptionMenu(self,\
+                                       self.typeVar,\
+                                       xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
+                                       xlinkanalyzer.XQUEST_DATA_TYPE,\
+                                       xlinkanalyzer.SEQUENCES_DATA_TYPE)
+                self.typeMenu.config(width=10)
+                self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
+                self.resource = []
+
+    def configureMenu(self):
+        components = [item.name for item in self.assembly.items\
+                if type(item)==Component]
+        if not components:
+            title = "No Components"
+            message = "There are currently no subunits loaded in xlinkanalyzer! Create or load subunits to configure Data Items."
+            mBox  = tkMessageBox.showinfo(title,message)
+            return
+
+        self.menu = Toplevel()
+        frame = Frame(self.menu,padx=5,pady=5)
+
+        self.fromNames = []
+        mapping = []
+
+        if type(self.item) == XQuestItem:
+            self.fromNames = self.item.xQuestNames
+            mapping = self.item.mapping
+
+        elif type(self.item) == SequenceItem:
+            self.fromNames = self.item.sequences.keys()
+            mapping = self.item.mapping
+
+        self.userNames = []
+        userNameMenus = []
+
+        msg = "Match protein names in data files to\nsubunit names."
+        msgFont = "Verdana 11 bold"
+        h1 = "Name in data file"
+        h2 = "Subunit name"
+        hFont = "Verdana 11"
+
+        row = 0
+        Label(frame,text=msg,font=msgFont)\
+             .grid(sticky='W',row = row,column=0,pady=10)
+        row+=2
+        Label(frame,text=h1,font=hFont)\
+             .grid(sticky='W',row = row,column=0,pady=5)
+        Label(frame,text=h2,font=hFont)\
+             .grid(sticky='W',row = row,column=2,pady=5)
+        row+=2
+        for i,fromName in enumerate(self.fromNames):
+            Label(frame,text=fromName).grid(sticky='W',\
+                                              row = i+row,\
+                                              column=0)
+            self.userNames.append(StringVar(""))
+            userNameMenus.append(\
+            OptionMenu(frame,self.userNames[i],*[item.name for item\
+                           in self.assembly.items \
+                           if type(item)==Component]))
+            userNameMenus[i].configure(width=20)
+            userNameMenus[i].grid(sticky='W',row = i+row,column=2)
+            if mapping:
+                if mapping.has_key(fromName):
+                    if type(mapping[fromName]) == list:
+                        name = mapping[fromName][0]
+                    else:
+                        name = mapping[fromName]
+                    self.userNames[i].set(name)
+        Button(frame,text="Save",command=self.populateMapping)\
+               .grid(sticky='W',row = len(self.fromNames)+row,column=0)
+        Label(frame,text="Copy Mapping:")\
+              .grid(sticky='W',row = len(self.fromNames)+row,column=1)
+        row+=len(self.fromNames)
+
+        copyVar = StringVar("")
+        copyVar.set(self.item.name)
+        copyMenu=OptionMenu(frame,copyVar,\
+                            *[item.name for item in self.assembly.items \
+                           if type(item)==type(self.item)],\
+                           command=self.copyMapping)
+        copyMenu.configure(width=20)
+        copyMenu.grid(sticky='W',row = row,column=2)
+        frame.grid()
+        self.menu.grid()
+        self.frame.update()
+
+    def copyMapping(self,name):
+        #there is an ambiguity here, items need an unique identifier
+        firstHit = [item for item in self.assembly.items \
+                 if (type(item)==type(self.item) and name==item.name)][0]
+        mapping = firstHit.mapping
+        for i,name in enumerate(self.fromNames):
+            if mapping.has_key(name):
+                self.userNames[i].set(self.item.commaList(mapping[name]))
+                self.item.mapping[name] = mapping[name]
+
+    def createToolTip(self, widget, text):
+        toolTip = ToolTip(widget)
+        def enter(event):
+            toolTip.showtip(text)
+        def leave(event):
+            toolTip.hidetip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
+
+class Assembly(object):
+    def __init__(self,frame):
+        self.items = []
+        self.root = ""
+        self.file = ""
+        self.state = "unsaved"
+        self.frame = frame
+        self.componentToChain = {}
+        self.chainToComponent = {}
+        self.proteinToChains = {}
+        self.chainToProtein = {}
+        self.componentToProtein = {}
+
+    def __str__(self):
+        s = ""
+        for item in self.items:
+            s += str(item)+"\n"
+        return s
+
+    def __iter__(self):
+        for item in self.items:
+            yield item
+
+    def __contains__(self,item):
+        return reduce(lambda x,y: x or y, [item == i for i\
+                                            in self.items],False)
+
+    def __len__(self):
+        return len(self.items)
+
+    def loadFromDict(self,_dict):
+        classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
+                         (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
+                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
+                          InteractingResidueItem)])
+        components = _dict["subunits"]
+        dataItems = _dict["data"]
+        for compD in components:
+            c = Component(compD["name"],self)
+            c.deserialize(compD)
+            self.addItem(c)
+        for dataD in dataItems:
+            if dataD["type"] == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
+                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
+                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
+            if "data" in dataD:
+                d = classDir[dataD["type"]]\
+                    (dataD["name"],self,dataD["data"])
+            elif "resource" in dataD:
+                d = classDir[dataD["type"]]\
+                    (dataD["name"],self,dataD["resource"],dataD["mapping"])
+                d.serialize()
+            if not d.informed:
+                self.addItem(d)
+
+    def convert(self,_input):
+        """
+        Encodes Unicode, List and Dict instances to utf-8
+        """
+        if isinstance(_input, dict):
+            return dict([(self.convert(key), self.convert(value)) \
+                        for key, value in _input.iteritems()])
+        elif isinstance(_input, list):
+            return [self.convert(element) for element in _input]
+        elif isinstance(_input, unicode):
+            return _input.encode('utf-8')
+        else:
+            return _input
+
+
+    def getColor(self, name):
+        #TODO: Try to simplify
+        color = chimera.MaterialColor(*[0.0]*4)
+        if self.getComponentColors(name):
+            colorCfg = self.getComponentColors(name)
+            if isinstance(colorCfg, basestring):
+                color = chimera.colorTable.getColorByName(colorCfg)
+            elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
+                color = chimera.MaterialColor(*[x for x in colorCfg])
+            else:
+                color = colorCfg
+        return color
+
+    def addItem(self,item):
+        self.items.append(item)
+
+    def deleteItem(self,item):
+        if item in self:
+            self.items.remove(item)
+
+    def clear(self):
+        for item in self:
+            self.items.remove(item)
+
+    def getDataItems(self,_type):
+        if _type in [xlinkanalyzer.SEQUENCES_DATA_TYPE,xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]:
+            ret = []
+            for item in self.items:
+                if item.type == _type:
+                    ret.append(item)
+            return ret
+        else:
+            raise UserError("No know Datatype.")
+            return None
+
+    def getComponentByName(self,name):
+        candidates = [c for c in self.getComponentNames() if c.name==name]
+        if candidates:
+            return candidates[0]
+        else:
+            return None
+
+    def getComponents(self):
+        return [i for i in self.items \
+                if issubclass(i.__class__,Component)]
+
+    def getComponentNames(self):
+        return [i.name for i in self.items \
+                if issubclass(i.__class__,Component)]
+
+    def getDataItems(self,_type = None):
+        dataItems = [i for i in self.items \
+                     if (issubclass(i.__class__,DataItem) \
+                         or issubclass(i.__class__,SimpleDataItem))]
+        if not _type:
+            return dataItems
+        else:
+            typeDataItems = [dI for dI in dataItems if dI.type == _type]
+            return typeDataItems
+
+    def getComponentColors(self,name=None):
+        if name:
+            compL = [i for i in self.items \
+                     if (issubclass(i.__class__,Component) and i.name == name)]
+            if compL:
+                return compL[0].color
+            else:
+                return None
+        else:
+            return dict([(i.name,i.color) for i in self.items\
+                     if issubclass(i,Component)])
+
+    def getComponentChains(self,name=None):
+        if name:
+            compL = [i for i in self.items \
+                     if (issubclass(i.__class__,Component) and i.name == name)]
+            if compL:
+                return compL[0].chainIds
+            else:
+                return None
+        else:
+            return dict([(i.name,i.chainIds) for i in self.items\
+                     if issubclass(i.__class__,Component)])
+
+    def getComponentSelections(self,name = None):
+        if name:
+            compL = [i for i in self.getComponents() if i.name == name]
+            if compL:
+                return compL[0].selection
+            else:
+                return None
+        else:
+            return dict([(i.name,i.selection) for i in self.items\
+                     if issubclass(i.__class__,Component)])
+
+    def getSequences(self,key=None):
+        sequence = {}
+        for item in self.getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
+            for seqName, seq in item.sequences.iteritems():
+                try:
+                    compNames = item.mapping[seqName]
+                except KeyError:
+                    pass
+                else:
+                    for compName in compNames:
+                        sequence[compName] = str(seq)
+        return sequence
+
+    def getDomains(self,name=None):
+        if name:
+            compL = [i for i in self.items \
+                     if (issubclass(i.__class__,Component) and i.name == name)]
+            if compL:
+                return compL[0].domains
+            else:
+                return None
+        else:
+            return dict([(i.name,i.domains) for i in self.items\
+                     if issubclass(i.__class__,Component)])
+
+    def getChains(self):
+        chains = [c.chainIds for c in self.getComponents()\
+                  if c.chainIds is not None]
+        ret = reduce(lambda x,y:x+y,chains,[])
+        return ret
+
+    def getChainIdsByComponentName(self,name=None):
+        if name:
+            if name in self.componentToChain:
+                return self.componentToChain[name]
+            else:
+                comps = self.getComponents()
+                chainsList = [c.chainIds for c in comps if c.name == name]
+                if chainsList:
+                    chains = reduce(lambda x,y: x+y,chainsList,[])
+                    self.componentToChain[name] = chains
+                    return chains
+                else:
+                    raise KeyError
+        else:
+            return self.componentToChain
+
+    def getProteinByChain(self,chain):
+        if chain in self.chainToProtein:
+            return self.chainToProtein[chain]
+        else:
+            comps = self.getComponentNames()
+            dataItems = self.getDataItems()
+            candidates = [c for c in comps \
+                          if chain in self.getChainIdsByComponentName(c)]
+            dCandidates =[d for d in dataItems \
+                          if (set(candidates)&set(d.mapping.keys()))]
+            proteins = [d[candidates[0]] for d in dCandidates]
+            if proteins:
+                protein = proteins[0]
+                self.chainToProtein[chain] = protein
+                return protein
+            else:
+                return None
+    def getProteinByComponent(self,name=None):
+        if name in self.componentToProtein:
+            return self.componentToProtein[name]
+        else:
+            dataItems = self.getDataItems()
+            dataItems = [d for d in dataItems \
+                        if not d.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]
+            candidates = []
+            for d in dataItems:
+                for k,v in d.mapping.items():
+                    if name in v:
+                        candidates.append(k)
+            candidates = unique(candidates)
+            if candidates:
+                componentName = candidates[0]
+                self.componentToProtein[name] = componentName
+                return componentName
+            else:
+                return None
+
+    def getComponentByChain(self,chain=None):
+        #returns a Component NAME
+        if chain:
+            if chain in self.chainToComponent:
+                return self.chainToComponent[chain]
+            else:
+                comps = self.getComponents()
+                candidates = [c for c in comps if chain in c.chainIds]
+                if candidates:
+                    component = candidates[0].name
+                    self.chainToComponent[chain] = component
+                    return component
+                else:
+                    return None
+        else:
+            #this might return an empty dict
+            return self.chainToComponent
+
+    def getChainsByProtein(self,protein):
+        #this
+        if protein in self.proteinToChains:
+            return self.proteinToChains[protein]
+        dataItems = self.getDataItems()
+        kVPairs = reduce(lambda x,y:x+y,\
+                         [d.mapping.items() for d in dataItems],[])
+        chains = [v for (k,v) in kVPairs if k in protein]
+        chains = list(unique(reduce(lambda x,y: x+y, chains,[])))
+        if chains:
+            self.proteinToChains[protein] = chains
+            return chains
+        else:
+            raise KeyError
+
+    def serialize(self):
+        _dict = {}
+        _dict["xlinkanalyzerVersion"] = "0.1"
+        _dict["subunits"] = []
+        _dict["data"] = []
+        for item in self.items:
+            if type(item) == Component:
+                _dict["subunits"].append(item.serialize())
+            else:
+                _dict["data"].append(item.serialize())
+        return _dict
+
+    def dataItems(self):
+        return [item for item in self.items if item.type in \
+                [xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.SEQUENCES_DATA_TYPE]]
+
+    def getPyxlinksConfig(self):
+        '''
+        Return pyxlinks.Config instance.
+
+        It is used to utilize some of the pyxlinks functionality (e.g. statistics-related).
+
+        pyxlinks.Config attributes are references to xlinkanalyzer.Config attributes whenever possible
+        '''
+
+        cfg = pyxlinks.Config()
+        cfg.components = self.getComponentNames()
+        cfg.chain_to_comp = self.getComponentByChain()
+        cfg.component_chains = self.getChainIdsByComponentName()
+        cfg.data = self.getDataItems()
+        cfg.cfg_filename = self.file
+        cfg.sequences = self.getSequences()
+
+        return cfg
+
+    def locate(self):
+        for item in self.items:
+            if  issubclass(item.__class__,DataItem):
+                item.locate()
+
+class AssemblyFrame(Frame):
+    def __init__(self,master,mainWindow=None):
+        """
+        The AssemblyFrame represents an Assembly and offers the
+        possebility to edit this assembly.
+        """
+        self.master = master
+        self.itemFrames = []
+        self.models={}
+        self.selectedModel = StringVar()
+        self.selectedModel.set("Displayed Models")
+        self.assembly = Assembly(self)
+        self.resMngr = ResourceManager(self.assembly)
+        self.mainWindow = mainWindow
+        self.mainWindow.setTitle(self.assembly.state)
+        self.name = "AF"
+        layout = {"pady":5,"padx":5}
+
+        Frame.__init__(self,master)
+
+        #ROW 0:
+        curRow = 0
+
+        #ROW 1:
+
+        Tkinter.Label(self, text="Add subunit:").grid(row=curRow,\
+                                    column=0,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+
+        Tkinter.Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
+                                    column=3,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+        curRow = curRow + 1
+
+        #ROW 2:
+        self.addComponentFrame = ItemFrame(self,\
+                                           Component("",self.assembly),\
+                                           self,\
+                                           active=True)
+        self.addComponentFrame.grid(row=curRow,\
+                                    column=0,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+
+        self.addCompButton = Button(self,\
+                                    text="Add",\
+                                    command=self.onComponentAdd)
+        self.addCompButton.grid(row = curRow,\
+                                column = 2, \
+                                sticky = "W",**layout)
+        self.addDataFrame = ItemFrame(self,\
+                                      DataItem("",self.assembly,None),\
+                                      self,\
+                                      active=True)
+        self.addDataFrame.grid(row = curRow, column = 3, sticky = "W",**layout)
+
+        self.addDataButton = Button(self,text="Add",command=self.onDataItemAdd)
+        self.addDataButton.grid(row = curRow,column = 4, sticky = "W",**layout)
+
+        curRow = curRow + 1
+
+        #ROW 3:
+        self.prettyComponentFrame = LabelFrame(self,text="Subunits")
+        self.prettyComponentFrame.grid(sticky="NESW",\
+                                  row=curRow,\
+                                  column=0,\
+                                  columnspan=3,\
+                                  **layout)
+        self.prettyDataFrame = LabelFrame(self,text="Data Sets")
+        self.prettyDataFrame.grid(sticky="NESW",\
+                             row=curRow,\
+                             column=3,\
+                             columnspan=2,\
+                             **layout)
+        self.compFrame = ScrolledFrame(self.prettyComponentFrame)
+        self.compFrame.pack(fill="both",expand=1,**layout)
+        self.dataFrame = ScrolledFrame(self.prettyDataFrame)
+        self.dataFrame.pack(fill="both",expand=1,**layout)
+
+        self.grid_rowconfigure(curRow, weight=1)
+
+        curRow = curRow + 1
+        self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
+        self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
+        self.saveButton = Button(self,text="Save", command=self.onSave)
+        self.saveButton.grid(row = curRow,column = 1, sticky = "W",**layout)
+        self.loadButton = Button(self,text="Load project", command=self.onLoad)
+        self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
+
+        # self.modelSelect = ModelSelect(self, text="Select models")
+        # self.modelSelect.grid(row = curRow,column = 2, sticky = "W",**layout)
+
+
+        curRow = curRow + 1
+
+        #Deploy the components in self.assembly
+
+        for i,component in enumerate(self.assembly.items):
+            componentFrame = ItemFrame(self,component=component)
+            componentFrame.grid(row=i+1,\
+                                column = 0,\
+                                columnspan = 3,\
+                                sticky = "W")
+            self.componentFrames.append(componentFrame)
+        self.pack(fill='both', expand=1)
+
+    def __iter__(self):
+        for componentFrame in self.componentFrames:
+            yield componentFrame
+
+    def clear(self):
+        self.assembly.items = []
+        self.update()
+
+    def onComponentAdd(self):
+        if self.addComponentFrame.populate():
+            self.assembly.addItem(self.addComponentFrame.item)
+            self.addComponentFrame.item = Component("",self.assembly)
+            self.addComponentFrame.empty()
+            self.update()
+
+    def onDataItemAdd(self):
+        if self.addDataFrame.populate():
+            if self.addDataFrame.item.type == "data":
+                raise UserError("No Datatype specified")
+            else:
+                if self.checkName(self.addDataFrame.item):
+                    self.assembly.addItem(self.addDataFrame.item)
+                    self.addDataFrame.item = DataItem("",self.assembly,None)
+                    self.addDataFrame.empty()
+                    self.update()
+                else:
+                    title = "Chose different Name"
+                    message = "This name is already occupied by a different data item. For consistencies' sake, please use a different name."
+                    mBox  = tkMessageBox.showinfo(title,\
+                                                  message,\
+                                                  parent=self.master)
+
+    def onLoad(self):
+        if self.resMngr.loadAssembly(self):
+            self.clear()
+        self.update()
+        self.mainWindow.setTitle(self.assembly.file)
+        self.assembly.state="unchanged"
+
+    def onSaveAs(self):
+        self.resMngr.saveAssembly(self)
+        self.mainWindow.setTitle(self.assembly.file)
+        self.assembly.state="unchanged"
+
+    def onSave(self):
+        if self.assembly.state == "unsaved":
+            self.resMngr.saveAssembly(self)
+        else:
+            self.resMngr.saveAssembly(self,False)
+        self.mainWindow.setTitle(self.assembly.file)
+        self.assembly.state="unchanged"
+
+    def update(self):
+        #remove non neccessary frames
+        for i in range(len(self.itemFrames)):
+            if not self.itemFrames[i].item in self.assembly.items:
+                self.itemFrames[i].destroy()
+                self.itemFrames[i] = None
+        #add frame for none present items
+        self.itemFrames = [f for f in self.itemFrames if f is not None]
+
+        for i in self.assembly.items:
+            if i not in [f.item for f in self.itemFrames]:
+                self.addItemFrame(i)
+
+        if self.assembly.state != "unsaved":
+            self.mainWindow.setTitle(self.assembly.file+"*")
+            self.assembly.state = "changed"
+
+        chimera.triggers.activateTrigger('configUpdated', self.assembly)
+
+
+    def addItemMenu(self):
+        resourcePath = StringVar()
+        dataType = StringVar()
+        dataType.set("DataType")
+        componentName = StringVar()
+
+        def loadItemFile():
+            resourcePath.set(tkFileDialog.askopenfilename())
+
+        menu = Toplevel()
+        frame = LabelFrame(menu,text="Configure Item")
+
+        Label(frame,text="Resource Path: ",\
+                    pady=5).grid(row=0,column=0,sticky='W')
+        Entry(frame,textvariable=resourcePath,)\
+             .grid(row=0,column=1,pady=5,padx=5)
+        Button(frame,text="Load resource",\
+                     command=loadItemFile)\
+              .grid(row=0,column=2,pady=5)
+
+        Label(frame,text="Data Type: ",\
+                    pady=5).grid(row=1,column=0,sticky='W')
+        OptionMenu(frame,\
+                   dataType,\
+                   "Xquest",\
+                   "Interaction Site",\
+                   "Sequences")\
+                  .grid(row=1,column=1,sticky='W',pady=5,padx=5)
+
+        Label(frame,text="Name: ")\
+             .grid(row=2,column=0,sticky='W',pady=5)
+        Entry(frame,textvariable=componentName)\
+             .grid(row=2,column=1,sticky='W',pady=5,padx=5)
+
+        Button(frame,text="Add Item",command=menu.destroy)\
+              .grid(row=3,column=0,sticky='W',pady=5,padx=5)
+
+        frame.grid(pady=5,padx=5)
+        menu.grid()
+
+    def addItemFrame(self,item):
+        if  issubclass(item.__class__,Item):
+            if type(item) == Component:
+                itemFrame = ItemFrame(self.compFrame.interior(),\
+                                           item,\
+                                           self)
+            else:
+                itemFrame = ItemFrame(self.dataFrame.interior(),\
+                                        item,\
+                                        self)
+            itemFrame.grid(columnspan = 3, sticky = "WE")
+            self.itemFrames.append(itemFrame)
+
+    def checkName(self,item):
+        if item.name in [item.name for item in self.assembly]:
+            return False
+        else:
+            return True
+
+class ResourceManager(object):
+    def __init__(self,assembly):
+        self.assembly = assembly
+        self.root = ""
+
+    def saveAssembly(self,parent,saveAs=True):
+        if saveAs:
+            _file = tkFileDialog.asksaveasfilename(\
+                initialfile = "myProject.json",\
+                defaultextension=".json",\
+                initialdir=self.assembly.root,\
+                parent=parent)
+        else:
+            _file = self.assembly.file
+        if _file:
+            self.assembly.locate()
+            self.dumpJson(_file)
+            self.assembly.file = _file
+            self.state = "unchanged"
+
+    def loadAssembly(self,parent):
+        _file = tkFileDialog.askopenfilename(title="Choose file",\
+                                             parent=parent)
+        if _file:
+            self.assembly.file = _file
+            with open(_file,'r') as f:
+                data = json.loads(minify_json.json_minify(f.read()))
+                self.assembly.root = dirname(_file)
+                self.assembly.frame.clear()
+                self.assembly.loadFromDict(data)
+
+
+    def dumpJson(self,_file):
+        with open(_file,'w') as f:
+            self.assembly.root = dirname(_file)
+            content = self.assembly.serialize()
+            f.write(json.dumps(content,\
+                    sort_keys=True,\
+                    indent=4,\
+                    separators=(',', ': ')))
+            f.close()
+
+
+class CustomModelItems(ModelItems):
+    '''
+    Shows rmf models only as single model
+    '''
+    columnTitle = "Model"
+
+    def listFn(self):
+        seen = []
+        out = []
+        for m in chimera.openModels.list():
+            if m.id not in seen:
+                seen.append(m.id)
+                out.append(m)
+
+        return out
+
+    def __init__(self, **kw):
+        
+        kw['listFunc'] = self.listFn
+        ModelItems.__init__(self, **kw)
+
+class CustomMoleculeScrolledListBox(ModelScrolledListBoxBase, CustomModelItems):
+    """Modified to remove itself from ModelSelect.children list"""
+    autoselectDefault = None
+    def __init__(self, master, listbox_height=4, **kw):
+        CustomModelItems.__init__(self, **kw)
+        ModelScrolledListBoxBase.__init__(self, master,
+                    listbox_height=listbox_height, **kw)
+
+    def destroy(self):
+        modelSelect = xlinkanalyzer.get_gui().modelSelect
+        if self in modelSelect.children:
+            modelSelect.children.remove(self)
+
+        self.doHack()
+        ModelScrolledListBoxBase.destroy(self)
+
+    def doHack(self):
+        """Avoid Attribute error that I got sometimes when destroying"""
+        self.itemMap = {}
+        self.valueMap = {}
+
+class ModelSelect(object):
+    def __init__(self):
+        self.children = []
+        self.models = [] #xlinkanalyzer.Model list
+        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
+
+    def create(self, master, *args, **kwargs):
+
+        box = CustomMoleculeScrolledListBox(master,
+            listbox_selectmode="extended",
+            labelpos="nw",
+            label_text="Choose models(s) to act on:"
+            )
+
+        if len(self.children) > 0:
+            box.setvalue(self.children[0].getvalue()[:])
+
+        box.configure(selectioncommand=lambda: self.doSync(box))
+
+        self.children.append(box)
+
+        return box
+
+    def isRMFmodel(self, chimeraModel):
+        return chimeraModel.openedAs[0].endswith('.rmf')
+
+    def createRMFmodel(self, chimeraModel):
+        '''
+        Find all submodels with this id
+        '''
+        idx = chimeraModel.id
+        moleculeModel = None
+        beadModel = None
+
+        for omodel in chimera.openModels.list():
+            if omodel.id == idx:
+                if hasattr(omodel, 'isRealMolecule') and not omodel.isRealMolecule:
+                    beadModel = omodel
+                else:
+                    moleculeModel = omodel
+
+        model = xlinkanalyzer.RMF_Model(moleculeModel, beadModel, self.config)
+
+        return model
+
+    def doSync(self, callingChild):
+        selChimeraModels = callingChild.getvalue()
+        for child in self.children:
+            if child is not callingChild:
+                child.setvalue(selChimeraModels[:])
+
+        oldActiveChimeraModels = [mdl.chimeraModel for mdl in self.models]
+
+        for chimeraModel in selChimeraModels:
+            if chimeraModel not in oldActiveChimeraModels:
+                if self.isRMFmodel(chimeraModel):
+                    newModel = self.createRMFmodel(chimeraModel)
+                else:
+                    newModel = xlinkanalyzer.Model(chimeraModel, self.config)
+                newModel.active = False
+                self.models.append(newModel)
+
+        for model in self.models:
+            if model.chimeraModel in selChimeraModels:
+                model.active = True
+            else:
+                model.active = False
+
+
+    def getActiveModels(self):
+        return [model for model in self.models if model.active]
+
+    def onModelRemove(self, trigger, userData, removedModels):
+        chimeraModels = [mdl.chimeraModel for mdl in self.models]
+        for mdl in removedModels:
+            if mdl in chimeraModels:
+                self.models.remove(self.models[chimeraModels.index(mdl)])
+
+
+
+class TabFrame(Tkinter.Frame):
+    def __init__(self, master, *args, **kwargs):
+        Tkinter.Frame.__init__(self, master, *args, **kwargs)
+
+        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        self.models = []
+        self._handlers = []
+        self._addHandlers()
+
+    def destroy(self):
+        self._deleteHandlers()
+        Tkinter.Frame.destroy(self)
+
+    def _addHandlers(self):
+        handler = chimera.triggers.addHandler('configUpdated', self.reload, None)
+        self._handlers.append((chimera.triggers, 'configUpdated', handler))
+
+    def _deleteHandlers(self):
+        if not self._handlers:
+            return
+        while self._handlers:
+            triggers, trigName, handler = self._handlers.pop()
+            triggers.deleteHandler(trigName, handler)
+
+    def getActiveModels(self):
+        self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
+
+class DataMgrTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+
+        Tkinter.Label(self, text="Add data in Setup tab").pack(anchor='w', pady=1)
+
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
+    def reload(self, name, userData, cfg):
+        self.clear()
+        curRow = 0
+        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+                text='This panel allows selecting which data sets should be used for displaying cross-links and statistics.').grid(row=curRow, columnspan=2)
+        curRow += 1
+
+        if len(self.config.getDataItems()) > 0:
+
+
+            for item in self.config.getDataItems():
+                Tkinter.Label(self, text=item.name).grid(row=curRow, column=0)
+
+                var = Tkinter.BooleanVar()
+                var.set(True)
+                btn = Tkinter.Checkbutton(self,
+                    variable=var,
+                    command=lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar))
+                btn.var = var
+
+                # command1 = lambda x,y,z: command(var.get())
+                # scalevar.trace('w', command1)
+
+                btn.grid(row = curRow, column=1)
+                curRow += 1
+        else:
+            pass
+            #Tkinter.Label(self.notebook.page(self), text="This tab probably will be removed").pack(anchor='w', pady=1)
+
+    def toggleActive(self, item, var):
+        item.active = var.get()
+        chimera.triggers.activateTrigger('activeDataChanged', self)
+
+
+class ComponentsTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+
+        Tkinter.Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
+
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
+    def reload(self, name, userData, cfg):
+        if len(cfg.getComponentNames()) > 0:
+            self.clear()
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            modelSelect.pack(anchor='w', fill = 'both', pady=1)
+
+            # curRow = 0
+            f1 = Tkinter.Frame(self)
+            Tkinter.Label(f1, text="Choose action: ").pack(side='left')
+            self.componentsTabHandlerOptMenu = ComponentsHandleOptionMenu(f1)
+
+            self.componentsTabHandlerOptMenu.pack(side='left')
+
+            f1.pack(anchor='w', pady=1)
+
+            f2 = Tkinter.LabelFrame(self, bd=4, relief="groove", text='Apply to:', padx=4, pady=4)
+            f2.pack(anchor='w', pady=1)
+            self.addComponentButtons(f2, callback=self.handleComponent, startRow=0)
+
+            f3 = Tkinter.Frame(self)
+            f3.pack(anchor='w', pady=4)
+
+            btn = Tkinter.Button(f3,
+                text='Show all subunits',
+                command=self.showAllComponents)
+
+            btn.pack(side='left')
+
+
+            btn = Tkinter.Button(f3,
+                text='Color all subunits',
+                command=self.colorAllComponents)
+
+            btn.pack(side='left')
+
+        else:
+            self.clear()
+            Tkinter.Label(self, text="Add some components first").pack(anchor='w', pady=1)
+
+
+    def handleComponent(self, name):
+        handler = self.componentsTabHandlerOptMenu.var.get()
+        if handler == 'Select':
+            self.selectComponent(name)
+        elif handler == 'Show':
+            self.showComponent(name)
+        elif handler == 'Show only':
+            self.showComponentOnly(name)
+        elif handler == 'Hide':
+            self.hideComponent(name)
+
+    def addComponentButtons(self, parent, callback, startRow=0):
+        cols = 4
+        cur_row = startRow
+        cur_col = 0
+        cfg = xlinkanalyzer.get_gui().assemblyFrame.assembly
+
+        for i, name in enumerate(cfg.getComponentNames()):
+            color_cfg = cfg.getComponentColors(name)
+            color = cfg.getColor(name)
+
+            if color_cfg is None:
+                color = chimera.MaterialColor(0,0,0)
+
+            rgb = [int(255*x) for x in color.rgba()[:3]]
+            color = '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
+
+            if xlinkanalyzer.is_mac():
+                ttk.Style().configure(str(i)+'.TButton', foreground=color)
+                btn = ttk.Button(parent,
+                    text=name,
+                    style=str(i)+'.TButton',
+                    command=lambda rebind=name: callback(rebind))
+            else:
+                btn = Tkinter.Button(parent,
+                    text=name,
+                    foreground=color,
+                    command=lambda rebind=name: callback(rebind))
+            # btn.pack(side=Tkinter.TOP)
+            btn.grid(row = cur_row, column = cur_col)
+            cur_col = cur_col + 1
+            if cur_col == cols:
+                cur_col = 0
+                cur_row = cur_row + 1
+
+        return cur_row
+
+
+    def selectComponent(self, name):
+        self.getActiveModels()
+        # selectItems = []
+        modelIds = []
+
+        for model in self.models:
+            modelIds.append(str(model.chimeraModel.id))
+            # selectItems.append(' #' + str(model.chimeraModel.id) + self.config.component_selections[name])
+
+        selectStr =  ' #' +','.join(modelIds) + \
+                              self.config.getComponentSelections(name)
+        runCommand('select ' + selectStr)
+
+    def showComponentOnly(self, name):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.showOnly(name)
+
+    def showComponent(self, name):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.show(name)
+
+    def hideComponent(self, name):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.hide(name)
+
+    def showAllComponents(self):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.showAll()
+
+    def colorAllComponents(self):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.colorAll()
+
+class LdScoreFilterEntry(Pmw.EntryField):
+    def __init__(self, parent, var, command):
+        self.var = var
+        Pmw.EntryField.__init__(self, parent,
+                labelpos = 'w',
+                value = '0.0',
+                label_text = 'Custom (from 0 to 100)',
+                # validate = {'validator' : 'real'},
+                validate = {'validator' : 'real',
+                        'min' : 0, 'max' : 100, 'minstrict' : 1},
+                entry_textvariable = self.var,
+                modifiedcommand = command)
+        command1 = lambda x,y,z: command()
+        self.var.trace('w', command1)
+
+class LdScoreFilterScale(Tkinter.Scale):
+    def __init__(self, parent, var):
+        # scalevar = Tkinter.DoubleVar()
+        self.var = var
+        Tkinter.Scale.__init__(self, parent,
+                orient=Tkinter.HORIZONTAL,
+                length=300,
+                from_=0,
+                to=100,
+                # command=command,
+                variable=self.var
+                )
+        # command1 = lambda x,y,z: command(self.var.get())
+        # self.var.trace('w', command1)
+
+class XlinkLengthThresholdEntry(Pmw.EntryField):
+    def __init__(self, parent, lengthThreshVar):
+        self.var = lengthThreshVar
+        Pmw.EntryField.__init__(self, parent,
+                labelpos = 'w',
+                value = '30.0',
+                label_text = 'Xlink length threshold',
+                entry_textvariable = self.var,
+                validate = {'validator' : 'real',
+                        'min' : 0, 'minstrict' : 1})
+
+class LengthThresholdLabel(Tkinter.Label):
+    def __init__(self, parent):
+        self.textSrc = string.Template("Current length threshold: $val A")
+        self.var = StringVar()
+        self.var.set(self.textSrc.substitute({'val': xlinkanalyzer.XLINK_LEN_THRESHOLD}))
+        Tkinter.Label.__init__(self, parent, textvariable=self.var)
+
+        self._handlers = []
+
+        self._addHandlers()
+
+    def destroy(self):
+        self._deleteHandlers()
+        Tkinter.Label.destroy(self)
+
+    def _addHandlers(self):
+        handler = chimera.triggers.addHandler('lengthThresholdChanged',lambda x, y, val: self.var.set(self.textSrc.substitute({'val': val})), None)
+        self._handlers.append((chimera.triggers, 'lengthThresholdChanged', handler))
+
+    def _deleteHandlers(self):
+        if not self._handlers:
+            return
+        while self._handlers:
+            triggers, trigName, handler = self._handlers.pop()
+            triggers.deleteHandler(trigName, handler)
+
+class XlinkToolbar(Tkinter.Frame):
+    def __init__(self, master, ld_score_var, lengthThreshVar, xlinkMgrTabFrame, *args, **kwargs):
+        Tkinter.Frame.__init__(self, master, borderwidth=2, relief='groove', padx=4, pady=4, *args, **kwargs)
+        self.ld_score_var = ld_score_var
+        self.lengthThreshVar = lengthThreshVar
+        self.xlinkMgrTabFrame = xlinkMgrTabFrame
+
+        curRow = 0
+        totalCols = 2
+
+        ldscoreThresholdFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
+        ldscoreThresholdFrame.grid(row = curRow, column = 0, sticky="we")
+        scoresFrame = Tkinter.Frame(ldscoreThresholdFrame)
+        scoresFrame.pack()
+        # scoresFrame.grid(row = curRow, column = 0)
+        Tkinter.Label(scoresFrame, text="Minimal xlink score").pack(side='left')
+
+        btn = Tkinter.Button(scoresFrame,
+            text='20',
+            # foreground=color,
+            command=lambda: ld_score_var.set(20.0))
+        btn.pack(side='left')
+
+        btn = Tkinter.Button(scoresFrame,
+            text='25',
+            # foreground=color,
+            command=lambda: ld_score_var.set(25.0))
+        btn.pack(side='left')
+
+        btn = Tkinter.Button(scoresFrame,
+            text='30',
+            # foreground=color,
+            command=lambda: ld_score_var.set(30.0))
+        btn.pack(side='left')
+
+        # curRow += 1
+
+        customScoresFrame = Tkinter.Frame(ldscoreThresholdFrame)
+        customScoresFrame.pack()
+        # customScoresFrame.grid(row = curRow, column = 0)
+        curRow += 1
+
+        self.generalTabldScoreFilter = LdScoreFilterEntry(customScoresFrame, ld_score_var, self.reshowByLdScore)
+        self.generalTabldScoreFilter.pack()
+
+
+        self.generalTabldScoreFilterScale = LdScoreFilterScale(
+            customScoresFrame,
+            ld_score_var
+            # command=lambda x: self.generalTabldScoreFilter.setvalue(x)
+            )
+        self.generalTabldScoreFilterScale.pack()
+
+
+        lengthThresholdFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
+        lengthThresholdFrame.grid(row=curRow, column=0)
+        curRow += 1
+        lengthThresholdEntry = XlinkLengthThresholdEntry(lengthThresholdFrame, self.lengthThreshVar)
+        lengthThresholdEntry.grid(row=1, column=0)
+        btn = Tkinter.Button(lengthThresholdFrame,
+            text='Apply',
+            command=lambda: chimera.triggers.activateTrigger('lengthThresholdChanged', lengthThresholdEntry.var.get()))
+        btn.grid(row=1, column=1)
+        LengthThresholdLabel(lengthThresholdFrame).grid(row=0, column=0, sticky='w')
+
+
+        curRow = 1
+        btn = Tkinter.Button(self,
+            text='Reset view',
+            command=self.resetView)
+        btn.grid(row = curRow, column=1, sticky='s', padx=2, pady=2)
+        curRow += 1
+
+        self._handlers = []
+        self._addHandlers()
+
+    def destroy(self):
+        self._deleteHandlers()
+        Tkinter.Frame.destroy(self)
+
+    def _addHandlers(self):
+        handler = chimera.triggers.addHandler('lengthThresholdChanged', self.onLengthThresholdChanged, None)
+        self._handlers.append((chimera.triggers, 'lengthThresholdChanged', handler))
+
+    def _deleteHandlers(self):
+        if not self._handlers:
+            return
+        while self._handlers:
+            triggers, trigName, handler = self._handlers.pop()
+            triggers.deleteHandler(trigName, handler)
+
+    def onLengthThresholdChanged(self, x, y, val):
+        xlinkanalyzer.XLINK_LEN_THRESHOLD = val
+        self.xlinkMgrTabFrame.restyleXlinks()
+
+    def reshowByLdScore(self):
+        val = self.ld_score_var.get()
+        dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs()
+        try:
+            minScore = float(val)
+        except ValueError:
+            pass
+        else:
+            for mgr in dataMgrs:
+                if hasattr(mgr, 'objToXlinksMap'):
+                    if self.xlinkMgrTabFrame.smartModeBtn.var.get():
+                        mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                    else:
+                        mgr.showAllXlinks()
+                    mgr.hide_by_ld_score(minScore)
+
+    def resetView(self):
+        dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs() #TODO: remove when modelList widget will be updating self.models and self.dataMgrs
+
+        self.xlinkMgrTabFrame.showAllXlinks()
+        for dataMgr in dataMgrs:
+            dataMgr.resetView()
+
+class ColorXlinkedFrame(Tkinter.Frame):
+    def __init__(self, master, xlinkMgrTabFrame, *args, **kwargs):
+        Tkinter.Frame.__init__(self, master, *args, **kwargs)
+        self.xlinkMgrTabFrame = xlinkMgrTabFrame
+        curRow = 0
+
+        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+                text='This panel allows coloring cross-linked residues').grid(row = curRow, columnspan=2, sticky="we")
+        curRow += 1
+
+        modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+        modelSelect.grid(row = curRow, columnspan=2, sticky="we")
+        curRow += 1
+
+        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit', xlinkMgrTabFrame.config)
+        self.compOptMenuFrom.grid(row = curRow, column = 0)
+        self.compOptMenuTo = ComponentsOptionMenu(self, 'to subunit (def: all)', xlinkMgrTabFrame.config)
+        self.compOptMenuTo.grid(row = curRow, column=1)
+        curRow += 1
+
+        fromComp = None
+        fromCompSel = self.compOptMenuFrom.var.get()
+        if fromCompSel in xlinkMgrTabFrame.config.getComponentNames():
+            fromComp = fromCompSel
+
+        toComp = None
+        toCompSel = self.compOptMenuTo.var.get()
+        if toCompSel in xlinkMgrTabFrame.config.getComponentNames():
+            toComp = toCompSel
+
+        self.colorOptionVar = Tkinter.IntVar()
+        self.colorOptionVar.set(1)
+
+        Tkinter.Radiobutton(self, text="Color red", variable=self.colorOptionVar, value=1).grid(row=curRow, columnspan=2, sticky='w')
+        curRow += 1
+        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
+        curRow += 1
+
+        var = Tkinter.BooleanVar()
+        self.uncolorOthersBtn = Tkinter.Checkbutton(self,
+            text="Clear showing of other xlinked residues",
+            variable=var)
+        self.uncolorOthersBtn.var = var
+        self.uncolorOthersBtn.grid(row = curRow, columnspan=2, sticky='w')
+        curRow += 1
+
+        btn = Tkinter.Button(self,
+            text='Color',
+            # foreground=color,
+            command=self.colorXlinked)
+
+        btn.grid(row = curRow, column=1, sticky='e')
+        curRow += 1
+
+    def colorXlinked(self):
+        dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs() #TODO: remove when modelList widget will be updating self.models and self.dataMgrs
+
+        fromComp = None
+        fromCompSel = self.compOptMenuFrom.var.get()
+        if fromCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
+            fromComp = fromCompSel
+
+        toComp = None
+        toCompSel = self.compOptMenuTo.var.get()
+        if toCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
+            toComp = toCompSel
+
+        colorOption = self.colorOptionVar.get()
+        color = None
+        colorByCompTo = False
+        if colorOption == 1:
+            color = "red"
+        elif colorOption == 2:
+            colorByCompTo = True
+
+        if self.uncolorOthersBtn.var.get():
+            uncolorOthers = True
+        else:
+            uncolorOthers = False
+
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.color_xlinked(to=toComp, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
+
+
+class XlinkMgrTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+
+        Tkinter.Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
+        self.dataMgrs = []
+
+
+
+        self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
+
+        self._addHandlers()
+
+    def _addHandlers(self):
+        TabFrame._addHandlers(self)
+        handler = chimera.triggers.addHandler('lengthThresholdChanged', self.onLengthThresholdChanged, None)
+        self._handlers.append((chimera.triggers, 'lengthThresholdChanged', handler))
+
+        handler = chimera.triggers.addHandler('CoordSet', self.onCoordSet, None)
+        self._handlers.append((chimera.triggers, 'CoordSet', handler))
+
+        handler = chimera.triggers.addHandler('activeDataChanged', self.onActiveDataChanged, None)
+        self._handlers.append((chimera.triggers, 'activeDataChanged', handler))
+
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
+        TabFrame.destroy(self)
+
+    def onModelRemove(self, trigger, userData, removedModels):
+        # validDataMgrs = []
+        # validModels = []
+
+        for dataMgr in self.dataMgrs:
+            if hasattr(dataMgr, 'objToXlinksMap'):
+                if dataMgr.model.chimeraModel in removedModels:
+                    dataMgr.destroy()
+                    self.dataMgrs.remove(dataMgr)
+
+        # for model in removedModels:
+        #     for dataMgr in self.dataMgrs:
+        #         if dataMgr.model.chimeraModel is not model:
+        #             validDataMgrs.append(dataMgr)
+
+
+        for model in self.models:
+            if model in removedModels:
+                self.models.remove(model)
+            # if prevModel.chimeraModel is not model:
+            #     validModels.append(prevModel)
+
+        # self.dataMgrs = validDataMgrs
+        # self.models = validModels
+
+    def onActiveDataChanged(self, trigger, userData, sth):
+        self.getActiveModels()
+
+
+
+        for mgr in self.dataMgrs:
+            mgr.reload(self.config)
+
+        if hasattr(self, 'modelStatsTable'):
+            self.modelStatsTable.render()
+
+        self.restyleXlinks()
+
+    def onCoordSet(self, trigger, additional, coordChanges):
+        self.restyleXlinks()
+
+    def getActiveData(self):
+        dataType = xlinkanalyzer.XQUEST_DATA_TYPE
+
+        data = []
+        for item in self.config.getDataItems():
+            if item.active and item.type == dataType:
+                data.append(item)
+
+        return data
+
+    def getXlinkDataMgrs(self):
+        self.getActiveModels()
+        dataMgrsForActive = []
+        for model in self.models:
+            xlinkDataMgrsForModel = []
+            for mgr in self.dataMgrs:
+                if hasattr(mgr, 'objToXlinksMap') and mgr.model is model:
+                    xlinkDataMgrsForModel.append(mgr)
+
+            if len(xlinkDataMgrsForModel) == 0:
+                xlinkDataMgrsForModel.append(xlinkanalyzer.XlinkDataMgr(model, self.getActiveData()))
+                self.dataMgrs.extend(xlinkDataMgrsForModel)
+
+            dataMgrsForActive.extend(xlinkDataMgrsForModel)
+        self.restyleXlinks()
+
+        return dataMgrsForActive
+
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
+    def reload(self, name, userData, cfg):
+        # self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+
+        if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
+            self.clear()
+
+
+            xlNotebook = Pmw.NoteBook(self)
+            xlNotebook.pack(fill = 'both', expand = 1, padx = 2, pady = 2)
+            self.xlNotebook = xlNotebook
+
+            curRow = 0
+            totalCols = 2
+
+            generalTabName = 'General'
+            xlNotebook.add(generalTabName)
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(xlNotebook.page(generalTabName))
+            modelSelect.grid(row = curRow, columnspan=totalCols, sticky="we")
+            curRow += 1
+
+            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+                text='Display crosslinks',
+                # foreground=color,
+                command=self.displayDefault)
+            btn.grid(row = curRow, columnspan=totalCols)
+            curRow += 1
+
+            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+                text='Show all xlinks',
+                # foreground=color,
+                command=self.showAllXlinks)
+            btn.grid(row = curRow, column = 0)
+
+            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+                text='Hide all xlinks',
+                # foreground=color,
+                command=self.hideAllXlinks)
+            btn.grid(row = curRow, column = 1)
+            curRow += 1
+
+            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+                text='Hide intra xlinks',
+                # foreground=color,
+                command=self.hideIntraXlinks)
+            btn.grid(row = curRow, column = 0)
+
+            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+                text='Hide inter xlinks',
+                # foreground=color,
+                command=self.hideInterXlinks)
+            btn.grid(row = curRow, column = 1)
+            curRow += 1
+
+            var = Tkinter.BooleanVar()
+            self.smartModeBtn = Tkinter.Checkbutton(xlNotebook.page(generalTabName),
+                text="Smart homoligomers mode",
+                variable=var,
+                command=self.onSmartModeChange)
+            self.smartModeBtn.var = var
+            self.smartModeBtn.grid(row = curRow, columnspan=totalCols)
+            curRow += 1
+
+            self.ld_score_var = Tkinter.DoubleVar()
+            self.lengthThreshVar = Tkinter.DoubleVar()
+
+            xlinkToolbar = XlinkToolbar(xlNotebook.page(generalTabName), self.ld_score_var, self.lengthThreshVar, self)
+            xlinkToolbar.grid(row = curRow, columnspan=totalCols, padx=4, pady=4)
+            curRow += 1
+
+            modifiedTabName = 'Modified'
+            xlNotebook.add(modifiedTabName)
+
+            curRow = 0
+            self.showModifiedFrame = ShowModifiedFrame(xlNotebook.page(modifiedTabName), self).grid(row=curRow, column=0)
+            curRow += 1
+
+
+            xlinkToolbar = XlinkToolbar(xlNotebook.page(modifiedTabName), self.ld_score_var, self.lengthThreshVar, self)
+            xlinkToolbar.grid(row = curRow, column=0, padx=4, pady=4)
+
+            curRow = 0
+            colorXlinkedTabName = 'Color xlinked'
+            xlNotebook.add(colorXlinkedTabName)
+
+            self.colorXlinkedFrame = ColorXlinkedFrame(xlNotebook.page(colorXlinkedTabName), self)
+            self.colorXlinkedFrame.grid(row = curRow, column = 0, padx=4, pady=4)
+            curRow += 1
+
+
+            xlinkToolbar = XlinkToolbar(xlNotebook.page(colorXlinkedTabName), self.ld_score_var, self.lengthThreshVar, self)
+            xlinkToolbar.grid(row = curRow, columnspan=2, padx=4, pady=4)
+            curRow += 1
+
+            curRow = 0
+            showXlinksFromTabName = 'Show xlinks from'
+            xlNotebook.add(showXlinksFromTabName)
+
+            Tkinter.Label(xlNotebook.page(showXlinksFromTabName), anchor='w', bg='white', padx=4, pady=4,
+                    text='This panel allows displaying cross-links between specific subunits').grid(row = curRow, columnspan=2, sticky="we")
+            curRow += 1
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(xlNotebook.page(showXlinksFromTabName))
+            modelSelect.grid(row = curRow, columnspan=2, sticky="we")
+            curRow += 1
+
+            self.showXlinksFromTabNameCompOptMenuFrom = ComponentsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'from subunit', self.config)
+            self.showXlinksFromTabNameCompOptMenuFrom.grid(row = curRow, column = 0)
+
+            self.showXlinksFromTabNameCompOptMenuTo = ComponentsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'to all', self.config)
+            self.showXlinksFromTabNameCompOptMenuTo.grid(row = curRow, column = 1)
+            curRow += 1
+
+            var = Tkinter.BooleanVar()
+            self.showXlinksFromTabsmartModeBtn = Tkinter.Checkbutton(xlNotebook.page(showXlinksFromTabName),
+                text="Smart homoligomers mode",
+                variable=var,
+                command=self.showXlinksFrom)
+            self.showXlinksFromTabsmartModeBtn.var = var
+            self.showXlinksFromTabsmartModeBtn.grid(row = curRow, columnspan=2)
+            curRow += 1
+
+            var = Tkinter.BooleanVar()
+            var.set(True)
+            self.showXlinksFromTabhideOthersBtn = Tkinter.Checkbutton(xlNotebook.page(showXlinksFromTabName),
+                text="Hide other xlinks",
+                variable=var,
+                command=self.showXlinksFrom)
+            self.showXlinksFromTabhideOthersBtn.var = var
+            self.showXlinksFromTabhideOthersBtn.grid(row = curRow, columnspan=2)
+            curRow += 1
+
+
+            btn = Tkinter.Button(xlNotebook.page(showXlinksFromTabName),
+                text='Show',
+                command=self.showXlinksFrom)
+
+            btn.grid(row = curRow, columnspan=2)
+            curRow += 1
+
+            xlinkToolbar = XlinkToolbar(xlNotebook.page(showXlinksFromTabName), self.ld_score_var, self.lengthThreshVar, self)
+            xlinkToolbar.grid(row = curRow, columnspan=2, padx=4, pady=4)
+            curRow += 1
+
+            curRow = 0
+            xlinksStatsTabName = 'Statistics'
+            xlNotebook.add(xlinksStatsTabName)
+            body = Pmw.ScrolledFrame(xlNotebook.page(xlinksStatsTabName),
+                borderframe=0,
+                horizflex='expand'
+                )
+            body.pack(fill='both', expand=1)
+
+
+            self.modelStatsTable = ModelXlinkStatsTable(body.interior(), self)
+
+            self.modelStatsTable.pack(fill='both')
+
+
+    def displayDefault(self):
+        self.getXlinkDataMgrs()
+        self.showAllXlinks()
+        self.restyleXlinks()
+
+    def showXlinksFrom(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        fromComp = None
+        fromCompSel = self.showXlinksFromTabNameCompOptMenuFrom.var.get()
+        if fromCompSel in self.config.getComponentNames():
+            fromComp = fromCompSel
+
+        if fromComp is not None:
+            toComp = None
+            toCompSel = self.showXlinksFromTabNameCompOptMenuTo.var.get()
+            if toCompSel in self.config.getComponentNames():
+                toComp = toCompSel
+
+            for mgr in dataMgrs:
+                if hasattr(mgr, 'objToXlinksMap'):
+                    if self.showXlinksFromTabsmartModeBtn.var.get():
+                        smart = True
+                    else:
+                        smart = False
+
+                    if self.showXlinksFromTabhideOthersBtn.var.get():
+                        hide_others = True
+                    else:
+                        hide_others = False
+
+                    mgr.show_xlinks_from(fromComp, to=toComp, threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, hide_others=hide_others, smart=smart)
+        else:
+            raise UserError("Select \"from subunit\"")
+
+        self.restyleXlinks()
+
+    def hideAllXlinks(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.hideAllXlinks()
+
+
+    def hideIntraXlinks(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.hide_intra_xlinks()
+
+    def hideInterXlinks(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.hideInterxlinks()
+
+    def showAllXlinks(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        # self.xlinkToolbar.generalTabldScoreFilterScale.set(0.0)
+        # self.ld_score_var.set(0.0)
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                if self.smartModeBtn.var.get():
+                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                else:
+                    mgr.showAllXlinks()
+                    mgr.hide_by_ld_score(mgr.minLdScore)
+
+    def onSmartModeChange(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        val = self.ld_score_var.get()
+        try:
+            minScore = float(val)
+        except ValueError:
+            pass
+
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                if self.smartModeBtn.var.get():
+                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                else:
+                    mgr.showAllXlinks()
+                    mgr.hide_by_ld_score(minScore)
+
+    def showXlinksSmart(self):
+        dataMgrs = self.getXlinkDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+
+    def onLengthThresholdChanged(self, x, y, val):
+        dataMgrs = self.getXlinkDataMgrs()
+        if self.smartModeBtn.var.get():
+            for mgr in dataMgrs:
+                if hasattr(mgr, 'objToXlinksMap'):
+                    mgr.show_xlinks_smart(val)
+
+    def restyleXlinks(self):
+        for mgr in self.dataMgrs:
+            if hasattr(mgr, 'objToXlinksMap'):
+                xlinkanalyzer.restyleXlinks([mgr], xlinkanalyzer.XLINK_LEN_THRESHOLD)
+
+    # def showMonolinksMap(self):
+    #     print self.dataMgrs
+    #     self.getXlinkDataMgrs()
+    #     for mgr in self.dataMgrs:
+    #         if hasattr(mgr, 'objToXlinksMap'):
+    #             mgr.showMonolinksMap()
+
+    # def reshowByLdScore(self):
+    #     val = self.generalTabldScoreFilter.getvalue()
+    #     try:
+    #         minScore = float(val)
+    #     except ValueError:
+    #         pass
+    #     else:
+    #         for mgr in self.dataMgrs:
+    #             if hasattr(mgr, 'objToXlinksMap'):
+    #                 if self.smartModeBtn.var.get():
+    #                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+    #                 else:
+    #                     mgr.showAllXlinks()
+    #                 mgr.hide_by_ld_score(minScore)
+
+class ToolTip(object):
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 27
+        y = y + cy + self.widget.winfo_rooty() +27
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        try:
+            # For Mac OS
+            tw.tk.call("::tk::unsupported::MacWindowStyle",
+                       "style", tw._w,
+                       "help", "noActivates")
+        except TclError:
+            pass
+        label = Label(tw, text=self.text, justify='left',
+                      background="#ffffe0", relief='solid', borderwidth=1,
+                      font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+
+
+class InteractingResiMgrTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+
+        Tkinter.Label(self, text="This is experimental feature, and data must be added manually to the json file").pack(anchor='w', pady=1)
+        self.dataMgrs = []
+
+        self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
+
+
+    def onModelRemove(self, trigger, userData, models):
+        validDataMgrs = []
+        validModels = []
+        for model in models:
+            for dataMgr in self.dataMgrs:
+                if dataMgr.model.chimeraModel is not model:
+                    validDataMgrs.append(dataMgr)
+
+            for prevModel in self.models:
+                if prevModel.chimeraModel is not model:
+                    validModels.append(prevModel)
+
+        self.dataMgrs = validDataMgrs
+        self.models = validModels
+
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
+    def getActiveDataMgrs(self):
+        self.getActiveModels()
+        dataMgrsForActive = []
+        for model in self.models:
+            dataMgrsForModel = []
+            for mgr in self.dataMgrs:
+                if hasattr(mgr, 'colorInteractingResi') and mgr.model is model:
+                    dataMgrsForModel.append(mgr)
+
+            if len(dataMgrsForModel) == 0:
+                dataMgrsForModel.append(xlinkanalyzer.InteractingResiDataMgr(model, self.getActiveData()))
+                self.dataMgrs.extend(dataMgrsForModel)
+
+            dataMgrsForActive.extend(dataMgrsForModel)
+
+        return dataMgrsForActive
+
+    def getActiveData(self):
+        data = []
+        for item in self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE):
+            if item.active:
+                data.append(item)
+
+        return data
+
+    def reload(self, name, userData, cfg):
+        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+
+        #HERE: This is an example why we cannot have both implementations.
+        data = self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
+        if data:
+            self.clear()
+
+            curRow = 0
+            totalCols = 2
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            modelSelect.grid(row = curRow, columnspan=totalCols, sticky="we")
+            curRow += 1
+
+            btn = Tkinter.Button(self,
+                text='Map interacting',
+                # foreground=color,
+                command=self.colorInteractingResi)
+            btn.grid(row = curRow, columnspan=totalCols)
+            curRow += 1
+
+            self.interactingResiCompOptMenuFrom = ComponentsOptionMenu(self, 'from subunit', self.config)
+            self.interactingResiCompOptMenuFrom.grid(row = curRow, column = 0)
+
+            self.interactingResiCompOptMenuTo = ComponentsOptionMenu(self, 'to all', self.config)
+            self.interactingResiCompOptMenuTo.grid(row = curRow, column = 1)
+            curRow += 1
+
+    def colorInteractingResi(self):
+        self.getActiveDataMgrs()
+
+        fromComp = None
+        fromCompSel = self.interactingResiCompOptMenuFrom.var.get()
+        if fromCompSel in self.config.getComponentNames():
+            fromComp = fromCompSel
+
+
+        toComp = None
+        toCompSel = self.interactingResiCompOptMenuTo.var.get()
+        if toCompSel in self.config.getComponentNames():
+            toComp = toCompSel
+
+        for mgr in self.dataMgrs:
+            if hasattr(mgr, 'colorInteractingResi'):
+                mgr.colorInteractingResi(fromComp, to=toComp, hide_others=False)
