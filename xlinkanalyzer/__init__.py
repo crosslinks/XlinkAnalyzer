@@ -42,15 +42,4 @@ def get_assembly():
 
 
 
-def get_group(groupName):
-    mgr = chimera.PseudoBondMgr.mgr()
-    group = mgr.findPseudoBondGroup(groupName)
-    return group
-
-def hideGroup(groupName):
-    group = get_group(groupName)
-    if group:
-        group.display = 0
-
-
 

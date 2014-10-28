@@ -14,8 +14,7 @@ from chimera import runCommand, Bond, selection
 from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
-from xlinkanalyzer import hideGroup,\
-                          get_gui
+from xlinkanalyzer import get_gui
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
 
 class Model(object):
@@ -1443,6 +1442,7 @@ def is_crosslinkable(resi, biodssp=None, acc_thresh=None):
     else:
         return resi.type == 'LYS'
 
+
 # The following are re-usable convenience utilities
 
 
@@ -1478,3 +1478,13 @@ def is_satisfied(b, threshold):
 
 def get_rmf_viewers():
     return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
+
+def get_group(groupName):
+    mgr = chimera.PseudoBondMgr.mgr()
+    group = mgr.findPseudoBondGroup(groupName)
+    return group
+
+def hideGroup(groupName):
+    group = get_group(groupName)
+    if group:
+        group.display = 0
