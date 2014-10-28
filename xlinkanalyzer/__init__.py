@@ -39,8 +39,7 @@ def get_assembly():
     if gui:
         return gui.assemblyFrame.assembly
 
-def is_satisfied(b, threshold):
-    return b.length() < threshold
+
 
 
 def get_group(groupName):

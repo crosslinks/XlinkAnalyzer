@@ -14,7 +14,7 @@ from chimera import runCommand, Bond, selection
 from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
-from xlinkanalyzer import is_satisfied, hideGroup,\
+from xlinkanalyzer import hideGroup,\
                           get_gui
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
 
@@ -1470,6 +1470,10 @@ def get_chain_for_chimera_obj(obj):
 def is_normal_pdb_resi(resi):
     '''Distinguish from rmf resi'''
     return hasattr(resi, 'hasRibbon')
+
+
+def is_satisfied(b, threshold):
+    return b.length() < threshold
 
 
 def get_rmf_viewers():
