@@ -25,13 +25,7 @@ DEBUG_MODE = False
 
 
 
-def is_crosslinkable(resi, biodssp=None, acc_thresh=None):
-    if biodssp and acc_thresh:
-        raise NotImplementedError
-        rel_aa = 0
-        return resi.type == 'LYS' and rel_aa > acc_thresh
-    else:
-        return resi.type == 'LYS'
+
 
 def get_atoms_for_obj(obj):
     return [atom for atom in obj.atoms]

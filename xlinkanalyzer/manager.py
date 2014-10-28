@@ -14,7 +14,7 @@ from chimera import runCommand, Bond, selection
 from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
-from xlinkanalyzer import is_crosslinkable, is_satisfied, hideGroup,\
+from xlinkanalyzer import is_satisfied, hideGroup,\
                           get_rmf_viewers, \
                           get_gui, get_atoms_for_obj, is_normal_pdb_resi,\
                           get_chain_for_chimera_obj, get_chain_for_atom
@@ -1436,3 +1436,12 @@ def pairwise(iterable):
     a, b = tee(iterable)
     next(b, None)
     return izip(a, b)
+
+def is_crosslinkable(resi, biodssp=None, acc_thresh=None):
+    if biodssp and acc_thresh:
+        raise NotImplementedError
+        rel_aa = 0
+        return resi.type == 'LYS' and rel_aa > acc_thresh
+    else:
+        return resi.type == 'LYS'
+
