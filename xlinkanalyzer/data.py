@@ -302,9 +302,6 @@ class SequenceItem(DataItem):
         _dict.pop("sequences")
         return _dict
 
-class InteractionSiteItem(Item):
-    def __init__(self,name,assembly,resourceFile):
-        Item.__init__(self,name,assembly,resourceFile)
 
 class Assembly(object):
     def __init__(self,frame):
