@@ -1,8 +1,4 @@
-import os, subprocess
 from distutils.core import setup
-from distutils.command.install import install
-
-
 
 setup(
     name='XlinkAnalyzer',

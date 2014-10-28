@@ -1,25 +1,19 @@
 import math
 import string
 import csv
-import os
 
-from collections import defaultdict
-
-from os.path import relpath, exists, join, normpath, commonprefix, basename,\
-                    dirname
 import chimera
 from chimera import selection
 import xlinkanalyzer
 
 from chimera.baseDialog import ModelessDialog
 from chimera import runCommand
-from chimera.widgets import MoleculeScrolledListBox, ModelScrolledListBox, ModelScrolledListBoxBase, MoleculeItems, ModelItems
+from chimera.widgets import ModelScrolledListBoxBase, ModelItems
 
 from chimera.mplDialog import MPLDialog
 from chimera.tkoptions import ColorOption
 from chimera import UserError,MaterialColor
 
-from numpy import unique
 from operator import mul
 
 import Pmw
@@ -27,27 +21,16 @@ import Tkinter
 import tkFileDialog
 import tkMessageBox
 
-import _molecule
-
 from Pmw import ScrolledFrame, EntryField
 
 from Tkinter import Toplevel,LabelFrame,Button,StringVar,Entry,\
-                    OptionMenu,Label,Frame,BooleanVar,Checkbutton,Canvas,\
-                    TclError
-
-from platform import system
-
-from tkFont import Font
-
+                    OptionMenu,Label,Frame, TclError
 import ttk
-
-from xlinkanalyzer import Model,XlinkDataMgr
-
-from MultAlignViewer.parsers import readFASTA
-
 import pyxlinks
 
-from pyxlinks import XlinksSet
+
+from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
+                 Assembly, ResourceManager, Item
 
 DEBUG_MODE = False
 
@@ -296,8 +279,7 @@ class ShowModifiedFrame(Tkinter.Frame):
                 showVar.set(False)
 
         def updateCB(name, *args):
-            newstate = self.getvar(name)
-            # self.showModifiedMap()
+            pass
 
         btn = Tkinter.Checkbutton(self, text='Mono-linked', foreground='blue', variable=self.showVars['Monolinked'])
         btn.pack(anchor='w')
@@ -364,300 +346,6 @@ class ShowModifiedFrame(Tkinter.Frame):
                     byLength=self.showVars['NotExpectedByLength'].get())
 
 #new implementation
-
-from xlinkanalyzer import minify_json
-import json
-
-
-class Item(object):
-    def __init__(self,name,assembly):
-        self.type = "item"
-        self.name = name
-        self.assembly = assembly
-
-    def commaList(self,l):
-        return reduce(lambda x,y: x+","+str(y),l,"")[1:]
-
-    def getList(self,commaString):
-        return [s.strip() for s in commaString.split(",")]
-
-    def serialize(self):
-        _dict = dict([(k,v) for k,v in self.__dict__.items()])
-        _dict.pop("assembly")
-        return _dict
-
-    def deserialize(self,_dict):
-        for key,value in _dict.items():
-            self.__dict__[key] = value
-
-    def validate(self):
-        return True if type(self.name) == str and len(self.name) > 0 else False
-
-
-class Component(Item):
-    def __init__(self,name,assembly):
-        Item.__init__(self,name,assembly)
-        self.type = "component"
-        self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
-        self.chainIds = []
-        self.selection = ""
-        self.chainToComponent = {}
-        self.componentToChain = {}
-        self.sequence = ""
-        self.domains = None
-
-    def setColor(self,colorCfg):
-        color = chimera.MaterialColor(*[0.0]*4)
-        if isinstance(colorCfg, basestring):
-            color = chimera.colorTable.getColorByName(colorCfg)
-        elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
-            color = chimera.MaterialColor(*[x for x in colorCfg])
-        else:
-            color = colorCfg
-        self.color = color
-
-    def setChainIds(self,ids):
-        self.chainIds = ids
-
-    def setSelection(self,sel):
-        self.selection = sel
-
-    def setChainToComponent(self,mapping):
-        self.chainToComponent = mapping
-
-    def createChainToComponentFromChainIds(self, chainIds):
-        return dict([(chain, self.name) for chain in chainIds])
-
-    def createComponentSelectionFromChains(self, chainIds):
-        return ':'+','.join(['.'+s for s in chainIds])
-
-    def setComponentToChain(self,mapping):
-        self.componentToChain = mapping
-
-    def setDomains(self,domains):
-        self.domains = domains
-
-    def setSequence(self,seq):
-        self.sequence = seq
-
-    def readJson(self,filename):
-        """
-        Reads JsonFile to JsonObject (Dict/Lists)
-        """
-
-        with open(filename) as f:
-            data = self.convert(json.loads(minify_json.json_minify(f.read())))
-        return data
-
-    def convert(self,_input):
-        """
-        Encodes Unicode, List and Dict instances to utf-8
-        """
-        if isinstance(_input, dict):
-            return dict([(self.convert(key), self.convert(value)) \
-                        for key, value in _input.iteritems()])
-        elif isinstance(_input, list):
-            return [self.convert(element) for element in _input]
-        elif isinstance(_input, unicode):
-            return _input.encode('utf-8')
-        else:
-            return _input
-
-    def serialize(self):
-        _dict = super(Component,self).serialize()
-        _dict["color"] = self.color.rgba()
-        return _dict
-
-    def deserialize(self,_dict):
-        super(Component,self).deserialize(_dict)
-        if type(_dict["color"]) == list:
-            self.color = chimera.MaterialColor(*_dict["color"])
-
-    def __str__(self):
-        s = "Component: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Color:\t%s\n\
-             Chains:\t%s\n"%(self.name,self.color.rgba(),self.chainIds)
-        return str(s)
-
-    def __repr__(self):
-        return self.__str__()
-
-class SimpleDataItem(Item):
-    def __init__(self,name,assembly,data):
-        super(SimpleDataItem,self).__init__(name,assembly)
-        self.type = "simpleData"
-        self.informed = False
-        self.data = data
-
-    def __str__(self):
-        s = "SimpleDataItem: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Type:\t%s\n\
-             Structure:\t%s\n"%(self.name,self.type,self.data)
-        return str(s)
-
-    def __repr__(self):
-        return self.__str__()
-
-class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,assembly,data):
-        super(InteractingResidueItem,self).__init__(name,assembly,data)
-        self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
-        self.active = True
-
-    def deserialize(self):
-        #mirror the old structure
-        self.config = self.data
-        self.active = True
-
-class DataItem(Item):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(DataItem,self).__init__(name,assembly)
-        self.type = "data"
-        self.mapping = mapping or {}
-        self.resource = resource
-        self.active = True
-        self.informed = False
-
-    def __str__(self):
-        s = "DataItem: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Type\t%s\n\
-             Files:\t%s\n"%(self.name,self.type,self.resource)
-        return str(s)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __getitem__(self,key):
-        if key in self.mapping:
-            return self.mapping[key][0]
-        else:
-            return None
-
-    def __setitem__(self,key,value):
-        if type(value) != list:
-            if key in self.mapping:
-                self.mapping[key].append(value)
-            else:
-                self.mapping[key]=[value]
-        else:
-            self.mapping[key] = value
-
-    def __contains__(self,key):
-        return key in self.mapping
-
-    def updateData(self):
-        pass
-
-    def locate(self):
-        formatedRes = []
-        locatedRes = []
-        missing = []
-        root = self.assembly.root
-        #check for windows paths in unix systems
-        for r in self.resource:
-            if '\\' in r and system() == 'Linux':
-                formatedRes.append(r.replace('\\','/'))
-            else:
-                formatedRes.append(r)
-        for r in formatedRes:
-            if exists(r):
-                locatedRes.append(relpath(r,root))
-            elif exists(join(root,r)):
-                locatedRes.append(join(root,r))
-            else:
-                missing.append(r)
-        if missing and not self.informed:
-            title = "Missing Files"
-            fileList = reduce(lambda x,y: x+"%s\n"%(y),missing,"")
-            message = "These files could not be found:\n %s"%(fileList)
-            mBox  = tkMessageBox.showinfo(title,message)
-            self.informed = True
-        self.resource = locatedRes
-
-    def resourcePaths(self):
-        self.locate()
-        paths = []
-        root = self.assembly.root
-
-        for res in self.resource:
-            res = normpath(res)
-            path = normpath(join(root,res))
-            if os.path.exists(path):
-                paths.append(path)
-        return paths
-
-    def serialize(self):
-        self.locate()
-        _dict = super(DataItem,self).serialize()
-        if "data" in _dict:
-            _dict.pop("data")
-        return _dict
-
-    def validate(self):
-        allExist = reduce(lambda x,y: x and y, [os.path.exists(resPath) \
-                          for resPath in self.resourcePaths()],True)
-        return True if super(DataItem,self).validate() and allExist else False
-
-    def getProteinsByComponent(self,name):
-        return [k for k,v in self.mapping.items() if name in v]
-
-class XQuestItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(XQuestItem,self).__init__(name,assembly,resource,mapping)
-        self.type = xlinkanalyzer.XQUEST_DATA_TYPE
-        self.data={}
-        self.xQuestNames = []
-        self.xlinksSets = []
-        self.resource = resource
-        self.locate()
-        self.updateData()
-
-    def updateData(self):
-        if self.resourcePaths():
-            xlinksSets = []
-            for f in self.resourcePaths():
-                xlinksSets.append(XlinksSet(f,description=self.name))
-
-            self.xlinksSets = sum(xlinksSets)
-            self.xQuestNames = self.xlinksSets.get_protein_names()
-
-            self.data = self
-
-            self.xQuestNames = list(self.xlinksSets.get_protein_names())
-
-    def serialize(self):
-        _dict = super(XQuestItem,self).serialize()
-        _dict.pop("xlinksSets")
-        return _dict
-
-
-class SequenceItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(SequenceItem,self).__init__(name,assembly,resource,mapping)
-        self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
-        self.sequences = {}
-        self.data = {}
-        for i,fileName in enumerate(self.resourcePaths()):
-            sequences = readFASTA.parse(fileName)[0]
-            for sequence in sequences:
-                self.sequences[sequence.name] = sequence
-        self.locate()
-
-    def serialize(self):
-        _dict = super(SequenceItem,self).serialize()
-        _dict.pop("sequences")
-        return _dict
-
-class InteractionSiteItem(Item):
-    def __init__(self,name,assembly,resourceFile):
-        Item.__init__(self,name,assembly,resourceFile)
-
 
 class ModelXlinkStatsTable(Tkinter.Frame):
     def __init__(self, master, xlinkMgrTabFrame, *args, **kwargs):
@@ -994,7 +682,6 @@ class ViolatedListFrame(Tkinter.LabelFrame):
 
     def exportSelectedXlinkList(self):
         xlinks = []
-        seen = []
         for xlinkBond in self.getSelected():
             oriXlinks = self.xlinkDataMgr.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
             comp1 = pyxlinks.get_protein(xlinkBond.xlink, 1)
@@ -1250,7 +937,7 @@ class ItemFrame(LabelFrame):
     def onSource(self):
 
         self.resource = tkFileDialog.askopenfilenames(parent=self.master)
-        
+
         #FIX: http://stackoverflow.com/questions/4116249/parsing-the-results-of-askopenfilenames
         if isinstance(self.resource, basestring):
             self.resource = self.master.tk.splitlist(self.resource)
@@ -1340,7 +1027,7 @@ class ItemFrame(LabelFrame):
         if not components:
             title = "No Components"
             message = "There are currently no subunits loaded in xlinkanalyzer! Create or load subunits to configure Data Items."
-            mBox  = tkMessageBox.showinfo(title,message)
+            tkMessageBox.showinfo(title,message)
             return
 
         self.menu = Toplevel()
@@ -1430,327 +1117,6 @@ class ItemFrame(LabelFrame):
         widget.bind('<Enter>', enter)
         widget.bind('<Leave>', leave)
 
-class Assembly(object):
-    def __init__(self,frame):
-        self.items = []
-        self.root = ""
-        self.file = ""
-        self.state = "unsaved"
-        self.frame = frame
-        self.componentToChain = {}
-        self.chainToComponent = {}
-        self.proteinToChains = {}
-        self.chainToProtein = {}
-        self.componentToProtein = {}
-
-    def __str__(self):
-        s = ""
-        for item in self.items:
-            s += str(item)+"\n"
-        return s
-
-    def __iter__(self):
-        for item in self.items:
-            yield item
-
-    def __contains__(self,item):
-        return reduce(lambda x,y: x or y, [item == i for i\
-                                            in self.items],False)
-
-    def __len__(self):
-        return len(self.items)
-
-    def loadFromDict(self,_dict):
-        classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
-                         (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
-                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
-                          InteractingResidueItem)])
-        components = _dict["subunits"]
-        dataItems = _dict["data"]
-        for compD in components:
-            c = Component(compD["name"],self)
-            c.deserialize(compD)
-            self.addItem(c)
-        for dataD in dataItems:
-            if dataD["type"] == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
-                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
-                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
-            if "data" in dataD:
-                d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["data"])
-            elif "resource" in dataD:
-                d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["resource"],dataD["mapping"])
-                d.serialize()
-            if not d.informed:
-                self.addItem(d)
-
-    def convert(self,_input):
-        """
-        Encodes Unicode, List and Dict instances to utf-8
-        """
-        if isinstance(_input, dict):
-            return dict([(self.convert(key), self.convert(value)) \
-                        for key, value in _input.iteritems()])
-        elif isinstance(_input, list):
-            return [self.convert(element) for element in _input]
-        elif isinstance(_input, unicode):
-            return _input.encode('utf-8')
-        else:
-            return _input
-
-
-    def getColor(self, name):
-        #TODO: Try to simplify
-        color = chimera.MaterialColor(*[0.0]*4)
-        if self.getComponentColors(name):
-            colorCfg = self.getComponentColors(name)
-            if isinstance(colorCfg, basestring):
-                color = chimera.colorTable.getColorByName(colorCfg)
-            elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
-                color = chimera.MaterialColor(*[x for x in colorCfg])
-            else:
-                color = colorCfg
-        return color
-
-    def addItem(self,item):
-        self.items.append(item)
-
-    def deleteItem(self,item):
-        if item in self:
-            self.items.remove(item)
-
-    def clear(self):
-        for item in self:
-            self.items.remove(item)
-
-    def getDataItems(self,_type):
-        if _type in [xlinkanalyzer.SEQUENCES_DATA_TYPE,xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]:
-            ret = []
-            for item in self.items:
-                if item.type == _type:
-                    ret.append(item)
-            return ret
-        else:
-            raise UserError("No know Datatype.")
-            return None
-
-    def getComponentByName(self,name):
-        candidates = [c for c in self.getComponentNames() if c.name==name]
-        if candidates:
-            return candidates[0]
-        else:
-            return None
-
-    def getComponents(self):
-        return [i for i in self.items \
-                if issubclass(i.__class__,Component)]
-
-    def getComponentNames(self):
-        return [i.name for i in self.items \
-                if issubclass(i.__class__,Component)]
-
-    def getDataItems(self,_type = None):
-        dataItems = [i for i in self.items \
-                     if (issubclass(i.__class__,DataItem) \
-                         or issubclass(i.__class__,SimpleDataItem))]
-        if not _type:
-            return dataItems
-        else:
-            typeDataItems = [dI for dI in dataItems if dI.type == _type]
-            return typeDataItems
-
-    def getComponentColors(self,name=None):
-        if name:
-            compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
-            if compL:
-                return compL[0].color
-            else:
-                return None
-        else:
-            return dict([(i.name,i.color) for i in self.items\
-                     if issubclass(i,Component)])
-
-    def getComponentChains(self,name=None):
-        if name:
-            compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
-            if compL:
-                return compL[0].chainIds
-            else:
-                return None
-        else:
-            return dict([(i.name,i.chainIds) for i in self.items\
-                     if issubclass(i.__class__,Component)])
-
-    def getComponentSelections(self,name = None):
-        if name:
-            compL = [i for i in self.getComponents() if i.name == name]
-            if compL:
-                return compL[0].selection
-            else:
-                return None
-        else:
-            return dict([(i.name,i.selection) for i in self.items\
-                     if issubclass(i.__class__,Component)])
-
-    def getSequences(self,key=None):
-        sequence = {}
-        for item in self.getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
-            for seqName, seq in item.sequences.iteritems():
-                try:
-                    compNames = item.mapping[seqName]
-                except KeyError:
-                    pass
-                else:
-                    for compName in compNames:
-                        sequence[compName] = str(seq)
-        return sequence
-
-    def getDomains(self,name=None):
-        if name:
-            compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
-            if compL:
-                return compL[0].domains
-            else:
-                return None
-        else:
-            return dict([(i.name,i.domains) for i in self.items\
-                     if issubclass(i.__class__,Component)])
-
-    def getChains(self):
-        chains = [c.chainIds for c in self.getComponents()\
-                  if c.chainIds is not None]
-        ret = reduce(lambda x,y:x+y,chains,[])
-        return ret
-
-    def getChainIdsByComponentName(self,name=None):
-        if name:
-            if name in self.componentToChain:
-                return self.componentToChain[name]
-            else:
-                comps = self.getComponents()
-                chainsList = [c.chainIds for c in comps if c.name == name]
-                if chainsList:
-                    chains = reduce(lambda x,y: x+y,chainsList,[])
-                    self.componentToChain[name] = chains
-                    return chains
-                else:
-                    raise KeyError
-        else:
-            return self.componentToChain
-
-    def getProteinByChain(self,chain):
-        if chain in self.chainToProtein:
-            return self.chainToProtein[chain]
-        else:
-            comps = self.getComponentNames()
-            dataItems = self.getDataItems()
-            candidates = [c for c in comps \
-                          if chain in self.getChainIdsByComponentName(c)]
-            dCandidates =[d for d in dataItems \
-                          if (set(candidates)&set(d.mapping.keys()))]
-            proteins = [d[candidates[0]] for d in dCandidates]
-            if proteins:
-                protein = proteins[0]
-                self.chainToProtein[chain] = protein
-                return protein
-            else:
-                return None
-    def getProteinByComponent(self,name=None):
-        if name in self.componentToProtein:
-            return self.componentToProtein[name]
-        else:
-            dataItems = self.getDataItems()
-            dataItems = [d for d in dataItems \
-                        if not d.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]
-            candidates = []
-            for d in dataItems:
-                for k,v in d.mapping.items():
-                    if name in v:
-                        candidates.append(k)
-            candidates = unique(candidates)
-            if candidates:
-                componentName = candidates[0]
-                self.componentToProtein[name] = componentName
-                return componentName
-            else:
-                return None
-
-    def getComponentByChain(self,chain=None):
-        #returns a Component NAME
-        if chain:
-            if chain in self.chainToComponent:
-                return self.chainToComponent[chain]
-            else:
-                comps = self.getComponents()
-                candidates = [c for c in comps if chain in c.chainIds]
-                if candidates:
-                    component = candidates[0].name
-                    self.chainToComponent[chain] = component
-                    return component
-                else:
-                    return None
-        else:
-            #this might return an empty dict
-            return self.chainToComponent
-
-    def getChainsByProtein(self,protein):
-        #this
-        if protein in self.proteinToChains:
-            return self.proteinToChains[protein]
-        dataItems = self.getDataItems()
-        kVPairs = reduce(lambda x,y:x+y,\
-                         [d.mapping.items() for d in dataItems],[])
-        chains = [v for (k,v) in kVPairs if k in protein]
-        chains = list(unique(reduce(lambda x,y: x+y, chains,[])))
-        if chains:
-            self.proteinToChains[protein] = chains
-            return chains
-        else:
-            raise KeyError
-
-    def serialize(self):
-        _dict = {}
-        _dict["xlinkanalyzerVersion"] = "0.1"
-        _dict["subunits"] = []
-        _dict["data"] = []
-        for item in self.items:
-            if type(item) == Component:
-                _dict["subunits"].append(item.serialize())
-            else:
-                _dict["data"].append(item.serialize())
-        return _dict
-
-    def dataItems(self):
-        return [item for item in self.items if item.type in \
-                [xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.SEQUENCES_DATA_TYPE]]
-
-    def getPyxlinksConfig(self):
-        '''
-        Return pyxlinks.Config instance.
-
-        It is used to utilize some of the pyxlinks functionality (e.g. statistics-related).
-
-        pyxlinks.Config attributes are references to xlinkanalyzer.Config attributes whenever possible
-        '''
-
-        cfg = pyxlinks.Config()
-        cfg.components = self.getComponentNames()
-        cfg.chain_to_comp = self.getComponentByChain()
-        cfg.component_chains = self.getChainIdsByComponentName()
-        cfg.data = self.getDataItems()
-        cfg.cfg_filename = self.file
-        cfg.sequences = self.getSequences()
-
-        return cfg
-
-    def locate(self):
-        for item in self.items:
-            if  issubclass(item.__class__,DataItem):
-                item.locate()
 
 class AssemblyFrame(Frame):
     def __init__(self,master,mainWindow=None):
@@ -1846,10 +1212,6 @@ class AssemblyFrame(Frame):
         self.loadButton = Button(self,text="Load project", command=self.onLoad)
         self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
 
-        # self.modelSelect = ModelSelect(self, text="Select models")
-        # self.modelSelect.grid(row = curRow,column = 2, sticky = "W",**layout)
-
-
         curRow = curRow + 1
 
         #Deploy the components in self.assembly
@@ -1891,9 +1253,7 @@ class AssemblyFrame(Frame):
                 else:
                     title = "Chose different Name"
                     message = "This name is already occupied by a different data item. For consistencies' sake, please use a different name."
-                    mBox  = tkMessageBox.showinfo(title,\
-                                                  message,\
-                                                  parent=self.master)
+                    tkMessageBox.showinfo(title,message,parent=self.master)
 
     def onLoad(self):
         if self.resMngr.loadAssembly(self):
@@ -1994,49 +1354,6 @@ class AssemblyFrame(Frame):
         else:
             return True
 
-class ResourceManager(object):
-    def __init__(self,assembly):
-        self.assembly = assembly
-        self.root = ""
-
-    def saveAssembly(self,parent,saveAs=True):
-        if saveAs:
-            _file = tkFileDialog.asksaveasfilename(\
-                initialfile = "myProject.json",\
-                defaultextension=".json",\
-                initialdir=self.assembly.root,\
-                parent=parent)
-        else:
-            _file = self.assembly.file
-        if _file:
-            self.assembly.locate()
-            self.dumpJson(_file)
-            self.assembly.file = _file
-            self.state = "unchanged"
-
-    def loadAssembly(self,parent):
-        _file = tkFileDialog.askopenfilename(title="Choose file",\
-                                             parent=parent)
-        if _file:
-            self.assembly.file = _file
-            with open(_file,'r') as f:
-                data = json.loads(minify_json.json_minify(f.read()))
-                self.assembly.root = dirname(_file)
-                self.assembly.frame.clear()
-                self.assembly.loadFromDict(data)
-
-
-    def dumpJson(self,_file):
-        with open(_file,'w') as f:
-            self.assembly.root = dirname(_file)
-            content = self.assembly.serialize()
-            f.write(json.dumps(content,\
-                    sort_keys=True,\
-                    indent=4,\
-                    separators=(',', ': ')))
-            f.close()
-
-
 class CustomModelItems(ModelItems):
     '''
     Shows rmf models only as single model
@@ -2054,30 +1371,9 @@ class CustomModelItems(ModelItems):
         return out
 
     def __init__(self, **kw):
-        
+
         kw['listFunc'] = self.listFn
         ModelItems.__init__(self, **kw)
-
-class CustomMoleculeScrolledListBox(ModelScrolledListBoxBase, CustomModelItems):
-    """Modified to remove itself from ModelSelect.children list"""
-    autoselectDefault = None
-    def __init__(self, master, listbox_height=4, **kw):
-        CustomModelItems.__init__(self, **kw)
-        ModelScrolledListBoxBase.__init__(self, master,
-                    listbox_height=listbox_height, **kw)
-
-    def destroy(self):
-        modelSelect = xlinkanalyzer.get_gui().modelSelect
-        if self in modelSelect.children:
-            modelSelect.children.remove(self)
-
-        self.doHack()
-        ModelScrolledListBoxBase.destroy(self)
-
-    def doHack(self):
-        """Avoid Attribute error that I got sometimes when destroying"""
-        self.itemMap = {}
-        self.valueMap = {}
 
 class ModelSelect(object):
     def __init__(self):
@@ -2161,6 +1457,26 @@ class ModelSelect(object):
             if mdl in chimeraModels:
                 self.models.remove(self.models[chimeraModels.index(mdl)])
 
+class CustomMoleculeScrolledListBox(ModelScrolledListBoxBase, CustomModelItems):
+    """Modified to remove itself from ModelSelect.children list"""
+    autoselectDefault = None
+    def __init__(self, master, listbox_height=4, **kw):
+        CustomModelItems.__init__(self, **kw)
+        ModelScrolledListBoxBase.__init__(self, master,
+                    listbox_height=listbox_height, **kw)
+
+    def destroy(self):
+        modelSelect = xlinkanalyzer.get_gui().modelSelect
+        if self in modelSelect.children:
+            modelSelect.children.remove(self)
+
+        self.doHack()
+        ModelScrolledListBoxBase.destroy(self)
+
+    def doHack(self):
+        """Avoid Attribute error that I got sometimes when destroying"""
+        self.itemMap = {}
+        self.valueMap = {}
 
 
 class TabFrame(Tkinter.Frame):
@@ -2451,7 +1767,6 @@ class XlinkToolbar(Tkinter.Frame):
         self.xlinkMgrTabFrame = xlinkMgrTabFrame
 
         curRow = 0
-        totalCols = 2
 
         ldscoreThresholdFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
         ldscoreThresholdFrame.grid(row = curRow, column = 0, sticky="we")
@@ -3007,28 +2322,6 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in self.dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 xlinkanalyzer.restyleXlinks([mgr], xlinkanalyzer.XLINK_LEN_THRESHOLD)
-
-    # def showMonolinksMap(self):
-    #     print self.dataMgrs
-    #     self.getXlinkDataMgrs()
-    #     for mgr in self.dataMgrs:
-    #         if hasattr(mgr, 'objToXlinksMap'):
-    #             mgr.showMonolinksMap()
-
-    # def reshowByLdScore(self):
-    #     val = self.generalTabldScoreFilter.getvalue()
-    #     try:
-    #         minScore = float(val)
-    #     except ValueError:
-    #         pass
-    #     else:
-    #         for mgr in self.dataMgrs:
-    #             if hasattr(mgr, 'objToXlinksMap'):
-    #                 if self.smartModeBtn.var.get():
-    #                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
-    #                 else:
-    #                     mgr.showAllXlinks()
-    #                 mgr.hide_by_ld_score(minScore)
 
 class ToolTip(object):
     def __init__(self, widget):
