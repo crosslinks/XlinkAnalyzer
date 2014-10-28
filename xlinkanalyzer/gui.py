@@ -1,6 +1,7 @@
 import math
 import string
 import csv
+from sys import platform as _platform
 
 import chimera
 from chimera import selection
