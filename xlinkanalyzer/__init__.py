@@ -23,8 +23,7 @@ XLINK_LEN_THRESHOLD = 30
 
 DEBUG_MODE = False
 
-def is_mac():
-    return _platform == "darwin"
+
 
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."

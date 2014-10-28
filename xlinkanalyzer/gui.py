@@ -1628,7 +1628,7 @@ class ComponentsTabFrame(TabFrame):
             rgb = [int(255*x) for x in color.rgba()[:3]]
             color = '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
 
-            if xlinkanalyzer.is_mac():
+            if is_mac():
                 ttk.Style().configure(str(i)+'.TButton', foreground=color)
                 btn = ttk.Button(parent,
                     text=name,
@@ -2464,3 +2464,6 @@ class InteractingResiMgrTabFrame(TabFrame):
         for mgr in self.dataMgrs:
             if hasattr(mgr, 'colorInteractingResi'):
                 mgr.colorInteractingResi(fromComp, to=toComp, hide_others=False)
+
+def is_mac():
+    return _platform == "darwin"
