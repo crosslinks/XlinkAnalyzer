@@ -56,9 +56,3 @@ def hideGroup(groupName):
 
 def get_rmf_viewers():
     return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
-
-def is_rmf_mol(mol):
-    if hasattr(mol, 'openedAs'):
-        if mol.openedAs[0].endswith('.rmf'):
-            return True
-    return False
