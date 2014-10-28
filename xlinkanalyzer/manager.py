@@ -1479,12 +1479,12 @@ def is_satisfied(b, threshold):
 def get_rmf_viewers():
     return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
 
-def get_group(groupName):
+def getGroup(groupName):
     mgr = chimera.PseudoBondMgr.mgr()
     group = mgr.findPseudoBondGroup(groupName)
     return group
 
 def hideGroup(groupName):
-    group = get_group(groupName)
+    group = getGroup(groupName)
     if group:
         group.display = 0
