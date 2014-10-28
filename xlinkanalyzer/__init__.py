@@ -1,8 +1,6 @@
 import chimera
 
 
-
-
 XLINK_ANALYZER_DATA_TYPE = 'XlinkAnalyzer'
 XQUEST_DATA_TYPE = 'xquest'
 EM_DATA_TYPE = 'em_map'
@@ -17,8 +15,3 @@ def get_gui():
     for insta in chimera.extension.manager.instances:
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta
-
-def get_assembly():
-    gui = get_gui()
-    if gui:
-        return gui.assemblyFrame.assembly
