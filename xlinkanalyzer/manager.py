@@ -16,8 +16,7 @@ from chimera.misc import getPseudoBondGroup
 #TODO: check these
 from xlinkanalyzer import is_satisfied, hideGroup,\
                           get_rmf_viewers, \
-                          get_gui, get_atoms_for_obj, is_normal_pdb_resi,\
-                          get_chain_for_chimera_obj, get_chain_for_atom
+                          get_gui
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
 
 class Model(object):
@@ -1445,3 +1444,30 @@ def is_crosslinkable(resi, biodssp=None, acc_thresh=None):
     else:
         return resi.type == 'LYS'
 
+# The following are re-usable convenience utilities
+
+
+def get_atoms_for_obj(obj):
+    return [atom for atom in obj.atoms]
+
+
+def get_chain_for_atom(at):
+    return str(at.residue.id).split('.')[1]
+
+
+def get_chain_for_residue(resi):
+    return str(resi.id).split('.')[1]
+
+
+def get_chain_for_chimera_obj(obj):
+    if hasattr(obj, 'atoms'):
+        chain = get_chain_for_residue(obj)
+    else:
+        chain = get_chain_for_atom(obj)
+
+    return chain
+
+
+def is_normal_pdb_resi(resi):
+    '''Distinguish from rmf resi'''
+    return hasattr(resi, 'hasRibbon')

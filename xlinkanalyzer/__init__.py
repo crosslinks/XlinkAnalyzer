@@ -27,22 +27,7 @@ DEBUG_MODE = False
 
 
 
-def get_atoms_for_obj(obj):
-    return [atom for atom in obj.atoms]
 
-def get_chain_for_atom(at):
-    return str(at.residue.id).split('.')[1]
-
-def get_chain_for_residue(resi):
-    return str(resi.id).split('.')[1]
-
-def get_chain_for_chimera_obj(obj):
-    if hasattr(obj, 'atoms'):
-        chain = get_chain_for_residue(obj)
-    else:
-        chain = get_chain_for_atom(obj)
-
-    return chain
 
 def get_gui():
     for insta in chimera.extension.manager.instances:
@@ -68,10 +53,6 @@ def hideGroup(groupName):
     if group:
         group.display = 0
 
-
-def is_normal_pdb_resi(resi):
-    '''Distinguish from rmf resi'''
-    return hasattr(resi, 'hasRibbon')
 
 def get_rmf_viewers():
     return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
