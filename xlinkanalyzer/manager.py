@@ -1,3 +1,4 @@
+from itertools import tee, izip
 import xlinkanalyzer
 import chimera
 import re
@@ -14,7 +15,7 @@ from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
 from xlinkanalyzer import is_crosslinkable, is_satisfied, hideGroup,\
-                          get_rmf_viewers, pairwise, \
+                          get_rmf_viewers, \
                           get_gui, get_atoms_for_obj, is_normal_pdb_resi,\
                           get_chain_for_chimera_obj, get_chain_for_atom
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
@@ -1428,3 +1429,10 @@ class XlinkAnalyzer(pyxlinks.XlinkAnalyzerA):
 
     def gen_monolinks_possible_in_structure(self, model, possible_fn=None):
         self.possible_monolinks = model.get_monolinks_possible_in_structure(possible_fn=possible_fn)
+
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)

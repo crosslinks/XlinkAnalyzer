@@ -1,7 +1,5 @@
 import chimera
 
-from itertools import tee, izip
-
 from sys import platform as _platform
 
 
@@ -25,11 +23,7 @@ DEBUG_MODE = False
 
 
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return izip(a, b)
+
 
 def is_crosslinkable(resi, biodssp=None, acc_thresh=None):
     if biodssp and acc_thresh:
