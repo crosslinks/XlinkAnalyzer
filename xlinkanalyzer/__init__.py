@@ -54,5 +54,4 @@ def hideGroup(groupName):
         group.display = 0
 
 
-def get_rmf_viewers():
-    return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
+

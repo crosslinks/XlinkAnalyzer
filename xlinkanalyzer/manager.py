@@ -15,7 +15,6 @@ from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
 from xlinkanalyzer import is_satisfied, hideGroup,\
-                          get_rmf_viewers, \
                           get_gui
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
 
@@ -1471,3 +1470,7 @@ def get_chain_for_chimera_obj(obj):
 def is_normal_pdb_resi(resi):
     '''Distinguish from rmf resi'''
     return hasattr(resi, 'hasRibbon')
+
+
+def get_rmf_viewers():
+    return [insta for insta in chimera.extension.manager.instances if hasattr(insta, 'rmf')]
