@@ -33,6 +33,9 @@ import pyxlinks
 from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
                  Assembly, ResourceManager, Item
 
+import manager as xmanager
+from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
+
 DEBUG_MODE = False
 
 
@@ -180,10 +183,10 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         for model in self.models:
             if model.active:
                 if xlinkanalyzer.XQUEST_DATA_TYPE in groupedByType:
-                    self.dataMgrs.append(xlinkanalyzer.XlinkDataMgr(model, groupedByType[xlinkanalyzer.XQUEST_DATA_TYPE]))
+                    self.dataMgrs.append(XlinkDataMgr(model, groupedByType[xlinkanalyzer.XQUEST_DATA_TYPE]))
 
                 if xlinkanalyzer.INTERACTING_RESI_DATA_TYPE in groupedByType:
-                    self.dataMgrs.append(xlinkanalyzer.InteractingResiDataMgr(model, groupedByType[xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]))
+                    self.dataMgrs.append(InteractingResiDataMgr(model, groupedByType[xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]))
 
     def getDataMgrsForModel(self, model):
         out = []
@@ -1144,7 +1147,7 @@ class CustomModelItems(ModelItems):
 class ModelSelect(object):
     def __init__(self):
         self.children = []
-        self.models = [] #xlinkanalyzer.Model list
+        self.models = [] #xlinkanalyzer Model list
         self.config = xlinkanalyzer.get_gui().configFrame.config
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
 
@@ -1186,7 +1189,7 @@ class ModelSelect(object):
                 else:
                     moleculeModel = omodel
 
-        model = xlinkanalyzer.RMF_Model(moleculeModel, beadModel, self.config)
+        model = RMF_Model(moleculeModel, beadModel, self.config)
 
         return model
 
@@ -1203,7 +1206,7 @@ class ModelSelect(object):
                 if self.isRMFmodel(chimeraModel):
                     newModel = self.createRMFmodel(chimeraModel)
                 else:
-                    newModel = xlinkanalyzer.Model(chimeraModel, self.config)
+                    newModel = Model(chimeraModel, self.config)
                 newModel.active = False
                 self.models.append(newModel)
 
@@ -2055,7 +2058,7 @@ class XlinkMgrTabFrame(TabFrame):
                     xlinkDataMgrsForModel.append(mgr)
 
             if len(xlinkDataMgrsForModel) == 0:
-                xlinkDataMgrsForModel.append(xlinkanalyzer.XlinkDataMgr(model, self.getActiveData()))
+                xlinkDataMgrsForModel.append(XlinkDataMgr(model, self.getActiveData()))
                 self.dataMgrs.extend(xlinkDataMgrsForModel)
 
             dataMgrsForActive.extend(xlinkDataMgrsForModel)
@@ -2325,7 +2328,7 @@ class XlinkMgrTabFrame(TabFrame):
     def restyleXlinks(self):
         for mgr in self.dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                xlinkanalyzer.restyleXlinks([mgr], xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                xmanager.restyleXlinks([mgr], xlinkanalyzer.XLINK_LEN_THRESHOLD)
 
 class ToolTip(object):
     def __init__(self, widget):
@@ -2407,7 +2410,7 @@ class InteractingResiMgrTabFrame(TabFrame):
                     dataMgrsForModel.append(mgr)
 
             if len(dataMgrsForModel) == 0:
-                dataMgrsForModel.append(xlinkanalyzer.InteractingResiDataMgr(model, self.getActiveData()))
+                dataMgrsForModel.append(InteractingResiDataMgr(model, self.getActiveData()))
                 self.dataMgrs.extend(dataMgrsForModel)
 
             dataMgrsForActive.extend(dataMgrsForModel)
