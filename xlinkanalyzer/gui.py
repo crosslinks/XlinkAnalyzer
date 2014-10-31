@@ -68,9 +68,9 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         ModelessDialog.__init__(self, **kw)
 
 
-        self.assemblyCfgs = []
+        self.configCfgs = []
 
-        self.assemblyCfgsFrames = []
+        self.configCfgsFrames = []
 
     def destroy(self):
         self.modelSelect.destroy()
@@ -110,27 +110,27 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
     def createLoadDataTab(self):
 
         tab = self.notebook.add(self.loadDataTabName)
-        self.assemblyFrame = AssemblyFrame(tab, mainWindow=self)
+        self.configFrame = SetupFrame(tab, mainWindow=self)
 
         self.modelSelect = ModelSelect()
 
     def setTitle(self,string):
         self._toplevel.title("Xlink Analyzer - " + string)
 
-    def update_loadDataTab_assemblyCfgsOptionMenu(self, trigName, sth, cfg):
-        self.loadDataTab_assemblyCfgsOptionMenu['menu'].add_command(label=cfg.name, command=Tkinter._setit(self.loadDataTab_assemblyCfgsOptionMenu.var, cfg.name))
-        self.loadDataTab_assemblyCfgsOptionMenu.var.set(cfg.name)
+    def update_loadDataTab_configCfgsOptionMenu(self, trigName, sth, cfg):
+        self.loadDataTab_configCfgsOptionMenu['menu'].add_command(label=cfg.name, command=Tkinter._setit(self.loadDataTab_configCfgsOptionMenu.var, cfg.name))
+        self.loadDataTab_configCfgsOptionMenu.var.set(cfg.name)
 
 
     def show_addComponentFrame(self, cfgName, sth1, sth2):
-        self.currAddComponentFrame.grid(row=self.configureAssemblyFrameRow, column=0, sticky='w')
+        self.currAddComponentFrame.grid(row=self.configureSetupFrameRow, column=0, sticky='w')
 
     def hide_addComponentFrame(self):
         if self.currAddComponentFrame is not None:
             self.currAddComponentFrame.grid_forget()
 
     def getAssemblyConfig(self, name):
-        for cfg in self.assemblyCfgs:
+        for cfg in self.configCfgs:
             if cfg.name == name:
                 return cfg
 
@@ -139,7 +139,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         if cfgName is None:
             Tkinter.tkMessageBox.showwarning(
-                'No such assembly', cfgName
+                'No such config', cfgName
             )
             return
 
@@ -150,7 +150,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         chimera.triggers.activateTrigger('componentAdded', [name, cfg])
 
     def addComponentToCfgCB(self):
-        cfgName = self.loadDataTab_assemblyCfgsOptionMenu.var.get()
+        cfgName = self.loadDataTab_configCfgsOptionMenu.var.get()
         name = self.currAddComponentFrame.componentNameEntryField.get()
         color = self.currAddComponentFrame.coloropt.get()
         chains = self.currAddComponentFrame.chainEntryField.get()
@@ -330,7 +330,7 @@ class ShowModifiedFrame(Tkinter.Frame):
         btn.pack(anchor='e')
 
     def _isSequenceMappingComplete(self):
-        config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        config = xlinkanalyzer.get_gui().configFrame.config
         compMapped = [True if c in config.getSequences() else False \
                       for c in config.getComponentNames()]
         return reduce(mul,compMapped,1)
@@ -839,12 +839,12 @@ class XlinksHistogram(MPLDialog):
         return lengths
 
 class ItemFrame(LabelFrame):
-    def __init__(self,master,item,assemblyFrame,active=False,*args,**kwargs):
+    def __init__(self,master,item,configFrame,active=False,*args,**kwargs):
         LabelFrame.__init__(self,master,*args,**kwargs)
         self.master = master
         self.item = item
-        self.frame = assemblyFrame
-        self.assembly = item.assembly
+        self.frame = configFrame
+        self.config = item.config
         self.active = active
         self.layout = {"padx":5,"pady":3}
         if active:
@@ -932,7 +932,7 @@ class ItemFrame(LabelFrame):
         self.frame.update()
 
     def onDelete(self):
-        self.assembly.deleteItem(self.item)
+        self.config.deleteItem(self.item)
         self.frame.update()
 
     def onSource(self):
@@ -963,19 +963,19 @@ class ItemFrame(LabelFrame):
             self.item.resource = self.resource
             if self.typeVar.get() == xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE:
                 self.item = XQuestItem(self.item.name,\
-                                       self.item.assembly,\
+                                       self.item.config,\
                                        self.item.resource)
             elif self.typeVar.get() == xlinkanalyzer.XQUEST_DATA_TYPE:
                 self.item = XQuestItem(self.item.name,\
-                                       self.item.assembly,\
+                                       self.item.config,\
                                        self.item.resource)
             elif self.typeVar.get() == xlinkanalyzer.SEQUENCES_DATA_TYPE:
                 self.item = SequenceItem(self.item.name,\
-                                         self.item.assembly,\
+                                         self.item.config,\
                                          self.item.resource)
         self.update()
         if oldName != self.item.name:
-            for item in [i for i in self.assembly.items \
+            for item in [i for i in self.config.items \
                          if issubclass(i.__class__, DataItem)]:
                 if item.mapping:
                     if oldName in item.mapping:
@@ -996,7 +996,7 @@ class ItemFrame(LabelFrame):
                                         for i,sqN in enumerate(\
                                             self.item.sequences.keys())])
         self.item.updateData()
-        chimera.triggers.activateTrigger('configUpdated', self.assembly)
+        chimera.triggers.activateTrigger('configUpdated', self.config)
         self.menu.destroy()
 
     def empty(self):
@@ -1023,7 +1023,7 @@ class ItemFrame(LabelFrame):
                 self.resource = []
 
     def configureMenu(self):
-        components = [item.name for item in self.assembly.items\
+        components = [item.name for item in self.config.items\
                 if type(item)==Component]
         if not components:
             title = "No Components"
@@ -1070,7 +1070,7 @@ class ItemFrame(LabelFrame):
             self.userNames.append(StringVar(""))
             userNameMenus.append(\
             OptionMenu(frame,self.userNames[i],*[item.name for item\
-                           in self.assembly.items \
+                           in self.config.items \
                            if type(item)==Component]))
             userNameMenus[i].configure(width=20)
             userNameMenus[i].grid(sticky='W',row = i+row,column=2)
@@ -1090,7 +1090,7 @@ class ItemFrame(LabelFrame):
         copyVar = StringVar("")
         copyVar.set(self.item.name)
         copyMenu=OptionMenu(frame,copyVar,\
-                            *[item.name for item in self.assembly.items \
+                            *[item.name for item in self.config.items \
                            if type(item)==type(self.item)],\
                            command=self.copyMapping)
         copyMenu.configure(width=20)
@@ -1101,7 +1101,7 @@ class ItemFrame(LabelFrame):
 
     def copyMapping(self,name):
         #there is an ambiguity here, items need an unique identifier
-        firstHit = [item for item in self.assembly.items \
+        firstHit = [item for item in self.config.items \
                  if (type(item)==type(self.item) and name==item.name)][0]
         mapping = firstHit.mapping
         for i,name in enumerate(self.fromNames):
@@ -1119,241 +1119,6 @@ class ItemFrame(LabelFrame):
         widget.bind('<Leave>', leave)
 
 
-class AssemblyFrame(Frame):
-    def __init__(self,master,mainWindow=None):
-        """
-        The AssemblyFrame represents an Assembly and offers the
-        possebility to edit this assembly.
-        """
-        self.master = master
-        self.itemFrames = []
-        self.models={}
-        self.selectedModel = StringVar()
-        self.selectedModel.set("Displayed Models")
-        self.assembly = Assembly(self)
-        self.resMngr = ResourceManager(self.assembly)
-        self.mainWindow = mainWindow
-        self.mainWindow.setTitle(self.assembly.state)
-        self.name = "AF"
-        layout = {"pady":5,"padx":5}
-
-        Frame.__init__(self,master)
-
-        #ROW 0:
-        curRow = 0
-
-        #ROW 1:
-
-        Tkinter.Label(self, text="Add subunit:").grid(row=curRow,\
-                                    column=0,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-
-        Tkinter.Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
-                                    column=3,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-        curRow = curRow + 1
-
-        #ROW 2:
-        self.addComponentFrame = ItemFrame(self,\
-                                           Component("",self.assembly),\
-                                           self,\
-                                           active=True)
-        self.addComponentFrame.grid(row=curRow,\
-                                    column=0,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-
-        self.addCompButton = Button(self,\
-                                    text="Add",\
-                                    command=self.onComponentAdd)
-        self.addCompButton.grid(row = curRow,\
-                                column = 2, \
-                                sticky = "W",**layout)
-        self.addDataFrame = ItemFrame(self,\
-                                      DataItem("",self.assembly,None),\
-                                      self,\
-                                      active=True)
-        self.addDataFrame.grid(row = curRow, column = 3, sticky = "W",**layout)
-
-        self.addDataButton = Button(self,text="Add",command=self.onDataItemAdd)
-        self.addDataButton.grid(row = curRow,column = 4, sticky = "W",**layout)
-
-        curRow = curRow + 1
-
-        #ROW 3:
-        self.prettyComponentFrame = LabelFrame(self,text="Subunits")
-        self.prettyComponentFrame.grid(sticky="NESW",\
-                                  row=curRow,\
-                                  column=0,\
-                                  columnspan=3,\
-                                  **layout)
-        self.prettyDataFrame = LabelFrame(self,text="Data Sets")
-        self.prettyDataFrame.grid(sticky="NESW",\
-                             row=curRow,\
-                             column=3,\
-                             columnspan=2,\
-                             **layout)
-        self.compFrame = ScrolledFrame(self.prettyComponentFrame)
-        self.compFrame.pack(fill="both",expand=1,**layout)
-        self.dataFrame = ScrolledFrame(self.prettyDataFrame)
-        self.dataFrame.pack(fill="both",expand=1,**layout)
-
-        self.grid_rowconfigure(curRow, weight=1)
-
-        curRow = curRow + 1
-        self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
-        self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
-        self.saveButton = Button(self,text="Save", command=self.onSave)
-        self.saveButton.grid(row = curRow,column = 1, sticky = "W",**layout)
-        self.loadButton = Button(self,text="Load project", command=self.onLoad)
-        self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
-
-        curRow = curRow + 1
-
-        #Deploy the components in self.assembly
-
-        for i,component in enumerate(self.assembly.items):
-            componentFrame = ItemFrame(self,component=component)
-            componentFrame.grid(row=i+1,\
-                                column = 0,\
-                                columnspan = 3,\
-                                sticky = "W")
-            self.componentFrames.append(componentFrame)
-        self.pack(fill='both', expand=1)
-
-    def __iter__(self):
-        for componentFrame in self.componentFrames:
-            yield componentFrame
-
-    def clear(self):
-        self.assembly.items = []
-        self.update()
-
-    def onComponentAdd(self):
-        if self.addComponentFrame.populate():
-            self.assembly.addItem(self.addComponentFrame.item)
-            self.addComponentFrame.item = Component("",self.assembly)
-            self.addComponentFrame.empty()
-            self.update()
-
-    def onDataItemAdd(self):
-        if self.addDataFrame.populate():
-            if self.addDataFrame.item.type == "data":
-                raise UserError("No Datatype specified")
-            else:
-                if self.checkName(self.addDataFrame.item):
-                    self.assembly.addItem(self.addDataFrame.item)
-                    self.addDataFrame.item = DataItem("",self.assembly,None)
-                    self.addDataFrame.empty()
-                    self.update()
-                else:
-                    title = "Chose different Name"
-                    message = "This name is already occupied by a different data item. For consistencies' sake, please use a different name."
-                    tkMessageBox.showinfo(title,message,parent=self.master)
-
-    def onLoad(self):
-        if self.resMngr.loadAssembly(self):
-            self.clear()
-        self.update()
-        self.mainWindow.setTitle(self.assembly.file)
-        self.assembly.state="unchanged"
-
-    def onSaveAs(self):
-        self.resMngr.saveAssembly(self)
-        self.mainWindow.setTitle(self.assembly.file)
-        self.assembly.state="unchanged"
-
-    def onSave(self):
-        if self.assembly.state == "unsaved":
-            self.resMngr.saveAssembly(self)
-        else:
-            self.resMngr.saveAssembly(self,False)
-        self.mainWindow.setTitle(self.assembly.file)
-        self.assembly.state="unchanged"
-
-    def update(self):
-        #remove non neccessary frames
-        for i in range(len(self.itemFrames)):
-            if not self.itemFrames[i].item in self.assembly.items:
-                self.itemFrames[i].destroy()
-                self.itemFrames[i] = None
-        #add frame for none present items
-        self.itemFrames = [f for f in self.itemFrames if f is not None]
-
-        for i in self.assembly.items:
-            if i not in [f.item for f in self.itemFrames]:
-                self.addItemFrame(i)
-
-        if self.assembly.state != "unsaved":
-            self.mainWindow.setTitle(self.assembly.file+"*")
-            self.assembly.state = "changed"
-
-        chimera.triggers.activateTrigger('configUpdated', self.assembly)
-
-
-    def addItemMenu(self):
-        resourcePath = StringVar()
-        dataType = StringVar()
-        dataType.set("DataType")
-        componentName = StringVar()
-
-        def loadItemFile():
-            resourcePath.set(tkFileDialog.askopenfilename())
-
-        menu = Toplevel()
-        frame = LabelFrame(menu,text="Configure Item")
-
-        Label(frame,text="Resource Path: ",\
-                    pady=5).grid(row=0,column=0,sticky='W')
-        Entry(frame,textvariable=resourcePath,)\
-             .grid(row=0,column=1,pady=5,padx=5)
-        Button(frame,text="Load resource",\
-                     command=loadItemFile)\
-              .grid(row=0,column=2,pady=5)
-
-        Label(frame,text="Data Type: ",\
-                    pady=5).grid(row=1,column=0,sticky='W')
-        OptionMenu(frame,\
-                   dataType,\
-                   "Xquest",\
-                   "Interaction Site",\
-                   "Sequences")\
-                  .grid(row=1,column=1,sticky='W',pady=5,padx=5)
-
-        Label(frame,text="Name: ")\
-             .grid(row=2,column=0,sticky='W',pady=5)
-        Entry(frame,textvariable=componentName)\
-             .grid(row=2,column=1,sticky='W',pady=5,padx=5)
-
-        Button(frame,text="Add Item",command=menu.destroy)\
-              .grid(row=3,column=0,sticky='W',pady=5,padx=5)
-
-        frame.grid(pady=5,padx=5)
-        menu.grid()
-
-    def addItemFrame(self,item):
-        if  issubclass(item.__class__,Item):
-            if type(item) == Component:
-                itemFrame = ItemFrame(self.compFrame.interior(),\
-                                           item,\
-                                           self)
-            else:
-                itemFrame = ItemFrame(self.dataFrame.interior(),\
-                                        item,\
-                                        self)
-            itemFrame.grid(columnspan = 3, sticky = "WE")
-            self.itemFrames.append(itemFrame)
-
-    def checkName(self,item):
-        if item.name in [item.name for item in self.assembly]:
-            return False
-        else:
-            return True
 
 class CustomModelItems(ModelItems):
     '''
@@ -1380,7 +1145,7 @@ class ModelSelect(object):
     def __init__(self):
         self.children = []
         self.models = [] #xlinkanalyzer.Model list
-        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        self.config = xlinkanalyzer.get_gui().configFrame.config
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
 
     def destroy(self):
@@ -1484,7 +1249,7 @@ class TabFrame(Tkinter.Frame):
     def __init__(self, master, *args, **kwargs):
         Tkinter.Frame.__init__(self, master, *args, **kwargs)
 
-        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        self.config = xlinkanalyzer.get_gui().configFrame.config
         self.models = []
         self._handlers = []
         self._addHandlers()
@@ -1506,6 +1271,244 @@ class TabFrame(Tkinter.Frame):
 
     def getActiveModels(self):
         self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
+
+class SetupFrame(TabFrame):
+    def __init__(self,master,mainWindow=None):
+        """
+        The SetupFrame represents an Assembly and offers the
+        possebility to edit this config.
+        """
+        self.master = master
+        self.itemFrames = []
+        self.models={}
+        self.selectedModel = StringVar()
+        self.selectedModel.set("Displayed Models")
+        self.config = Assembly(self)
+        self.resMngr = ResourceManager(self.config)
+        self.mainWindow = mainWindow
+        self.mainWindow.setTitle(self.config.state)
+        self.name = "AF"
+        layout = {"pady":5,"padx":5}
+
+        Frame.__init__(self,master)
+
+        #ROW 0:
+        curRow = 0
+
+        #ROW 1:
+
+        Tkinter.Label(self, text="Add subunit:").grid(row=curRow,\
+                                    column=0,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+
+        Tkinter.Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
+                                    column=3,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+        curRow = curRow + 1
+
+        #ROW 2:
+        self.addComponentFrame = ItemFrame(self,\
+                                           Component("",self.config),\
+                                           self,\
+                                           active=True)
+        self.addComponentFrame.grid(row=curRow,\
+                                    column=0,\
+                                    sticky="W",\
+                                    columnspan=2,\
+                                    **layout)
+
+        self.addCompButton = Button(self,\
+                                    text="Add",\
+                                    command=self.onComponentAdd)
+        self.addCompButton.grid(row = curRow,\
+                                column = 2, \
+                                sticky = "W",**layout)
+        self.addDataFrame = ItemFrame(self,\
+                                      DataItem("",self.config,None),\
+                                      self,\
+                                      active=True)
+        self.addDataFrame.grid(row = curRow, column = 3, sticky = "W",**layout)
+
+        self.addDataButton = Button(self,text="Add",command=self.onDataItemAdd)
+        self.addDataButton.grid(row = curRow,column = 4, sticky = "W",**layout)
+
+        curRow = curRow + 1
+
+        #ROW 3:
+        self.prettyComponentFrame = LabelFrame(self,text="Subunits")
+        self.prettyComponentFrame.grid(sticky="NESW",\
+                                  row=curRow,\
+                                  column=0,\
+                                  columnspan=3,\
+                                  **layout)
+        self.prettyDataFrame = LabelFrame(self,text="Data Sets")
+        self.prettyDataFrame.grid(sticky="NESW",\
+                             row=curRow,\
+                             column=3,\
+                             columnspan=2,\
+                             **layout)
+        self.compFrame = ScrolledFrame(self.prettyComponentFrame)
+        self.compFrame.pack(fill="both",expand=1,**layout)
+        self.dataFrame = ScrolledFrame(self.prettyDataFrame)
+        self.dataFrame.pack(fill="both",expand=1,**layout)
+
+        self.grid_rowconfigure(curRow, weight=1)
+
+        curRow = curRow + 1
+        self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
+        self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
+        self.saveButton = Button(self,text="Save", command=self.onSave)
+        self.saveButton.grid(row = curRow,column = 1, sticky = "W",**layout)
+        self.loadButton = Button(self,text="Load project", command=self.onLoad)
+        self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
+
+        curRow = curRow + 1
+
+        #Deploy the components in self.config
+
+        for i,component in enumerate(self.config.items):
+            componentFrame = ItemFrame(self,component=component)
+            componentFrame.grid(row=i+1,\
+                                column = 0,\
+                                columnspan = 3,\
+                                sticky = "W")
+            self.componentFrames.append(componentFrame)
+        self.pack(fill='both', expand=1)
+
+    def __iter__(self):
+        for componentFrame in self.componentFrames:
+            yield componentFrame
+
+    def clear(self):
+        self.config.items = []
+        self.update()
+
+    def onComponentAdd(self):
+        if self.addComponentFrame.populate():
+            self.config.addItem(self.addComponentFrame.item)
+            self.addComponentFrame.item = Component("",self.config)
+            self.addComponentFrame.empty()
+            self.update()
+
+    def onDataItemAdd(self):
+        if self.addDataFrame.populate():
+            if self.addDataFrame.item.type == "data":
+                raise UserError("No Datatype specified")
+            else:
+                if self.checkName(self.addDataFrame.item):
+                    self.config.addItem(self.addDataFrame.item)
+                    self.addDataFrame.item = DataItem("",self.config,None)
+                    self.addDataFrame.empty()
+                    self.update()
+                else:
+                    title = "Chose different Name"
+                    message = "This name is already occupied by a different data item. For consistencies' sake, please use a different name."
+                    tkMessageBox.showinfo(title,message,parent=self.master)
+
+    def onLoad(self):
+        if self.resMngr.loadAssembly(self):
+            self.clear()
+        self.update()
+        self.mainWindow.setTitle(self.config.file)
+        self.config.state="unchanged"
+
+    def onSaveAs(self):
+        self.resMngr.saveAssembly(self)
+        self.mainWindow.setTitle(self.config.file)
+        self.config.state="unchanged"
+
+    def onSave(self):
+        if self.config.state == "unsaved":
+            self.resMngr.saveAssembly(self)
+        else:
+            self.resMngr.saveAssembly(self,False)
+        self.mainWindow.setTitle(self.config.file)
+        self.config.state="unchanged"
+
+    def update(self):
+        #remove non neccessary frames
+        for i in range(len(self.itemFrames)):
+            if not self.itemFrames[i].item in self.config.items:
+                self.itemFrames[i].destroy()
+                self.itemFrames[i] = None
+        #add frame for none present items
+        self.itemFrames = [f for f in self.itemFrames if f is not None]
+
+        for i in self.config.items:
+            if i not in [f.item for f in self.itemFrames]:
+                self.addItemFrame(i)
+
+        if self.config.state != "unsaved":
+            self.mainWindow.setTitle(self.config.file+"*")
+            self.config.state = "changed"
+
+        chimera.triggers.activateTrigger('configUpdated', self.config)
+
+
+    def addItemMenu(self):
+        resourcePath = StringVar()
+        dataType = StringVar()
+        dataType.set("DataType")
+        componentName = StringVar()
+
+        def loadItemFile():
+            resourcePath.set(tkFileDialog.askopenfilename())
+
+        menu = Toplevel()
+        frame = LabelFrame(menu,text="Configure Item")
+
+        Label(frame,text="Resource Path: ",\
+                    pady=5).grid(row=0,column=0,sticky='W')
+        Entry(frame,textvariable=resourcePath,)\
+             .grid(row=0,column=1,pady=5,padx=5)
+        Button(frame,text="Load resource",\
+                     command=loadItemFile)\
+              .grid(row=0,column=2,pady=5)
+
+        Label(frame,text="Data Type: ",\
+                    pady=5).grid(row=1,column=0,sticky='W')
+        OptionMenu(frame,\
+                   dataType,\
+                   "Xquest",\
+                   "Interaction Site",\
+                   "Sequences")\
+                  .grid(row=1,column=1,sticky='W',pady=5,padx=5)
+
+        Label(frame,text="Name: ")\
+             .grid(row=2,column=0,sticky='W',pady=5)
+        Entry(frame,textvariable=componentName)\
+             .grid(row=2,column=1,sticky='W',pady=5,padx=5)
+
+        Button(frame,text="Add Item",command=menu.destroy)\
+              .grid(row=3,column=0,sticky='W',pady=5,padx=5)
+
+        frame.grid(pady=5,padx=5)
+        menu.grid()
+
+    def addItemFrame(self,item):
+        if  issubclass(item.__class__,Item):
+            if type(item) == Component:
+                itemFrame = ItemFrame(self.compFrame.interior(),\
+                                           item,\
+                                           self)
+            else:
+                itemFrame = ItemFrame(self.dataFrame.interior(),\
+                                        item,\
+                                        self)
+            itemFrame.grid(columnspan = 3, sticky = "WE")
+            self.itemFrames.append(itemFrame)
+
+    def checkName(self,item):
+        if item.name in [item.name for item in self.config]:
+            return False
+        else:
+            return True
+
+
 
 class DataMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
@@ -1617,7 +1620,7 @@ class ComponentsTabFrame(TabFrame):
         cols = 4
         cur_row = startRow
         cur_col = 0
-        cfg = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        cfg = xlinkanalyzer.get_gui().configFrame.config
 
         for i, name in enumerate(cfg.getComponentNames()):
             color_cfg = cfg.getComponentColors(name)
@@ -2065,7 +2068,7 @@ class XlinkMgrTabFrame(TabFrame):
             child.destroy()
 
     def reload(self, name, userData, cfg):
-        # self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        # self.config = xlinkanalyzer.get_gui().configFrame.config
 
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
@@ -2420,7 +2423,7 @@ class InteractingResiMgrTabFrame(TabFrame):
         return data
 
     def reload(self, name, userData, cfg):
-        self.config = xlinkanalyzer.get_gui().assemblyFrame.assembly
+        self.config = xlinkanalyzer.get_gui().configFrame.config
 
         #HERE: This is an example why we cannot have both implementations.
         data = self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)

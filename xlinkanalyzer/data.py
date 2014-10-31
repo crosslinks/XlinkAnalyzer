@@ -18,10 +18,10 @@ from xlinkanalyzer import minify_json
 
 
 class Item(object):
-    def __init__(self,name,assembly):
+    def __init__(self,name,config):
         self.type = "item"
         self.name = name
-        self.assembly = assembly
+        self.config = config
 
     def commaList(self,l):
         return reduce(lambda x,y: x+","+str(y),l,"")[1:]
@@ -31,7 +31,7 @@ class Item(object):
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
-        _dict.pop("assembly")
+        _dict.pop("config")
         return _dict
 
     def deserialize(self,_dict):
@@ -43,8 +43,8 @@ class Item(object):
 
 
 class Component(Item):
-    def __init__(self,name,assembly):
-        Item.__init__(self,name,assembly)
+    def __init__(self,name,config):
+        Item.__init__(self,name,config)
         self.type = "component"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
@@ -133,8 +133,8 @@ class Component(Item):
         return self.__str__()
 
 class SimpleDataItem(Item):
-    def __init__(self,name,assembly,data):
-        super(SimpleDataItem,self).__init__(name,assembly)
+    def __init__(self,name,config,data):
+        super(SimpleDataItem,self).__init__(name,config)
         self.type = "simpleData"
         self.informed = False
         self.data = data
@@ -151,8 +151,8 @@ class SimpleDataItem(Item):
         return self.__str__()
 
 class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,assembly,data):
-        super(InteractingResidueItem,self).__init__(name,assembly,data)
+    def __init__(self,name,config,data):
+        super(InteractingResidueItem,self).__init__(name,config,data)
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
 
@@ -162,8 +162,8 @@ class InteractingResidueItem(SimpleDataItem):
         self.active = True
 
 class DataItem(Item):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(DataItem,self).__init__(name,assembly)
+    def __init__(self,name,config,resource,mapping=None):
+        super(DataItem,self).__init__(name,config)
         self.type = "data"
         self.mapping = mapping or {}
         self.resource = resource
@@ -206,7 +206,7 @@ class DataItem(Item):
         formatedRes = []
         locatedRes = []
         missing = []
-        root = self.assembly.root
+        root = self.config.root
         #check for windows paths in unix systems
         for r in self.resource:
             if '\\' in r and system() == 'Linux':
@@ -231,7 +231,7 @@ class DataItem(Item):
     def resourcePaths(self):
         self.locate()
         paths = []
-        root = self.assembly.root
+        root = self.config.root
 
         for res in self.resource:
             res = normpath(res)
@@ -256,8 +256,8 @@ class DataItem(Item):
         return [k for k,v in self.mapping.items() if name in v]
 
 class XQuestItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(XQuestItem,self).__init__(name,assembly,resource,mapping)
+    def __init__(self,name,config,resource,mapping=None):
+        super(XQuestItem,self).__init__(name,config,resource,mapping)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
@@ -286,8 +286,8 @@ class XQuestItem(DataItem):
 
 
 class SequenceItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(SequenceItem,self).__init__(name,assembly,resource,mapping)
+    def __init__(self,name,config,resource,mapping=None):
+        super(SequenceItem,self).__init__(name,config,resource,mapping)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.sequences = {}
         self.data = {}
@@ -612,8 +612,8 @@ class Assembly(object):
                 item.locate()
 
 class ResourceManager(object):
-    def __init__(self,assembly):
-        self.assembly = assembly
+    def __init__(self,config):
+        self.config = config
         self.root = ""
 
     def saveAssembly(self,parent,saveAs=True):
@@ -621,32 +621,32 @@ class ResourceManager(object):
             _file = tkFileDialog.asksaveasfilename(\
                 initialfile = "myProject.json",\
                 defaultextension=".json",\
-                initialdir=self.assembly.root,\
+                initialdir=self.config.root,\
                 parent=parent)
         else:
-            _file = self.assembly.file
+            _file = self.config.file
         if _file:
-            self.assembly.locate()
+            self.config.locate()
             self.dumpJson(_file)
-            self.assembly.file = _file
+            self.config.file = _file
             self.state = "unchanged"
 
     def loadAssembly(self,parent):
         _file = tkFileDialog.askopenfilename(title="Choose file",\
                                              parent=parent)
         if _file:
-            self.assembly.file = _file
+            self.config.file = _file
             with open(_file,'r') as f:
                 data = json.loads(minify_json.json_minify(f.read()))
-                self.assembly.root = dirname(_file)
-                self.assembly.frame.clear()
-                self.assembly.loadFromDict(data)
+                self.config.root = dirname(_file)
+                self.config.frame.clear()
+                self.config.loadFromDict(data)
 
 
     def dumpJson(self,_file):
         with open(_file,'w') as f:
-            self.assembly.root = dirname(_file)
-            content = self.assembly.serialize()
+            self.config.root = dirname(_file)
+            content = self.config.serialize()
             f.write(json.dumps(content,\
                     sort_keys=True,\
                     indent=4,\
