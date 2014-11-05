@@ -15,8 +15,6 @@ from pyxlinks import XlinksSet
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
 
-
-
 class Item(object):
     def __init__(self,name,config):
         self.type = "item"
@@ -40,7 +38,6 @@ class Item(object):
 
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
-
 
 class Component(Item):
     def __init__(self,name,config):

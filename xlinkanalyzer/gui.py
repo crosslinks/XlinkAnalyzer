@@ -1296,7 +1296,6 @@ class SetupFrame(TabFrame):
         curRow = 0
 
         #ROW 1:
-
         Tkinter.Label(self, text="Add subunit:").grid(row=curRow,\
                                     column=0,\
                                     sticky="W",\
@@ -1369,14 +1368,18 @@ class SetupFrame(TabFrame):
         curRow = curRow + 1
 
         #Deploy the components in self.config
-
-        for i,component in enumerate(self.config.items):
-            componentFrame = ItemFrame(self,component=component)
-            componentFrame.grid(row=i+1,\
+        for i,item in enumerate(self.config.items):
+            itemFrame = ItemFrame(self,component=item)
+            itemFrame.grid(row=i+1,\
                                 column = 0,\
                                 columnspan = 3,\
                                 sticky = "W")
-            self.componentFrames.append(componentFrame)
+            self.componentFrames.append(itemFrame)
+            #if InterResidueItem present, add corresponding tab
+            if item.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
+                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
+                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
+
         self.pack(fill='both', expand=1)
 
     def __iter__(self):
@@ -1539,15 +1542,8 @@ class DataMgrTabFrame(TabFrame):
                     variable=var,
                     command=lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar))
                 btn.var = var
-
-                # command1 = lambda x,y,z: command(var.get())
-                # scalevar.trace('w', command1)
-
                 btn.grid(row = curRow, column=1)
                 curRow += 1
-        else:
-            pass
-            #Tkinter.Label(self.notebook.page(self), text="This tab probably will be removed").pack(anchor='w', pady=1)
 
     def toggleActive(self, item, var):
         item.active = var.get()
@@ -1713,18 +1709,14 @@ class LdScoreFilterEntry(Pmw.EntryField):
 
 class LdScoreFilterScale(Tkinter.Scale):
     def __init__(self, parent, var):
-        # scalevar = Tkinter.DoubleVar()
         self.var = var
         Tkinter.Scale.__init__(self, parent,
                 orient=Tkinter.HORIZONTAL,
                 length=300,
                 from_=0,
                 to=100,
-                # command=command,
                 variable=self.var
                 )
-        # command1 = lambda x,y,z: command(self.var.get())
-        # self.var.trace('w', command1)
 
 class XlinkLengthThresholdEntry(Pmw.EntryField):
     def __init__(self, parent, lengthThreshVar):
@@ -1801,7 +1793,6 @@ class XlinkToolbar(Tkinter.Frame):
 
         customScoresFrame = Tkinter.Frame(ldscoreThresholdFrame)
         customScoresFrame.pack()
-        # customScoresFrame.grid(row = curRow, column = 0)
         curRow += 1
 
         self.generalTabldScoreFilter = LdScoreFilterEntry(customScoresFrame, ld_score_var, self.reshowByLdScore)
@@ -1810,9 +1801,7 @@ class XlinkToolbar(Tkinter.Frame):
 
         self.generalTabldScoreFilterScale = LdScoreFilterScale(
             customScoresFrame,
-            ld_score_var
-            # command=lambda x: self.generalTabldScoreFilter.setvalue(x)
-            )
+            ld_score_var)
         self.generalTabldScoreFilterScale.pack()
 
 
@@ -1968,14 +1957,9 @@ class ColorXlinkedFrame(Tkinter.Frame):
 class XlinkMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
-
         Tkinter.Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
         self.dataMgrs = []
-
-
-
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
-
         self._addHandlers()
 
     def _addHandlers(self):
@@ -1995,34 +1979,18 @@ class XlinkMgrTabFrame(TabFrame):
         TabFrame.destroy(self)
 
     def onModelRemove(self, trigger, userData, removedModels):
-        # validDataMgrs = []
-        # validModels = []
-
         for dataMgr in self.dataMgrs:
             if hasattr(dataMgr, 'objToXlinksMap'):
                 if dataMgr.model.chimeraModel in removedModels:
                     dataMgr.destroy()
                     self.dataMgrs.remove(dataMgr)
 
-        # for model in removedModels:
-        #     for dataMgr in self.dataMgrs:
-        #         if dataMgr.model.chimeraModel is not model:
-        #             validDataMgrs.append(dataMgr)
-
-
         for model in self.models:
             if model in removedModels:
                 self.models.remove(model)
-            # if prevModel.chimeraModel is not model:
-            #     validModels.append(prevModel)
-
-        # self.dataMgrs = validDataMgrs
-        # self.models = validModels
 
     def onActiveDataChanged(self, trigger, userData, sth):
         self.getActiveModels()
-
-
 
         for mgr in self.dataMgrs:
             mgr.reload(self.config)
@@ -2037,12 +2005,10 @@ class XlinkMgrTabFrame(TabFrame):
 
     def getActiveData(self):
         dataType = xlinkanalyzer.XQUEST_DATA_TYPE
-
         data = []
         for item in self.config.getDataItems():
             if item.active and item.type == dataType:
                 data.append(item)
-
         return data
 
     def getXlinkDataMgrs(self):
@@ -2053,11 +2019,9 @@ class XlinkMgrTabFrame(TabFrame):
             for mgr in self.dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap') and mgr.model is model:
                     xlinkDataMgrsForModel.append(mgr)
-
             if len(xlinkDataMgrsForModel) == 0:
                 xlinkDataMgrsForModel.append(xlinkanalyzer.XlinkDataMgr(model, self.getActiveData()))
                 self.dataMgrs.extend(xlinkDataMgrsForModel)
-
             dataMgrsForActive.extend(xlinkDataMgrsForModel)
         self.restyleXlinks()
 
@@ -2068,11 +2032,9 @@ class XlinkMgrTabFrame(TabFrame):
             child.destroy()
 
     def reload(self, name, userData, cfg):
-        # self.config = xlinkanalyzer.get_gui().configFrame.config
 
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
-
 
             xlNotebook = Pmw.NoteBook(self)
             xlNotebook.pack(fill = 'both', expand = 1, padx = 2, pady = 2)
@@ -2225,7 +2187,6 @@ class XlinkMgrTabFrame(TabFrame):
 
             self.modelStatsTable.pack(fill='both')
 
-
     def displayDefault(self):
         self.getXlinkDataMgrs()
         self.showAllXlinks()
@@ -2268,7 +2229,6 @@ class XlinkMgrTabFrame(TabFrame):
             if hasattr(mgr, 'objToXlinksMap'):
                 mgr.hideAllXlinks()
 
-
     def hideIntraXlinks(self):
         dataMgrs = self.getXlinkDataMgrs()
         for mgr in dataMgrs:
@@ -2283,8 +2243,6 @@ class XlinkMgrTabFrame(TabFrame):
 
     def showAllXlinks(self):
         dataMgrs = self.getXlinkDataMgrs()
-        # self.xlinkToolbar.generalTabldScoreFilterScale.set(0.0)
-        # self.ld_score_var.set(0.0)
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartModeBtn.var.get():
@@ -2335,7 +2293,6 @@ class ToolTip(object):
         self.x = self.y = 0
 
     def showtip(self, text):
-        "Display text in tooltip window"
         self.text = text
         if self.tipwindow or not self.text:
             return
@@ -2363,8 +2320,6 @@ class ToolTip(object):
         if tw:
             tw.destroy()
 
-
-
 class InteractingResiMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
@@ -2376,7 +2331,6 @@ class InteractingResiMgrTabFrame(TabFrame):
 
     def destroy(self):
         chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
-
 
     def onModelRemove(self, trigger, userData, models):
         validDataMgrs = []
@@ -2411,7 +2365,6 @@ class InteractingResiMgrTabFrame(TabFrame):
                 self.dataMgrs.extend(dataMgrsForModel)
 
             dataMgrsForActive.extend(dataMgrsForModel)
-
         return dataMgrsForActive
 
     def getActiveData(self):
@@ -2419,13 +2372,11 @@ class InteractingResiMgrTabFrame(TabFrame):
         for item in self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE):
             if item.active:
                 data.append(item)
-
         return data
 
     def reload(self, name, userData, cfg):
         self.config = xlinkanalyzer.get_gui().configFrame.config
 
-        #HERE: This is an example why we cannot have both implementations.
         data = self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
         if data:
             self.clear()
@@ -2459,7 +2410,6 @@ class InteractingResiMgrTabFrame(TabFrame):
         if fromCompSel in self.config.getComponentNames():
             fromComp = fromCompSel
 
-
         toComp = None
         toCompSel = self.interactingResiCompOptMenuTo.var.get()
         if toCompSel in self.config.getComponentNames():
@@ -2467,7 +2417,7 @@ class InteractingResiMgrTabFrame(TabFrame):
 
         for mgr in self.dataMgrs:
             if hasattr(mgr, 'colorInteractingResi'):
-                mgr.colorInteractingResi(fromComp, to=toComp, hide_others=False)
+                mgr.colorInteractingResi(fromComp,to=toComp,hide_others=False)
 
 def is_mac():
     return _platform == "darwin"
