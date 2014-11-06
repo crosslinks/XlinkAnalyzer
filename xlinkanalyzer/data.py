@@ -152,6 +152,7 @@ class InteractingResidueItem(SimpleDataItem):
         super(InteractingResidueItem,self).__init__(name,config,data)
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
+        self.iResidues = {}
 
     def deserialize(self):
         #mirror the old structure

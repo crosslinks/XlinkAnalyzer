@@ -255,7 +255,7 @@ class ShowModifiedFrame(Tkinter.Frame):
         self.xlinkMgrTabFrame = xlinkMgrTabFrame
 
 
-        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+        Label(self, anchor='w', bg='white', padx=4, pady=4,
                 text='This panel allows coloring modified residues (i.e. mono-linked and/or cross-linked residues)').pack(anchor='w', fill = 'both', pady=1)
 
         modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -310,7 +310,7 @@ class ShowModifiedFrame(Tkinter.Frame):
         if not self._isSequenceMappingComplete():
             btn.configure(state='disabled')
 
-        f = Tkinter.LabelFrame(self, bd=4, relief="groove", text='Expected/Not Expected criteria')
+        f = LabelFrame(self, bd=4, relief="groove", text='Expected/Not Expected criteria')
         f.pack(anchor='w')
 
         btn = Tkinter.Checkbutton(f,text='By peptide length (min: 6, max: 50)', variable=self.showVars['NotExpectedByLength'])
@@ -394,22 +394,22 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.clear()
         self.detailsFrame = None
 
-        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+        Label(self, anchor='w', bg='white', padx=4, pady=4,
                     text='This panel allows performing statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
 
         legendFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
         legendFrame.pack(anchor='w', pady='4')
 
-        Tkinter.Label(legendFrame, anchor='w',
+        Label(legendFrame, anchor='w',
                     text='Counting xlinks with ld Score above ' + str(self.xlinkMgrTabFrame.ld_score_var.get())
                     ).grid(row=0, column=0, sticky="w")
 
-        Tkinter.Label(legendFrame, anchor='w',
+        Label(legendFrame, anchor='w',
                     foreground = 'red',
                     text=u'Violated: xlinks longer than %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
                     ).grid(row=1, column=0, sticky="w")
 
-        Tkinter.Label(legendFrame, anchor='w',
+        Label(legendFrame, anchor='w',
                     foreground = 'blue',
                     text=u'Satisfied: xlinks shorter or equal to %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
                     ).grid(row=2, column=0, sticky="w")
@@ -437,7 +437,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                 width = 5
             else:
                 width = 12
-            label = Tkinter.Label(modelListFrame, text="%s" % colNames[col],
+            label = Label(modelListFrame, text="%s" % colNames[col],
                              borderwidth=0, width=width)
             label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
 
@@ -457,7 +457,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                 showBtn.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
                 col = col + 1
 
-                label = Tkinter.Label(modelListFrame, text=str(model.chimeraModel.id),
+                label = Label(modelListFrame, text=str(model.chimeraModel.id),
                                  borderwidth=0)
                 label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
                 col = col + 1
@@ -474,7 +474,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                     else:
                         foreground = None
 
-                    label = Tkinter.Label(modelListFrame, text=str(xlinkStats[key]),
+                    label = Label(modelListFrame, text=str(xlinkStats[key]),
                                      borderwidth=0, foreground=foreground)
 
                     label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
@@ -483,7 +483,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                     rowData.append(xlinkStats[key])
 
             if len(rowData) > 0:
-                label = Tkinter.Label(modelListFrame, text=model.chimeraModel.name,
+                label = Label(modelListFrame, text=model.chimeraModel.name,
                                  borderwidth=0)
                 label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
 
@@ -535,13 +535,13 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.detailsFrame.pack(fill='x')
         self.xlinkToolbar.pack(padx=4, pady=4)
 
-class DetailXlinkStats(Tkinter.LabelFrame):
+class DetailXlinkStats(LabelFrame):
     def __init__(self, master, xlinkDataMgr, *args, **kwargs):
-        Tkinter.LabelFrame.__init__(self, master, *args, **kwargs)
+        LabelFrame.__init__(self, master, *args, **kwargs)
 
         xlinkStats = xlinkDataMgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
 
-        # Tkinter.Label(self, text='dupa', foreground='red').pack()
+        # Label(self, text='dupa', foreground='red').pack()
 
         buttonsFrame = Tkinter.Frame(self)
         buttonsFrame.pack(fill='both', pady='4')
@@ -602,10 +602,10 @@ class DetailXlinkStats(Tkinter.LabelFrame):
             raise UserError("No cross-links.\n \
                 No crosslinks found in current data sets above current score threshold.")
 
-class ViolatedListFrame(Tkinter.LabelFrame):
+class ViolatedListFrame(LabelFrame):
     """Abstract class"""
     def __init__(self, master, xlinkStats, xlinkDataMgr, text, *args, **kwargs):
-        Tkinter.LabelFrame.__init__(self, master, text=text, *args, **kwargs)
+        LabelFrame.__init__(self, master, text=text, *args, **kwargs)
 
         self.xlinkStats = xlinkStats
         self.xlinkDataMgr = xlinkDataMgr
@@ -655,10 +655,10 @@ class ViolatedListFrame(Tkinter.LabelFrame):
 
             btn.grid(row = row, column=0)
 
-            Tkinter.Label(itemListFrame.interior(), text=str(len(item['violated'])), foreground='red').grid(row=row, column=1, sticky='w')
+            Label(itemListFrame.interior(), text=str(len(item['violated'])), foreground='red').grid(row=row, column=1, sticky='w')
 
             name = self.getName(item)
-            Tkinter.Label(itemListFrame.interior(), text=name).grid(row=row, column=2, sticky='w')
+            Label(itemListFrame.interior(), text=name).grid(row=row, column=2, sticky='w')
 
             row += 1
 
@@ -793,7 +793,7 @@ class XlinksHistogram(MPLDialog):
                 No crosslinks found in current data sets above current score threshold.")
 
     def fillInUI(self, parent):
-        Tkinter.Label(parent, text='control stuff here').pack(pady=5)
+        Label(parent, text='control stuff here').pack(pady=5)
 
         f = Tkinter.Frame(parent)
         f.pack(fill="both", expand=True)
@@ -926,6 +926,8 @@ class ItemFrame(LabelFrame):
                 self.delete.grid(row=0,column=3,sticky="w",**self.layout)
                 self.createToolTip(self.delete,"Delete")
             elif issubclass(item.__class__,SimpleDataItem):
+                Button(self,text="Configure",command=self.configureMenu)\
+                    .grid(sticky='W',row=0,column=1,**self.layout)
                 self.delete = Button(self,text="x",command=self.onDelete)
                 self.delete.grid(row=0,column=3,sticky="w",**self.layout)
                 self.createToolTip(self.delete,"Delete")
@@ -1026,6 +1028,13 @@ class ItemFrame(LabelFrame):
                 self.resource = []
 
     def configureMenu(self):
+        if self.item.type in [xlinkanalyzer.XQUEST_DATA_TYPE,\
+                              xlinkanalyzer.SEQUENCES_DATA_TYPE]:
+            self.configureXQuestSequence()
+        elif self.item.type in [xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]:
+            self.configureInteractingResidue()
+
+    def configureXQuestSequence(self):
         components = [item.name for item in self.config.items\
                 if type(item)==Component]
         if not components:
@@ -1098,6 +1107,97 @@ class ItemFrame(LabelFrame):
                            command=self.copyMapping)
         copyMenu.configure(width=20)
         copyMenu.grid(sticky='W',row = row,column=2)
+        frame.grid()
+        self.menu.grid()
+        self.frame.update()
+
+    def configureInteractingResidue(self):
+
+        compNames = self.config.getComponentNames()
+        row = 0
+        self.menu = Toplevel()
+        frame = Frame(self.menu,padx=5,pady=5)
+        listFrame = Frame(frame,padx=5,pady=5)
+        _dict = self.item.iResidues
+        resiList = []
+
+        def _onDel(_from,_to,i):
+            print _dict[_from][_to]
+            if _dict[_from]:
+                _dict[_from].pop(_to)
+                if not _dict[_from]:
+                    _dict.pop(_from)
+            else:
+                _dict.pop(_from)
+            resiList.pop(i)
+            _updateList()
+
+        def _onApp(_from,_to,i):
+            _dict[_from][_to] = [int(s.strip()) for s in \
+                                 resiList[i].get().split(",")]
+            print _dict[_from][_to]
+
+        def _updateList():
+            _str = lambda l: str(l)[1:-1]
+            _del = lambda: _dict.__getitem__(_from).pop
+
+            for child in listFrame.winfo_children():
+                child.destroy()
+
+            for i,_from in enumerate(_dict):
+                l = len(_dict[_from])
+                for j,_to in enumerate(_dict[_from]):
+                    f = EntryField(listFrame,labelpos="w",label_text="From: ",\
+                               entry_width=14,value=_from)
+                    f.configure(entry_state="readonly")
+                    f.grid(sticky='W', row=i*l+j,column=0,columnspan=2)
+                    t = EntryField(listFrame,labelpos="w",label_text="To: ",\
+                               entry_width=14, value=_to)
+                    t.configure(entry_state="readonly")
+                    t.grid(sticky='W', row=i*l+j,column=2,columnspan=2)
+                    e = EntryField(listFrame,labelpos="w",\
+                                   label_text="Residues: ", entry_width=20,\
+                                   value=_str(_dict[_from][_to]))
+                    e.grid(sticky='W', row=i*l+j,column=4)
+                    resiList.append(e)
+                    _apply = Button(listFrame,text=unichr(10004),\
+                                       command=lambda:_onApp(_from,_to,i*l+j))
+                    _apply.grid(sticky='W', row=i*l+j,column=5)
+                    self.createToolTip(_apply,"Apply Changes")
+                    _delete = Button(listFrame,text="x",\
+                                     command=lambda:_onDel(_from,_to,i*l+j))
+                    _delete.grid(sticky='W', row=i*l+j,column=6)
+                    self.createToolTip(_delete,"Delete")
+
+        def _onAdd():
+            _from = fromVar.get()
+            _to = toVar.get()
+            if not _from in self.item.iResidues:
+                self.item.iResidues[_from]={}
+            self.item.iResidues[_from][_to] = [int(s.strip()) for s in \
+                                                   entry.get().split(",")]
+            print _from,_to,self.item.iResidues[_from][_to]
+            _updateList()
+
+        Label(frame,text="From: ").grid(row=row,column=0,sticky="W")
+        fromVar = StringVar("")
+        fromMenu = OptionMenu(frame,fromVar,*compNames)
+        fromMenu.configure(width=10)
+        fromMenu.grid(sticky='W', row=row,column=1)
+
+        Label(frame,text="To: ").grid(row=row,column=2,sticky="W")
+        toVar = StringVar("")
+        toMenu = OptionMenu(frame,toVar,*compNames)
+        toMenu.configure(width=10)
+        toMenu.grid(sticky='W', row=row,column=3)
+
+        entry = EntryField(frame,labelpos="w",label_text="Residues: ",\
+                           entry_width=20)
+        entry.grid(sticky='W', row=row,column=4)
+        Button(frame,text="Add",command=_onAdd)\
+              .grid(sticky='W', row=row,column=5)
+
+        listFrame.grid(sticky='W', row=1,column=0,columnspan=6)
         frame.grid()
         self.menu.grid()
         self.frame.update()
@@ -1299,13 +1399,13 @@ class SetupFrame(TabFrame):
         curRow = 0
 
         #ROW 1:
-        Tkinter.Label(self, text="Add subunit:").grid(row=curRow,\
+        Label(self, text="Add subunit:").grid(row=curRow,\
                                     column=0,\
                                     sticky="W",\
                                     columnspan=2,\
                                     **layout)
 
-        Tkinter.Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
+        Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
                                     column=3,\
                                     sticky="W",\
                                     columnspan=2,\
@@ -1520,7 +1620,7 @@ class DataMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
 
-        Tkinter.Label(self, text="Add data in Setup tab").pack(anchor='w', pady=1)
+        Label(self, text="Add data in Setup tab").pack(anchor='w', pady=1)
 
     def clear(self):
         for child in self.winfo_children():
@@ -1529,7 +1629,7 @@ class DataMgrTabFrame(TabFrame):
     def reload(self, name, userData, cfg):
         self.clear()
         curRow = 0
-        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+        Label(self, anchor='w', bg='white', padx=4, pady=4,
                 text='This panel allows selecting which data sets should be used for displaying cross-links and statistics.').grid(row=curRow, columnspan=2)
         curRow += 1
 
@@ -1537,7 +1637,7 @@ class DataMgrTabFrame(TabFrame):
 
 
             for item in self.config.getDataItems():
-                Tkinter.Label(self, text=item.name).grid(row=curRow, column=0)
+                Label(self, text=item.name).grid(row=curRow, column=0)
 
                 var = Tkinter.BooleanVar()
                 var.set(True)
@@ -1557,7 +1657,7 @@ class ComponentsTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
 
-        Tkinter.Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
+        Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
 
     def clear(self):
         for child in self.winfo_children():
@@ -1572,14 +1672,14 @@ class ComponentsTabFrame(TabFrame):
 
             # curRow = 0
             f1 = Tkinter.Frame(self)
-            Tkinter.Label(f1, text="Choose action: ").pack(side='left')
+            Label(f1, text="Choose action: ").pack(side='left')
             self.componentsTabHandlerOptMenu = ComponentsHandleOptionMenu(f1)
 
             self.componentsTabHandlerOptMenu.pack(side='left')
 
             f1.pack(anchor='w', pady=1)
 
-            f2 = Tkinter.LabelFrame(self, bd=4, relief="groove", text='Apply to:', padx=4, pady=4)
+            f2 = LabelFrame(self, bd=4, relief="groove", text='Apply to:', padx=4, pady=4)
             f2.pack(anchor='w', pady=1)
             self.addComponentButtons(f2, callback=self.handleComponent, startRow=0)
 
@@ -1601,7 +1701,7 @@ class ComponentsTabFrame(TabFrame):
 
         else:
             self.clear()
-            Tkinter.Label(self, text="Add some components first").pack(anchor='w', pady=1)
+            Label(self, text="Add some components first").pack(anchor='w', pady=1)
 
 
     def handleComponent(self, name):
@@ -1695,10 +1795,10 @@ class ComponentsTabFrame(TabFrame):
             if model.active:
                 model.colorAll()
 
-class LdScoreFilterEntry(Pmw.EntryField):
+class LdScoreFilterEntry(EntryField):
     def __init__(self, parent, var, command):
         self.var = var
-        Pmw.EntryField.__init__(self, parent,
+        EntryField.__init__(self, parent,
                 labelpos = 'w',
                 value = '0.0',
                 label_text = 'Custom (from 0 to 100)',
@@ -1721,10 +1821,10 @@ class LdScoreFilterScale(Tkinter.Scale):
                 variable=self.var
                 )
 
-class XlinkLengthThresholdEntry(Pmw.EntryField):
+class XlinkLengthThresholdEntry(EntryField):
     def __init__(self, parent, lengthThreshVar):
         self.var = lengthThreshVar
-        Pmw.EntryField.__init__(self, parent,
+        EntryField.__init__(self, parent,
                 labelpos = 'w',
                 value = '30.0',
                 label_text = 'Xlink length threshold',
@@ -1732,12 +1832,12 @@ class XlinkLengthThresholdEntry(Pmw.EntryField):
                 validate = {'validator' : 'real',
                         'min' : 0, 'minstrict' : 1})
 
-class LengthThresholdLabel(Tkinter.Label):
+class LengthThresholdLabel(Label):
     def __init__(self, parent):
         self.textSrc = string.Template("Current length threshold: $val A")
         self.var = StringVar()
         self.var.set(self.textSrc.substitute({'val': xlinkanalyzer.XLINK_LEN_THRESHOLD}))
-        Tkinter.Label.__init__(self, parent, textvariable=self.var)
+        Label.__init__(self, parent, textvariable=self.var)
 
         self._handlers = []
 
@@ -1745,7 +1845,7 @@ class LengthThresholdLabel(Tkinter.Label):
 
     def destroy(self):
         self._deleteHandlers()
-        Tkinter.Label.destroy(self)
+        Label.destroy(self)
 
     def _addHandlers(self):
         handler = chimera.triggers.addHandler('lengthThresholdChanged',lambda x, y, val: self.var.set(self.textSrc.substitute({'val': val})), None)
@@ -1772,7 +1872,7 @@ class XlinkToolbar(Tkinter.Frame):
         scoresFrame = Tkinter.Frame(ldscoreThresholdFrame)
         scoresFrame.pack()
         # scoresFrame.grid(row = curRow, column = 0)
-        Tkinter.Label(scoresFrame, text="Minimal xlink score").pack(side='left')
+        Label(scoresFrame, text="Minimal xlink score").pack(side='left')
 
         btn = Tkinter.Button(scoresFrame,
             text='20',
@@ -1878,7 +1978,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
         self.xlinkMgrTabFrame = xlinkMgrTabFrame
         curRow = 0
 
-        Tkinter.Label(self, anchor='w', bg='white', padx=4, pady=4,
+        Label(self, anchor='w', bg='white', padx=4, pady=4,
                 text='This panel allows coloring cross-linked residues').grid(row = curRow, columnspan=2, sticky="we")
         curRow += 1
 
@@ -1960,7 +2060,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 class XlinkMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
-        Tkinter.Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
+        Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
         self.dataMgrs = []
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
         self._addHandlers()
@@ -2130,7 +2230,7 @@ class XlinkMgrTabFrame(TabFrame):
             showXlinksFromTabName = 'Show xlinks from'
             xlNotebook.add(showXlinksFromTabName)
 
-            Tkinter.Label(xlNotebook.page(showXlinksFromTabName), anchor='w', bg='white', padx=4, pady=4,
+            Label(xlNotebook.page(showXlinksFromTabName), anchor='w', bg='white', padx=4, pady=4,
                     text='This panel allows displaying cross-links between specific subunits').grid(row = curRow, columnspan=2, sticky="we")
             curRow += 1
 
@@ -2327,7 +2427,7 @@ class InteractingResiMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
 
-        Tkinter.Label(self, text="This is experimental feature, and data must be added manually to the json file").pack(anchor='w', pady=1)
+        Label(self, text="This is experimental feature, and data must be added manually to the json file").pack(anchor='w', pady=1)
         self.dataMgrs = []
 
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
