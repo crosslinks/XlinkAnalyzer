@@ -1487,16 +1487,12 @@ class SetupFrame(TabFrame):
 
         #Deploy the components in self.config
         for i,item in enumerate(self.config.items):
-            itemFrame = ItemFrame(self,component=item)
+            itemFrame = ItemFrame(self,item=item)
             itemFrame.grid(row=i+1,\
                                 column = 0,\
                                 columnspan = 3,\
                                 sticky = "W")
             self.componentFrames.append(itemFrame)
-            #if InteractingResidueItem present, add corresponding tab
-            if item.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
-                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
-                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.pack(fill='both', expand=1)
 
@@ -1622,6 +1618,11 @@ class SetupFrame(TabFrame):
                                         self)
             itemFrame.grid(columnspan = 3, sticky = "WE")
             self.itemFrames.append(itemFrame)
+
+            #if InteractingResidueItem present, add corresponding tab
+            if item.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
+                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
+                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
 
     def checkName(self,item):
         if item.name in [item.name for item in self.config]:
