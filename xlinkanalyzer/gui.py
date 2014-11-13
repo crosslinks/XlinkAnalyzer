@@ -31,7 +31,7 @@ import pyxlinks
 
 
 from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
-                 Assembly, ResourceManager, Item
+                 Assembly, ResourceManager, Item, InteractingResidueItem
 
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
@@ -879,7 +879,8 @@ class ItemFrame(LabelFrame):
                                        self.typeVar,\
                                        xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
                                        xlinkanalyzer.XQUEST_DATA_TYPE,\
-                                       xlinkanalyzer.SEQUENCES_DATA_TYPE)
+                                       xlinkanalyzer.SEQUENCES_DATA_TYPE,\
+                                       xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
                 self.typeMenu.config(width=10)
                 self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
                 self.resource = []
@@ -966,10 +967,11 @@ class ItemFrame(LabelFrame):
                 self.item.color = colorOption.get()
         elif type(self.item) == DataItem:
             self.item.resource = self.resource
-            if self.typeVar.get() == xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE:
-                self.item = XQuestItem(self.item.name,\
-                                       self.item.config,\
-                                       self.item.resource)
+            print self.typeVar.get()
+            if self.typeVar.get() == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
+                self.item = InteractingResidueItem(self.item.name,\
+                                             self.item.config)
+                print self.item.type
             elif self.typeVar.get() == xlinkanalyzer.XQUEST_DATA_TYPE:
                 self.item = XQuestItem(self.item.name,\
                                        self.item.config,\
@@ -1022,7 +1024,8 @@ class ItemFrame(LabelFrame):
                                        self.typeVar,\
                                        xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
                                        xlinkanalyzer.XQUEST_DATA_TYPE,\
-                                       xlinkanalyzer.SEQUENCES_DATA_TYPE)
+                                       xlinkanalyzer.SEQUENCES_DATA_TYPE,
+                                       xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
                 self.typeMenu.config(width=10)
                 self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
                 self.resource = []
@@ -1379,7 +1382,7 @@ class SetupFrame(TabFrame):
     def __init__(self,master,mainWindow=None):
         """
         The SetupFrame represents an Assembly and offers the
-        possebility to edit this config.
+        possibility to edit this config.
         """
         self.master = master
         self.itemFrames = []
@@ -1478,7 +1481,7 @@ class SetupFrame(TabFrame):
                                 columnspan = 3,\
                                 sticky = "W")
             self.componentFrames.append(itemFrame)
-            #if InterResidueItem present, add corresponding tab
+            #if InteractingResidueItem present, add corresponding tab
             if item.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
                 if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
                     xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)

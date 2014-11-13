@@ -148,8 +148,8 @@ class SimpleDataItem(Item):
         return self.__str__()
 
 class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,config,data):
-        super(InteractingResidueItem,self).__init__(name,config,data)
+    def __init__(self,name,config):
+        super(InteractingResidueItem,self).__init__(name,config,None)
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
         self.iResidues = {}
