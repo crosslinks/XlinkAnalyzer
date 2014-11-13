@@ -1117,6 +1117,12 @@ class ItemFrame(LabelFrame):
     def configureInteractingResidue(self):
 
         compNames = self.config.getComponentNames()
+        if not compNames:
+            title = "No components yet"
+            message = "Please add some components before configuring."
+            tkMessageBox.showinfo(title,message,parent=self.master)
+            return
+
         row = 0
         self.menu = Toplevel()
         frame = Frame(self.menu,padx=5,pady=5)
@@ -1182,6 +1188,9 @@ class ItemFrame(LabelFrame):
             print _from,_to,self.item.iResidues[_from][_to]
             _updateList()
 
+        def _onSave():
+            self.menu.destroy()
+
         Label(frame,text="From: ").grid(row=row,column=0,sticky="W")
         fromVar = StringVar("")
         fromMenu = OptionMenu(frame,fromVar,*compNames)
@@ -1199,8 +1208,11 @@ class ItemFrame(LabelFrame):
         entry.grid(sticky='W', row=row,column=4)
         Button(frame,text="Add",command=_onAdd)\
               .grid(sticky='W', row=row,column=5)
-
+        _updateList()
         listFrame.grid(sticky='W', row=1,column=0,columnspan=6)
+
+        Button(frame,text="Save",command=_onSave)\
+               .grid(sticky='W',row=2,column=0)
         frame.grid()
         self.menu.grid()
         self.frame.update()
