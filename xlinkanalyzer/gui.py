@@ -850,6 +850,8 @@ class ItemFrame(LabelFrame):
         self.config = item.config
         self.active = active
         self.layout = {"padx":5,"pady":3}
+        self.applied = True
+
         if active:
             self.nameField = EntryField(self,labelpos="w",\
                                              label_text="Name: ",\
@@ -885,24 +887,30 @@ class ItemFrame(LabelFrame):
                 self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
                 self.resource = []
         else:
+            self.nameVar = StringVar("")
             self.nameField = EntryField(self,label_text="Name: ",\
                                         labelpos="w",\
                                         entry_width=10,\
-                                        command=self.onEdit)
+                                        entry_textvariable=self.nameVar,\
+                                        command=lambda: self.onEdit("","",""))
             self.nameField.grid(sticky='W',row = 0,column=0,**self.layout)
-            self.nameField.setvalue(item.name)
+            self.nameVar.set(item.name)
+            self.nameVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
             if issubclass(item.__class__,Component):
+                self.chainVar = StringVar("")
                 self.chainField = EntryField(self,\
                                         label_text="ChainIds: ",\
                                         labelpos="w",\
                                         entry_width=10,\
-                                        command=self.onEdit)
+                                        entry_textvariable=self.chainVar,\
+                                        command=lambda: self.onEdit("","",""))
                 self.chainField.grid(row=0,column=1)
-                self.chainField.setvalue(item.commaList(item.chainIds))
+                self.chainVar.set(item.commaList(item.chainIds))
+                self.nameVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
                 ColorOption(self,0,None,None,self.populate,\
                             startCol=2,**self.layout).set(item.color)
                 self.apply = Button(self,text=unichr(10004),\
-                                    command=self.onEdit)
+                                    command=self.onApply)
                 self.createToolTip(self.apply,"Apply Changes")
                 self.apply.grid(row=0,column=3,sticky="w",**self.layout)
                 self.delete = Button(self,text="x",command=self.onDelete)
@@ -933,9 +941,17 @@ class ItemFrame(LabelFrame):
                 self.delete.grid(row=0,column=3,sticky="w",**self.layout)
                 self.createToolTip(self.delete,"Delete")
 
-    def onEdit(self):
+    def onEdit(self,n,i,m):
+        if self.nameVar.get() != self.item.name \
+           or self.chainVar.get() != self.item.commaList(self.item.chainIds):
+            self.apply.configure(bg="#00A8FF")
+        else:
+            self.apply.configure(bg="light grey")
+
+    def onApply(self):
         self.populate()
         self.frame.update()
+        self.apply.configure(bg="light grey")
 
     def onDelete(self):
         self.config.deleteItem(self.item)
