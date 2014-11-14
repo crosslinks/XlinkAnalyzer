@@ -891,8 +891,7 @@ class ItemFrame(LabelFrame):
             self.nameField = EntryField(self,label_text="Name: ",\
                                         labelpos="w",\
                                         entry_width=10,\
-                                        entry_textvariable=self.nameVar,\
-                                        command=lambda: self.onEdit("","",""))
+                                        entry_textvariable=self.nameVar)
             self.nameField.grid(sticky='W',row = 0,column=0,**self.layout)
             self.nameVar.set(item.name)
             self.nameVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
@@ -902,11 +901,10 @@ class ItemFrame(LabelFrame):
                                         label_text="ChainIds: ",\
                                         labelpos="w",\
                                         entry_width=10,\
-                                        entry_textvariable=self.chainVar,\
-                                        command=lambda: self.onEdit("","",""))
+                                        entry_textvariable=self.chainVar)
                 self.chainField.grid(row=0,column=1)
                 self.chainVar.set(item.commaList(item.chainIds))
-                self.nameVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
+                self.chainVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
                 ColorOption(self,0,None,None,self.populate,\
                             startCol=2,**self.layout).set(item.color)
                 self.apply = Button(self,text=unichr(10004),\
@@ -942,6 +940,8 @@ class ItemFrame(LabelFrame):
                 self.createToolTip(self.delete,"Delete")
 
     def onEdit(self,n,i,m):
+        print self.chainVar.get(),self.item.commaList(self.item.chainIds),\
+        self.chainVar.get() == self.item.commaList(self.item.chainIds)
         if self.nameVar.get() != self.item.name \
            or self.chainVar.get() != self.item.commaList(self.item.chainIds):
             self.apply.configure(bg="#00A8FF")
