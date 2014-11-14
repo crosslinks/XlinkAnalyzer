@@ -1143,7 +1143,7 @@ class ItemFrame(LabelFrame):
         self.menu = Toplevel()
         frame = Frame(self.menu,padx=5,pady=5)
         listFrame = Frame(frame,padx=5,pady=5)
-        _dict = self.item.iResidues
+        _dict = self.item.data
         resiList = []
 
         def _onDel(_from,_to,i):
@@ -1197,11 +1197,11 @@ class ItemFrame(LabelFrame):
         def _onAdd():
             _from = fromVar.get()
             _to = toVar.get()
-            if not _from in self.item.iResidues:
-                self.item.iResidues[_from]={}
-            self.item.iResidues[_from][_to] = [int(s.strip()) for s in \
+            if not _from in self.item.data:
+                self.item.data[_from]={}
+            self.item.data[_from][_to] = [int(s.strip()) for s in \
                                                    entry.get().split(",")]
-            print _from,_to,self.item.iResidues[_from][_to]
+            print _from,_to,self.item.data[_from][_to]
             _updateList()
 
         def _onSave():
