@@ -623,7 +623,7 @@ class XlinkDataMgr(DataMgr):
     def showModifiedMap(self, colorMonolinked=True, colorXlinked=True, colorExpected=True, colorNotExpected=True, byPredictor=True, byLength=True):
         expectedColor = 'red'
 
-        self.xlinkAnalyzer = XlinkAnalyzer(get_gui().assemblyFrame.assembly.getPyxlinksConfig())
+        self.xlinkAnalyzer = XlinkAnalyzer(get_gui().configFrame.config.getPyxlinksConfig())
         self.xlinkAnalyzer.load_xlinks(from_cfg=False, xlinksSet=self.xlinksSetsMerged.get_deep_copy())
 
         self.xlinkAnalyzer.gen_monolinks_possible_in_structure(self.model, possible_fn=is_crosslinkable)
