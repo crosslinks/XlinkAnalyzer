@@ -885,6 +885,8 @@ class XlinkDataMgr(DataMgr):
                     atom.drawMode = 2 #default for chimera
                     atom.display = False
 
+        if hasattr(self.model, 'show_missing_loops'):
+            self.model.show_missing_loops()
 
     def color_xlinked(self, to=None, fromComp=None, minLdScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
         """
@@ -1596,7 +1598,7 @@ def get_chain_for_chimera_obj(obj):
 
 def is_normal_pdb_resi(resi):
     '''Distinguish from rmf resi'''
-    return hasattr(resi, 'hasRibbon')
+    return hasattr(resi, 'hasRibbon') and resi.hasRibbon()
 
 
 def is_satisfied(b, threshold):
