@@ -1991,8 +1991,8 @@ class XlinkToolbar(Tkinter.Frame):
         else:
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
-                    if self.xlinkMgrTabFrame.smartModeBtn.var.get():
-                        mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
+                    if self.xlinkMgrTabFrame.smartMode.get():
+                        mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.xlinkMgrTabFrame.showFirstOnlyOliMode.get())
                     else:
                         mgr.showAllXlinks()
                     mgr.hide_by_ld_score(minScore)
@@ -2099,6 +2099,9 @@ class XlinkMgrTabFrame(TabFrame):
 
         self.showFirstOnlyOliMode = Tkinter.BooleanVar()
         self.showFirstOnlyOliMode.set(False)
+
+        self.smartMode = Tkinter.BooleanVar()
+        self.smartMode.set(False)
 
     def _addHandlers(self):
         TabFrame._addHandlers(self)
@@ -2221,12 +2224,11 @@ class XlinkMgrTabFrame(TabFrame):
             btn.grid(row = curRow, column = 1)
             curRow += 1
 
-            var = Tkinter.BooleanVar()
             self.smartModeBtn = Tkinter.Checkbutton(xlNotebook.page(generalTabName),
                 text="Smart homoligomers mode",
-                variable=var,
+                variable=self.smartMode,
                 command=self.onSmartModeChange)
-            self.smartModeBtn.var = var
+            self.smartModeBtn.var = self.smartMode
             self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
             Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
                 .grid(sticky='W', row=curRow, column=1)
@@ -2282,12 +2284,11 @@ class XlinkMgrTabFrame(TabFrame):
             self.showXlinksFromTabNameCompOptMenuTo.grid(row = curRow, column = 1)
             curRow += 1
 
-            var = Tkinter.BooleanVar()
             self.showXlinksFromTabsmartModeBtn = Tkinter.Checkbutton(xlNotebook.page(showXlinksFromTabName),
                 text="Smart homoligomers mode",
-                variable=var,
+                variable=self.smartMode,
                 command=self.showXlinksFrom)
-            self.showXlinksFromTabsmartModeBtn.var = var
+            self.showXlinksFromTabsmartModeBtn.var = self.smartMode
             self.showXlinksFromTabsmartModeBtn.grid(sticky='E', row=curRow, column=0)
 
             Button(xlNotebook.page(showXlinksFromTabName), text="Configure", command=self.configureOligomeric)\
@@ -2374,7 +2375,7 @@ class XlinkMgrTabFrame(TabFrame):
 
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
-                    if self.showXlinksFromTabsmartModeBtn.var.get():
+                    if self.smartMode.get():
                         smart = True
                     else:
                         smart = False
@@ -2412,7 +2413,7 @@ class XlinkMgrTabFrame(TabFrame):
         dataMgrs = self.getXlinkDataMgrs()
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                if self.smartModeBtn.var.get():
+                if self.smartMode.get():
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
                     mgr.showAllXlinks()
@@ -2428,7 +2429,7 @@ class XlinkMgrTabFrame(TabFrame):
 
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                if self.smartModeBtn.var.get():
+                if self.smartMode.get():
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
                     mgr.showAllXlinks()
@@ -2442,7 +2443,7 @@ class XlinkMgrTabFrame(TabFrame):
 
     def onLengthThresholdChanged(self, x, y, val):
         dataMgrs = self.getXlinkDataMgrs()
-        if self.smartModeBtn.var.get():
+        if self.smartMode.get():
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
                     mgr.show_xlinks_smart(val, show_only_one=self.showFirstOnlyOliMode.get())
