@@ -2346,8 +2346,8 @@ class XlinkMgrTabFrame(TabFrame):
         curRow = 0
 
         btn = Tkinter.Checkbutton(frame,
-            variable=self.showFirstOnlyOliMode)
-            # command=lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar))
+                                  variable=self.showFirstOnlyOliMode,
+                                  command=self.showAllXlinks)
         btn.var = self.showFirstOnlyOliMode
         btn.grid(row=curRow, column=0)
         Label(frame, text='Show only first xlink').grid(row=curRow, column=1)
