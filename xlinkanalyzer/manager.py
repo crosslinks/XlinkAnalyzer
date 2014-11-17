@@ -1184,9 +1184,9 @@ class XlinkDataMgr(DataMgr):
 
         return to_show, to_hide
 
-    def show_xlinks_smart(self, threshold=XLINK_LEN_THRESHOLD):
+    def show_xlinks_smart(self, threshold=XLINK_LEN_THRESHOLD, show_only_one=False):
         for xlink_set in self.ambig_xlink_sets:
-            to_show, to_hide = self._get_smart_list(xlink_set, threshold)
+            to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
             for x in to_show:
                 if x.pb:
                     x.pb.display = True
@@ -1194,10 +1194,10 @@ class XlinkDataMgr(DataMgr):
                 if x.pb:
                     x.pb.display = False
 
-    def show_xlinks_from(self, xfrom, to=None, threshold=XLINK_LEN_THRESHOLD, hide_others=True, smart=True):
+    def show_xlinks_from(self, xfrom, to=None, threshold=XLINK_LEN_THRESHOLD, hide_others=True, smart=True, show_only_one=False):
         for xlink_set in self.ambig_xlink_sets:
             if smart:
-                to_show, to_hide = self._get_smart_list(xlink_set, threshold)
+                to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
             else:
                 to_show = xlink_set
                 to_hide = []

@@ -1992,7 +1992,7 @@ class XlinkToolbar(Tkinter.Frame):
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
                     if self.xlinkMgrTabFrame.smartModeBtn.var.get():
-                        mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                        mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                     else:
                         mgr.showAllXlinks()
                     mgr.hide_by_ld_score(minScore)
@@ -2096,6 +2096,9 @@ class XlinkMgrTabFrame(TabFrame):
         self.dataMgrs = []
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
         self._addHandlers()
+
+        self.showFirstOnlyOliMode = Tkinter.BooleanVar()
+        self.showFirstOnlyOliMode.set(False)
 
     def _addHandlers(self):
         TabFrame._addHandlers(self)
@@ -2224,7 +2227,9 @@ class XlinkMgrTabFrame(TabFrame):
                 variable=var,
                 command=self.onSmartModeChange)
             self.smartModeBtn.var = var
-            self.smartModeBtn.grid(row = curRow, columnspan=totalCols)
+            self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
+            Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
+                .grid(sticky='W', row=curRow, column=1)
             curRow += 1
 
             self.ld_score_var = Tkinter.DoubleVar()
@@ -2283,7 +2288,11 @@ class XlinkMgrTabFrame(TabFrame):
                 variable=var,
                 command=self.showXlinksFrom)
             self.showXlinksFromTabsmartModeBtn.var = var
-            self.showXlinksFromTabsmartModeBtn.grid(row = curRow, columnspan=2)
+            self.showXlinksFromTabsmartModeBtn.grid(sticky='E', row=curRow, column=0)
+
+            Button(xlNotebook.page(showXlinksFromTabName), text="Configure", command=self.configureOligomeric)\
+                .grid(sticky='W', row=curRow, column=1)
+
             curRow += 1
 
             var = Tkinter.BooleanVar()
@@ -2322,6 +2331,29 @@ class XlinkMgrTabFrame(TabFrame):
 
             self.modelStatsTable.pack(fill='both')
 
+    def configureOligomeric(self):
+        menu = Toplevel()
+        w = menu.winfo_screenwidth()
+        h = menu.winfo_screenheight()
+        x = w/2
+        y = h/2
+        menu.geometry("+%d+%d" % (x, y))
+        menu.geometry("400x200")
+
+        frame = Frame(menu, padx=5, pady=5)
+
+        curRow = 0
+
+        btn = Tkinter.Checkbutton(frame,
+            variable=self.showFirstOnlyOliMode)
+            # command=lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar))
+        btn.var = self.showFirstOnlyOliMode
+        btn.grid(row=curRow, column=0)
+        Label(frame, text='Show only first xlink').grid(row=curRow, column=1)
+        curRow += 1
+
+        frame.pack()
+
     def displayDefault(self):
         self.getXlinkDataMgrs()
         self.showAllXlinks()
@@ -2352,7 +2384,7 @@ class XlinkMgrTabFrame(TabFrame):
                     else:
                         hide_others = False
 
-                    mgr.show_xlinks_from(fromComp, to=toComp, threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, hide_others=hide_others, smart=smart)
+                    mgr.show_xlinks_from(fromComp, to=toComp, threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, hide_others=hide_others, smart=smart, show_only_one=self.showFirstOnlyOliMode.get())
         else:
             raise UserError("Select \"from subunit\"")
 
@@ -2381,7 +2413,7 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartModeBtn.var.get():
-                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(mgr.minLdScore)
@@ -2397,7 +2429,7 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartModeBtn.var.get():
-                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                    mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(minScore)
@@ -2406,14 +2438,14 @@ class XlinkMgrTabFrame(TabFrame):
         dataMgrs = self.getXlinkDataMgrs()
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+                mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
 
     def onLengthThresholdChanged(self, x, y, val):
         dataMgrs = self.getXlinkDataMgrs()
         if self.smartModeBtn.var.get():
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
-                    mgr.show_xlinks_smart(val)
+                    mgr.show_xlinks_smart(val, show_only_one=self.showFirstOnlyOliMode.get())
 
     def restyleXlinks(self):
         for mgr in self.dataMgrs:
