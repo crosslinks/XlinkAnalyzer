@@ -1,29 +1,33 @@
-import random
-from unittest import TestCase
+import unittest
+from os import path
 
-class TestSequenceFunctions(TestCase):
+import chimera
+
+import xlinkanalyzer
+from xlinkanalyzer import Assembly,ResourceManager
+
+# for this test to run do:
+# ln -s TestExample.py [Chimeradir]/test/pytests/pyt_[Name].py
+
+
+RUNME = True
+
+description = "Provides the model and config of PolI"
+
+
+class XLABaseTest(unittest.TestCase):
+    """Provides the model and config of PolI"""
 
     def setUp(self):
-        self.seq = list(range(10))
+        mPath = xlinkanalyzer.__path__[0]
+        xlaTestPath = path.join(path.split(mPath)[0],'examples/PolI')
+        xlaTestModel = path.join(xlaTestPath,'4C3H.pdb')
+        xlaTestConfig =path.join(xlaTestPath,'PolI_with_interacting_resi.json')
 
-    def test_shuffle(self):
-        # make sure the shuffled sequence does not lose any elements
-        random.shuffle(self.seq)
-        self.seq.sort()
-        self.assertEqual(self.seq, list(range(10)))
+        self.model = chimera.openModels.open(xlaTestModel)
+        self.config = Assembly()
+        self.rManager = ResourceManager(self.config)
+        self.rManager.loadAssembly(None,xlaTestConfig)
 
-        # should raise an exception for an immutable sequence
-        self.assertRaises(TypeError, random.shuffle, (1,2,3))
-
-    def test_choice(self):
-        element = random.choice(self.seq)
-        self.assertTrue(element in self.seq)
-
-    def test_sample(self):
-        with self.assertRaises(ValueError):
-            random.sample(self.seq, 20)
-        for element in random.sample(self.seq, 5):
-            self.assertTrue(element in self.seq)
-
-if __name__ == '__main__':
-    unittest.main()
+    def runTest(self):
+        print self.config

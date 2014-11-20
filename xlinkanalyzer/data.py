@@ -304,7 +304,7 @@ class SequenceItem(DataItem):
 
 
 class Assembly(object):
-    def __init__(self,frame):
+    def __init__(self,frame=None):
         self.items = []
         self.root = ""
         self.file = ""
@@ -631,15 +631,17 @@ class ResourceManager(object):
             self.config.file = _file
             self.state = "unchanged"
 
-    def loadAssembly(self,parent):
-        _file = tkFileDialog.askopenfilename(title="Choose file",\
-                                             parent=parent)
+    def loadAssembly(self,parent,_file=None):
+        if not _file:
+            _file = tkFileDialog.askopenfilename(title="Choose file",\
+                                                 parent=parent)
         if _file:
             self.config.file = _file
             with open(_file,'r') as f:
                 data = json.loads(minify_json.json_minify(f.read()))
                 self.config.root = dirname(_file)
-                self.config.frame.clear()
+                if self.config.frame:
+                    self.config.frame.clear()
                 self.config.loadFromDict(data)
 
 
