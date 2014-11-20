@@ -1,4 +1,3 @@
-from itertools import tee, izip
 import xlinkanalyzer
 import chimera
 import re
@@ -7,7 +6,7 @@ import pyxlinks
 import tkFileDialog
 import csv
 import copy
-from itertools import groupby, product, combinations_with_replacement
+from itertools import product, groupby, tee, izip, izip_longest, combinations_with_replacement
 from collections import defaultdict
 
 from chimera import runCommand, Bond, selection
@@ -184,7 +183,7 @@ class RMF_Model(Model):
         super(RMF_Model, self).__init__(chimeraModel, config)
 
         self.removeSelHandler()
-        self.set_beads(radius=2, opacity=1.0)
+        self.set_beads(radius=None, opacity=1.0, radius_scale=0.5)
         if moleculeModel is not None:
             self.show_missing_loops()
         hideGroup('missing segments')
@@ -194,7 +193,7 @@ class RMF_Model(Model):
         self._handlers.append((chimera.triggers, 'CoordSet', handler))
 
     def afterAllUpdateHandler(self, trigName, myData, frame):
-        self.set_beads(radius=2, opacity=1.0)
+        self.set_beads(radius=None, opacity=1.0, radius_scale=0.5)
 
     def _deleteHandlers(self):
         if not self._handlers:
@@ -251,8 +250,9 @@ class RMF_Model(Model):
 
         for bead in self.iterate_beads():
             start, end = self.get_bead_residue_indexes(bead)
-            for i in range(start, end):
-                yield RMFFakeResi(bead.residue, bead.residue.id.chainId, i)
+            if start is not None and end is not None:
+                for i in range(start, end):
+                    yield RMFFakeResi(bead.residue, bead.residue.id.chainId, i)
 
     def iterate_CAs(self):
         if self.moleculeModel is not None:
@@ -287,11 +287,14 @@ class RMF_Model(Model):
             for o in sel:
                 yield o
 
-    def set_beads(self, radius=None, opacity=1.0):
+    def set_beads(self, radius=None, opacity=1.0, radius_scale=1):
         for bead in self.iterate_beads():
-            bead.color.opacity = opacity
+            if bead.color:
+                bead.color.opacity = opacity
             if radius is not None:
                 bead.radius = radius
+            else:
+                bead.radius = bead.radius * radius_scale
 
     def get_bead_indexes(self, bead):
         if hasattr(bead, 'name'):
@@ -315,7 +318,6 @@ class RMF_Model(Model):
             start, end = map(int, m.groups())
 
         return start, end
-
 
     def show_missing_loops(self, change_radius=True):
         self.missingLoopsPbgName = str(self.beadModel.id) + " missing_loops"
@@ -348,7 +350,6 @@ class RMF_Model(Model):
 
             cas_for_chains[key].append(cas_sorted[-1])
 
-
         missing_bead_radius = 2
         missing_def_color = chimera.colorTable.getColorByName('gray')
         grp = getPseudoBondGroup(self.missingLoopsPbgName, create=False)
@@ -368,15 +369,15 @@ class RMF_Model(Model):
                     chain_id = b[1]
                     start = b[2]
                     end = b[3]
-
-                    for ca in cas_for_chains[chain_id]:
-                        if ca[2] == start - 1 or ca[2] == end:
-                            # at1 = get_atom_from_component(b[0])
-                            # at2 = get_atom_from_component(ca[0])
-                            at1 = b[0]
-                            at2 = ca[0]
-                            grp.newPseudoBond(at1, at2)
-                            at1.display = True
+                    if chain_id in cas_for_chains:
+                        for ca in cas_for_chains[chain_id]:
+                            if ca[2] == start - 1 or ca[2] == end:
+                                # at1 = get_atom_from_component(b[0])
+                                # at2 = get_atom_from_component(ca[0])
+                                at1 = b[0]
+                                at2 = ca[0]
+                                grp.newPseudoBond(at1, at2)
+                                at1.display = True
 
 
 
@@ -743,8 +744,8 @@ class XlinkDataMgr(DataMgr):
             protein1 = pyxlinks.get_protein(xlink, 1)
             protein2 = pyxlinks.get_protein(xlink, 2)
             try:
-                chains1= self.model.config.getChainIdsByComponentName(protein1)
-                chains2= self.model.config.getChainIdsByComponentName(protein2)
+                chains1 = self.model.config.getChainIdsByComponentName(protein1)
+                chains2 = self.model.config.getChainIdsByComponentName(protein2)
             except:
                 continue
 
@@ -754,6 +755,31 @@ class XlinkDataMgr(DataMgr):
             chain_pos_pair1 = product(chains1, [pos1])
             chain_pos_pair2 = product(chains2, [pos2])
 
+            links = product(chain_pos_pair1, chain_pos_pair2)
+            to_same_bead = False
+            for link_pos1, link_pos2 in links:
+                chain1 = link_pos1[0]
+                link_resid1 = int(link_pos1[1])
+                chain2 = link_pos2[0]
+                link_resid2 = int(link_pos2[1])
+                try:
+                    resi_list1 = self.model.resi_lookup_map[chain1][link_resid1]
+                    resi_list2 = self.model.resi_lookup_map[chain2][link_resid2]
+                except KeyError:
+                    continue
+
+                for resi1, resi2 in product(resi_list1, resi_list2):
+                    at1 = self.getAtomToLink(resi1)
+                    at2 = self.getAtomToLink(resi2)
+
+                    if (link_resid1 != link_resid2) and hasattr(resi1, 'resi') and hasattr(resi2, 'resi') and at1 is at2: #(resi1.resi.id.position == resi2.resi.id.position):  # can happen for beads
+                        to_same_bead = True
+                        break
+            if to_same_bead:
+                continue
+
+            chain_pos_pair1 = product(chains1, [pos1])
+            chain_pos_pair2 = product(chains2, [pos2])
             links = product(chain_pos_pair1, chain_pos_pair2)
 
             # xlink_set = {'xlink': xlink, 'xlinkBonds': []}
@@ -778,7 +804,7 @@ class XlinkDataMgr(DataMgr):
                     if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
                         try:
                             pb = self.pbg.newPseudoBond(at1, at2)
-                        except TypeError:
+                        except TypeError:  # may happen if at1 is at2, happens for beads
                             pb = None
                         else:
                             pb.drawMode = Bond.Spring
@@ -859,6 +885,8 @@ class XlinkDataMgr(DataMgr):
                     atom.drawMode = 2 #default for chimera
                     atom.display = False
 
+        if hasattr(self.model, 'show_missing_loops'):
+            self.model.show_missing_loops()
 
     def color_xlinked(self, to=None, fromComp=None, minLdScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
         """
@@ -1016,15 +1044,15 @@ class XlinkDataMgr(DataMgr):
             xlink = x_set[0].xlink
             if float(xlink['ld-Score']) > self.minLdScore:
                 for x in x_set:
-                    at1 = x.pb.atoms[0]
-                    at2 = x.pb.atoms[1]
-                    if xfrom_sel.contains(at1) or xfrom_sel.contains(at2):
-                        x.pb.display = True
-                    else:
-                        x.pb.display = False
+                    if x.pb:
+                        at1 = x.pb.atoms[0]
+                        at2 = x.pb.atoms[1]
+                        if xfrom_sel.contains(at1) or xfrom_sel.contains(at2):
+                            x.pb.display = True
+                        else:
+                            x.pb.display = False
 
-
-    def _get_smart_list(self, xlink_set, threshold):
+    def _get_smart_list(self, xlink_set, threshold, show_only_one=False):
         '''
         Get a list of xlinks from ambigous xlink set (e.g. set of equivalent xlinks in homo-oligomers).
 
@@ -1039,51 +1067,139 @@ class XlinkDataMgr(DataMgr):
 
         #need to sort for groupby
         #sorted can sort by tuple
-        xlink_set_sorted_by_first_resi = sorted(xlink_set, key=lambda x: (x.get_chain_pos_pair()[0], x.get_chain_pos_pair()[1]))
-
-        grouped = groupby(xlink_set_sorted_by_first_resi, key=lambda x: x.get_chain_pos_pair()[0]) #grouped by first resi
+        xlink_set_sorted_by_first_resi = sorted(xlink_set, key=lambda x: x.get_chain_pos_pair()[0])
+        grouped = groupby(xlink_set_sorted_by_first_resi, key=lambda x: x.get_chain_pos_pair()[0])  # grouped by first resi
 
         def sort_key(x):
             if x.pb is not None:
                 return x.pb.length()
             else:
-                return 10000
+                return 10000000
+
+        def cmp_by_chains(x, y):
+            c1 = x.get_chain_pos_pair()[0][0]
+            c2 = y.get_chain_pos_pair()[0][0]
+
+            out1 = []
+            out2 = []
+            for a, b in izip_longest(c1, c2, fillvalue=' '):
+                try:
+                    int(a)
+                except ValueError:
+                    is_a_letter = True
+                else:
+                    is_a_letter = False
+
+                try:
+                    int(b)
+                except ValueError:
+                    is_b_letter = True
+                else:
+                    is_b_letter = False
+
+                if is_a_letter and is_b_letter:
+                    out1.append(cmp(a, b))
+                    out2.append(-cmp(a, b))
+                elif (not is_a_letter) and (not is_b_letter):
+                    out1.append(cmp(a, b))
+                    out2.append(-cmp(a, b))
+                else:
+                    out1.append(-cmp(a, b))
+                    out2.append(cmp(a, b))
+
+            return cmp(out1, out2)
+
+        def approx_equal(a, b, tol):
+            if a.pb is not None:
+                a = a.pb.length()
+            else:
+                a = 1000000000
+
+            if b.pb is not None:
+                b = b.pb.length()
+            else:
+                b = 1000000000
+            return abs(a-b) <= (abs(a)+abs(b))/2 * tol
+
+        show_groups = []
 
         for k, g in grouped:
-            #get the shortest xlink
+            show_groups.append({
+                'satisfied': [],
+                'shortest': []
+                })
+            found_satisfied = False
             inter_intra_ambig_list_sorted = sorted(g, key=lambda x: sort_key(x))
-            shortest = inter_intra_ambig_list_sorted[0]
-            if shortest is not None:
-                if float(shortest.xlink['ld-Score']) >= self.minLdScore:
-                    to_show.append(shortest)
-                else:
-                    to_hide.append(shortest)
-
-            #show xlink anyway if it is satisfied
-            for link in inter_intra_ambig_list_sorted[1:]:
+            #show xlink always if it is satisfied
+            for link in inter_intra_ambig_list_sorted:
                 b = link.pb
                 if b is not None:
                     if is_satisfied(b, threshold) and (float(link.xlink['ld-Score']) >= self.minLdScore):
-                        to_show.append(link)
-                    else:
-                        to_hide.append(link)
+                        show_groups[-1]['satisfied'].append(link)
+                        found_satisfied = True
+
+            #get the shortest xlink if not found_satisfied
+            if not found_satisfied:
+                shortest = inter_intra_ambig_list_sorted[0]
+                if shortest is not None:
+                    if float(shortest.xlink['ld-Score']) >= self.minLdScore:
+                        # to_show.append(shortest)
+                        show_groups[-1]['shortest'].append(shortest)
+
+        if show_only_one:
+            satisfied = []
+            shortest = []
+            for sg in show_groups:
+                satisfied.extend(sg['satisfied'])
+                shortest.extend(sg['shortest'])
+
+            satisfied = sorted(satisfied, key=lambda x: sort_key(x))
+            shortest = sorted(shortest, key=lambda x: sort_key(x))
+
+            if len(satisfied) > 0:
+                if len(satisfied) > 1:
+                    # print [(x.get_chain_pos_pair()[1][0], x.get_chain_pos_pair()[1][0]) for x in sorted(satisfied, cmp=cmp_by_chains)]
+                    to_show.append(sorted(satisfied, cmp=cmp_by_chains)[0])
+                else:
+                    to_show.append(satisfied[0])
+            elif len(shortest) > 0:
+                if len(shortest) > 1:
+                    shortest_to_use = []
+                    first_shortest = shortest[0]
+                    shortest_to_use.append(first_shortest)
+                    for other_shortest in shortest:
+                        if approx_equal(first_shortest, other_shortest, 0.1):
+                            shortest_to_use.append(other_shortest)
+                    to_show.append(sorted(shortest_to_use, cmp=cmp_by_chains)[0])
+                else:
+                    to_show.append(shortest[0])
+        else:
+            for sg in show_groups:
+                to_show.extend(sg['satisfied'])
+                to_show.extend(sg['shortest'])
+
+        for link in xlink_set:
+            b = link.pb
+            if b is not None:
+                if link not in to_show:
+                    to_hide.append(link)
 
         return to_show, to_hide
 
-
-    def show_xlinks_smart(self, threshold=XLINK_LEN_THRESHOLD):
+    def show_xlinks_smart(self, threshold=XLINK_LEN_THRESHOLD, show_only_one=False):
         for xlink_set in self.ambig_xlink_sets:
-            to_show, to_hide = self._get_smart_list(xlink_set, threshold)
+            to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
             for x in to_show:
-                x.pb.display = True
+                if x.pb:
+                    x.pb.display = True
             for x in to_hide:
-                x.pb.display = False
+                if x.pb:
+                    x.pb.display = False
 
-
-    def show_xlinks_from(self, xfrom, to=None, threshold=XLINK_LEN_THRESHOLD, hide_others=True, smart=True):
+    def show_xlinks_from(self, xfrom, to=None, threshold=XLINK_LEN_THRESHOLD, hide_others=True, smart=True, show_only_one=False):
         for xlink_set in self.ambig_xlink_sets:
             if smart:
-                to_show, to_hide = self._get_smart_list(xlink_set, threshold)
+                to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
             else:
                 to_show = xlink_set
                 to_hide = []
@@ -1133,23 +1249,25 @@ class XlinkDataMgr(DataMgr):
 
         satisfied = []
         violated = []
+        all_xlink_sets = []
 
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
             if float(xlink['ld-Score']) > self.minLdScore:
                 for x in x_set:
-                    if is_satisfied(x.pb, threshold):
-                        at1 = x.pb.atoms[0]
-                        at2 = x.pb.atoms[1]
-                        if (xfrom_sel.contains(at1) and xto_sel.contains(at2)) or \
-                            (xfrom_sel.contains(at2) and xto_sel.contains(at1)):
-                            satisfied.append(x_set)
-                            found_satisfied = True
-                            break
+                    if x.pb:
+                        if is_satisfied(x.pb, threshold):
+                            at1 = x.pb.atoms[0]
+                            at2 = x.pb.atoms[1]
+                            if (xfrom_sel.contains(at1) and xto_sel.contains(at2)) or \
+                                (xfrom_sel.contains(at2) and xto_sel.contains(at1)):
+                                satisfied.append(x_set)
+                                found_satisfied = True
+                                break
 
                 if not found_satisfied:
-                    sortedByLength = sorted(x_set, key=lambda xl: xl.pb.length())
+                    sortedByLength = sorted([xl for xl in x_set if xl.pb], key=lambda xl1: xl1.pb.length())
                     at1 = sortedByLength[0].pb.atoms[0]
                     at2 = sortedByLength[0].pb.atoms[1]
                     if (xfrom_sel.contains(at1) and xto_sel.contains(at2)) or \
@@ -1263,32 +1381,43 @@ class XlinkDataMgr(DataMgr):
             if float(xlink['ld-Score']) > self.minLdScore:
                 all_xlink_sets.append(x_set)
                 for x in x_set:
-                    if is_satisfied(x.pb, threshold):
-                        satisfied.append(x_set)
-                        reprXlinks.append(x)
+                    if x.pb:
+                        if is_satisfied(x.pb, threshold):
+                            satisfied.append(x_set)
+                            reprXlinks.append(x)
 
-                        found_satisfied = True
-                        break
+                            found_satisfied = True
+                            break
 
                 if not found_satisfied:
-                    sortedByLength = sorted(x_set, key=lambda xl: xl.pb.length())
-                    reprXlinks.append(sortedByLength[0])
+                    x_set_with_pb = [xl for xl in x_set if xl.pb]
+                    if len(x_set_with_pb) > 0:
+                        sortedByLength = sorted(x_set_with_pb, key=lambda xl: xl.pb.length())
+                        reprXlinks.append(sortedByLength[0])
 
-                    violated.append(x_set)
+                        violated.append(x_set)
 
-                    if pyxlinks.is_inter(xlink):
-                        for i in (1, 2):
-                            by_component_violated[pyxlinks.get_protein(xlink, i)].append(x_set)
-                    else:
-                        by_component_violated[pyxlinks.get_protein(xlink, 1)].append(x_set)
+                        if pyxlinks.is_inter(xlink):
+                            for i in (1, 2):
+                                by_component_violated[pyxlinks.get_protein(xlink, i)].append(x_set)
+                        else:
+                            by_component_violated[pyxlinks.get_protein(xlink, 1)].append(x_set)
 
 
-                    by_pair_violated[frozenset([pyxlinks.get_protein(xlink, 1), pyxlinks.get_protein(xlink, 2)])].append(x_set)
+                        by_pair_violated[frozenset([pyxlinks.get_protein(xlink, 1), pyxlinks.get_protein(xlink, 2)])].append(x_set)
 
         #sorted_by_component_violated - dict mapping comp [string] to list of ambig xlinks sets
         sorted_by_component_violated = sorted(by_component_violated.iteritems(), key=lambda a: len(a[1]), reverse=True)
+        # for comp, comp_violated in sorted_by_component_violated:
+        #     print comp, len(comp_violated)
 
+        #sorted_by_pair_violated - dict mapping comp pair [frozenset] to list of ambig xlinks sets
+        #for intra xlinks frozenset contains single component name e.g. frozenset(['A190'])
         sorted_by_pair_violated = sorted(by_pair_violated.iteritems(), key=lambda a: len(a[1]), reverse=True)
+        # for comp, comp_violated in sorted_by_pair_violated:
+        #     print comp, len(comp_violated)
+
+
 
         return {
             'satisfied': len(satisfied),
@@ -1469,11 +1598,12 @@ def get_chain_for_chimera_obj(obj):
 
 def is_normal_pdb_resi(resi):
     '''Distinguish from rmf resi'''
-    return hasattr(resi, 'hasRibbon')
+    return hasattr(resi, 'hasRibbon') and resi.hasRibbon()
 
 
 def is_satisfied(b, threshold):
-    return b.length() < threshold
+    if b:
+        return b.length() < threshold
 
 
 def get_rmf_viewers():
