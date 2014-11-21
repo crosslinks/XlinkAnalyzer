@@ -162,32 +162,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         self.addComponentToCfg(cfgName, name, color=color, chains=chains)
 
-
-    def updateActiveData(self):
-        for mgr in self.dataMgrs:
-            if hasattr(mgr, 'pbg'):
-                # mgr.pbg.destroy()
-                chimera.openModels.close(mgr.pbg)
-
-        self.dataMgrs = []
-
-        groupedByType = {}
-        for item in self.data.items:
-            if item.active:
-                if item.type not in groupedByType:
-                    groupedByType[item.type] = [item]
-                else:
-                    groupedByType[item.type].append(item)
-
-
-        for model in self.models:
-            if model.active:
-                if xlinkanalyzer.XQUEST_DATA_TYPE in groupedByType:
-                    self.dataMgrs.append(XlinkDataMgr(model, groupedByType[xlinkanalyzer.XQUEST_DATA_TYPE]))
-
-                if xlinkanalyzer.INTERACTING_RESI_DATA_TYPE in groupedByType:
-                    self.dataMgrs.append(InteractingResiDataMgr(model, groupedByType[xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]))
-
     def getDataMgrsForModel(self, model):
         out = []
         for dataMgr in self.dataMgrs:
