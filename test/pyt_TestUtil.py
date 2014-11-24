@@ -10,7 +10,7 @@ from xlinkanalyzer.manager import Model
 # ln -s pyt_TestExample.py [Chimeradir]/test/pytests/pyt_[Name].py
 
 
-RUNME = True
+RUNME = False
 
 description = "Provides the model and config of PolI"
 
@@ -18,19 +18,16 @@ description = "Provides the model and config of PolI"
 class XLABaseTest(unittest.TestCase):
     """Provides the model and config of PolI"""
 
-    def setUp(self):
+    def setUp(self, mPaths, cPath):
         mPath = xlinkanalyzer.__path__[0]
-        xlaTestPath = path.join(path.split(mPath)[0],'test/test_data/PolI')
-        xlaTestModel = path.join(xlaTestPath,'4C3H.pdb')
-        xlaTestConfig =path.join(xlaTestPath,'PolI_with_interacting_resi.json')
+        xlaTestPath = path.join(path.split(mPath)[0], 'test/test_data')
+        self.xlaTestMPaths = [path.join(xlaTestPath, _path) for _path in mPaths]
+        self.xlaTestCPath = path.join(xlaTestPath, cPath)
 
         self.config = Assembly()
         self.rManager = ResourceManager(self.config)
-        self.rManager.loadAssembly(None,xlaTestConfig)
+        self.rManager.loadAssembly(None, self.xlaTestCPath)
 
-        chimera.openModels.open(xlaTestModel)
+        [chimera.openModels.open(_path) for _path in self.xlaTestMPaths]
         self.models = chimera.openModels.list()
-        self.xla_models = [Model(chimeraModel, self.config) for chimeraModel in self.models]
-
-    def runTest(self):
-        print self.config
+        # self.xla_models = [Model(chimeraModel, self.config) for chimeraModel in self.models]
