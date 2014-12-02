@@ -49,7 +49,7 @@ class Component(Item):
         self.chainToComponent = {}
         self.componentToChain = {}
         self.sequence = ""
-        self.domains = None
+        self.domains = []
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
@@ -128,6 +128,31 @@ class Component(Item):
 
     def __repr__(self):
         return self.__str__()
+
+class Domain(object):
+    def __init__(self,name,comp=None,ranges=None,color=None,chains=None):
+        self.name = name
+        self.comp = comp
+        self.ranges = self.parse(ranges)
+        self.color = color
+        self.chainIds = chains
+
+    def parse(self,rangeS):
+        ret = []
+        if rangeS:
+            ret = [s.split("-") for s in rangeS.split(",")]
+            ret = [[int(s) for s in l] for l in ret]
+        return ret
+
+    def rangeString(self):
+        return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+                    if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
+
+    def getChainIds(self):
+        if self.chainIds is None:
+            return self.comp.chainIds
+        else:
+            return self.chainIds
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -306,6 +331,7 @@ class SequenceItem(DataItem):
 class Assembly(object):
     def __init__(self,frame=None):
         self.items = []
+        self.domains = []
         self.root = ""
         self.file = ""
         self.state = "unsaved"
@@ -395,7 +421,7 @@ class Assembly(object):
             self.items.remove(item)
 
     def getComponentByName(self,name):
-        candidates = [c for c in self.getComponentNames() if c.name==name]
+        candidates = [c for c in self.getComponents() if c.name==name]
         if candidates:
             return candidates[0]
         else:
@@ -453,6 +479,10 @@ class Assembly(object):
         else:
             return dict([(i.name,i.selection) for i in self.items\
                      if issubclass(i.__class__,Component)])
+
+    def getComponentWithDomains(self):
+        comps = self.getComponents()
+        return [c for c in comps if len(c.domains)>0]
 
     def getSequences(self,key=None):
         sequence = {}
