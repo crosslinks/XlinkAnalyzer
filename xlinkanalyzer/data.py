@@ -34,7 +34,11 @@ class Item(object):
 
     def deserialize(self,_dict):
         for key,value in _dict.items():
-            self.__dict__[key] = value
+            if key == "domains" and _dict[key] is None: #TODO: this is temporal
+                self.__dict__[key] = []
+            else:
+                self.__dict__[key] = value
+
 
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
@@ -368,7 +372,9 @@ class Assembly(object):
         dataItems = _dict["data"]
         for compD in components:
             c = Component(compD["name"],self)
+            print "before", c.domains
             c.deserialize(compD)
+            print "after", c.domains
             self.addItem(c)
         for dataD in dataItems:
             if "data" in dataD:
@@ -481,8 +487,9 @@ class Assembly(object):
                      if issubclass(i.__class__,Component)])
 
     def getComponentWithDomains(self):
-        comps = self.getComponents()
-        return [c for c in comps if len(c.domains)>0]
+        ret = self.getComponents()
+        ret = [c for c in ret if len(c.domains)>0]
+        return ret
 
     def getSequences(self,key=None):
         sequence = {}
