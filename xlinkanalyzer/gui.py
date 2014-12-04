@@ -1596,7 +1596,8 @@ class SetupFrame(TabFrame):
             color = cOption.get()
             chains = cField.get()
             subunit = self.config.getComponentByName(compVar.get())
-            d = Domain(name,subunit,ranges,color,chains)
+            config = subunit.config
+            d = Domain(name,config,subunit,ranges,color,chains)
             subunit.domains.append(d)
             _updateList()
 

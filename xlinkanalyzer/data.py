@@ -115,6 +115,7 @@ class Component(Item):
     def serialize(self):
         _dict = super(Component,self).serialize()
         _dict["color"] = self.color.rgba()
+        _dict.pop("domains")
         return _dict
 
     def deserialize(self,_dict):
@@ -134,8 +135,10 @@ class Component(Item):
         return self.__str__()
 
 class Domain(object):
-    def __init__(self,name,comp=None,ranges=None,color=None,chains=None):
+    def __init__(self,name,config,comp=None,\
+                 ranges=None,color=None,chains=None):
         self.name = name
+        self.config = config
         self.comp = comp
         self.ranges = self.parse(ranges)
         self.color = color
@@ -157,6 +160,24 @@ class Domain(object):
             return self.comp.chainIds
         else:
             return self.chainIds
+
+    def serialize(self):
+        _dict = dict([(k,v) for k,v in self.__dict__.items()])
+        _dict["color"] = self.color.rgba()
+        _dict["comp"] = self.comp.name
+        _dict.pop("config")
+        return _dict
+
+    def deserialize(self,_dict):
+        cName = _dict.pop("comp")
+        self.comp = self.config.getComponentByName(cName)
+        self.comp.domains.append(self)
+        for key,value in _dict.items():
+            self.__dict__[key] = value
+        if type(_dict["color"]) == list:
+            self.color = chimera.MaterialColor(*_dict["color"])
+
+
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -370,11 +391,13 @@ class Assembly(object):
                           InteractingResidueItem)])
         components = _dict["subunits"]
         dataItems = _dict["data"]
+        #TODO: this is a temporary solution
+        domains = []
+        if "domains" in _dict:
+            domains = _dict["domains"]
         for compD in components:
             c = Component(compD["name"],self)
-            print "before", c.domains
             c.deserialize(compD)
-            print "after", c.domains
             self.addItem(c)
         for dataD in dataItems:
             if "data" in dataD:
@@ -383,9 +406,14 @@ class Assembly(object):
             elif "resource" in dataD:
                 d = classDir[dataD["type"]]\
                     (dataD["name"],self,dataD["resource"],dataD["mapping"])
+                #TODO: What does this achieve
                 d.serialize()
             if not d.informed:
                 self.addItem(d)
+        #STRICTLY THIS ORDER
+        for dataD in domains:
+                d = Domain(dataD["name"],self)
+                d.deserialize(dataD)
 
     def convert(self,_input):
         """
@@ -516,6 +544,9 @@ class Assembly(object):
             return dict([(i.name,i.domains) for i in self.items\
                      if issubclass(i.__class__,Component)])
 
+    def getAllDomains(self):
+        return sum([c.domains for c in self.getComponents()],[])
+
     def getChains(self):
         chains = [c.chainIds for c in self.getComponents()\
                   if c.chainIds is not None]
@@ -618,6 +649,9 @@ class Assembly(object):
                 _dict["subunits"].append(item.serialize())
             else:
                 _dict["data"].append(item.serialize())
+        _dict["domains"] = []
+        for d in  self.getAllDomains():
+            _dict["domains"].append(d.serialize())
         return _dict
 
     def dataItems(self):

@@ -661,28 +661,31 @@
             },
             "name": "sequences",
             "resource": [
-                "PolI_sequences.fasta"
+                "/home/kai/repos/XlinkAnalyzer/test/test_data/PolI/PolI_sequences.fasta"
             ],
             "type": "sequences"
-        },
+        }
+    ],
+    "domains": [
         {
-            "active": true,
-            "data": null,
-            "iResidues": {
-                "A190": {
-                    "A135": [
-                        200,
-                        201,
-                        203,
-                        301,
-                        302,
-                        303
-                    ]
-                }
-            },
-            "informed": false,
-            "name": "inter",
-            "type": "interacting_resi"
+            "chainIds": "A",
+            "color": [
+                0.0,
+                0.92,
+                0.0,
+                1.0
+            ],
+            "comp": "A135",
+            "name": "Test",
+            "ranges": [
+                [
+                    1,
+                    22
+                ],
+                [
+                    99
+                ]
+            ]
         }
     ],
     "subunits": [
@@ -700,7 +703,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A190",
             "selection": ":.A",
             "sequence": "",
@@ -720,7 +722,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A135",
             "selection": ":.B",
             "sequence": "",
@@ -740,7 +741,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "AC40",
             "selection": ":.C",
             "sequence": "",
@@ -760,7 +760,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A14",
             "selection": ":.D",
             "sequence": "",
@@ -780,7 +779,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "ABC27",
             "selection": ":.E",
             "sequence": "",
@@ -800,7 +798,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "ABC23",
             "selection": ":.F",
             "sequence": "",
@@ -820,7 +817,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A43",
             "selection": ":.G",
             "sequence": "",
@@ -840,7 +836,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "ABC14.5",
             "selection": ":.H",
             "sequence": "",
@@ -860,7 +855,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A12",
             "selection": ":.I",
             "sequence": "",
@@ -880,7 +874,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "ABC10beta",
             "selection": ":.J",
             "sequence": "",
@@ -900,7 +893,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "AC19",
             "selection": ":.K",
             "sequence": "",
@@ -920,7 +912,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "ABC10alpha",
             "selection": ":.L",
             "sequence": "",
@@ -940,7 +931,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A49",
             "selection": ":.M",
             "sequence": "",
@@ -960,7 +950,6 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
             "name": "A34.5",
             "selection": ":.N",
             "sequence": "",
