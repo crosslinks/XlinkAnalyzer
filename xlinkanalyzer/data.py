@@ -115,13 +115,22 @@ class Component(Item):
     def serialize(self):
         _dict = super(Component,self).serialize()
         _dict["color"] = self.color.rgba()
-        _dict.pop("domains")
+        _dict["domains"] = [d.serialize() for d in self.domains]
         return _dict
 
     def deserialize(self,_dict):
-        super(Component,self).deserialize(_dict)
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
+            _dict.pop("color")
+        if "domains" in _dict:
+            if _dict["domains"]:
+                for _dom in _dict["domains"]:
+                    d = Domain(_dom["name"],self.config)
+                    d.deserialize(_dom)
+                    d.comp=self
+                    self.domains.append(d)
+            _dict.pop("domains")
+        super(Component,self).deserialize(_dict)
 
     def __str__(self):
         s = "Component: \n \
@@ -169,9 +178,6 @@ class Domain(object):
         return _dict
 
     def deserialize(self,_dict):
-        cName = _dict.pop("comp")
-        self.comp = self.config.getComponentByName(cName)
-        self.comp.domains.append(self)
         for key,value in _dict.items():
             self.__dict__[key] = value
         if type(_dict["color"]) == list:
@@ -410,10 +416,6 @@ class Assembly(object):
                 d.serialize()
             if not d.informed:
                 self.addItem(d)
-        #STRICTLY THIS ORDER
-        for dataD in domains:
-                d = Domain(dataD["name"],self)
-                d.deserialize(dataD)
 
     def convert(self,_input):
         """
@@ -586,6 +588,7 @@ class Assembly(object):
                 return protein
             else:
                 return None
+
     def getProteinByComponent(self,name=None):
         if name in self.componentToProtein:
             return self.componentToProtein[name]
@@ -649,9 +652,6 @@ class Assembly(object):
                 _dict["subunits"].append(item.serialize())
             else:
                 _dict["data"].append(item.serialize())
-        _dict["domains"] = []
-        for d in  self.getAllDomains():
-            _dict["domains"].append(d.serialize())
         return _dict
 
     def dataItems(self):
