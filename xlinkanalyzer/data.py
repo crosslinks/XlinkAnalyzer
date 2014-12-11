@@ -144,13 +144,15 @@ class Component(Item):
         return self.__str__()
 
 class Domain(object):
-    def __init__(self,name,config,comp=None,\
+    def __init__(self,name=None,config=None,comp=None,\
                  ranges=None,color=None,chains=None):
         self.name = name
         self.config = config
         self.comp = comp
         self.ranges = self.parse(ranges)
         self.color = color
+        if color is None:
+            self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = chains
 
     def parse(self,rangeS):
@@ -173,16 +175,28 @@ class Domain(object):
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict["color"] = self.color.rgba()
-        _dict["comp"] = self.comp.name
         _dict.pop("config")
+        _dict.pop("comp")
         return _dict
 
     def deserialize(self,_dict):
+        #TODO: Temporal
+        if "comp" in _dict:
+            _dict.pop("comp")
         for key,value in _dict.items():
             self.__dict__[key] = value
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
 
+class Subcomplex(object):
+    def __init__(self,name,color=None):
+        self.name = name
+        self.color = color
+        self.domains = []
+
+    def addDomain(self,_struc):
+        if isinstance(_struc,Domain):
+            self.domains.append(struc)
 
 
 class SimpleDataItem(Item):
@@ -465,16 +479,16 @@ class Assembly(object):
 
     def getComponents(self):
         return [i for i in self.items \
-                if issubclass(i.__class__,Component)]
+                if isinstance(i,Component)]
 
     def getComponentNames(self):
         return [i.name for i in self.items \
-                if issubclass(i.__class__,Component)]
+                if isinstance(i,Component)]
 
     def getDataItems(self,_type = None):
         dataItems = [i for i in self.items \
-                     if (issubclass(i.__class__,DataItem) \
-                         or issubclass(i.__class__,SimpleDataItem))]
+                     if (isinstance(i,DataItem) \
+                         or isinstance(i,SimpleDataItem))]
         if not _type:
             return dataItems
         else:
@@ -484,26 +498,26 @@ class Assembly(object):
     def getComponentColors(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].color
             else:
                 return None
         else:
             return dict([(i.name,i.color) for i in self.items\
-                     if issubclass(i,Component)])
+                     if isinstance(i,Component)])
 
     def getComponentChains(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].chainIds
             else:
                 return None
         else:
             return dict([(i.name,i.chainIds) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
 
     def getComponentSelections(self,name = None):
         if name:
@@ -514,7 +528,7 @@ class Assembly(object):
                 return None
         else:
             return dict([(i.name,i.selection) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
 
     def getComponentWithDomains(self):
         ret = self.getComponents()
@@ -537,14 +551,17 @@ class Assembly(object):
     def getDomains(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].domains
             else:
                 return None
         else:
             return dict([(i.name,i.domains) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
+
+    def getDomainNames(self):
+        return self.getDomains().keys()
 
     def getAllDomains(self):
         return sum([c.domains for c in self.getComponents()],[])
@@ -679,7 +696,7 @@ class Assembly(object):
 
     def locate(self):
         for item in self.items:
-            if  issubclass(item.__class__,DataItem):
+            if  isinstance(item,DataItem):
                 item.locate()
 
 class ResourceManager(object):

@@ -1519,18 +1519,12 @@ class SetupFrame(TabFrame):
             _comp.domains.remove(_dom)
             _updateList()
 
-        def _onEdit(self,n,i,m):
-            print n,i,m
-            #_apply.configure(bg="#00A8FF")
-
         def _onApp(dom,name,cVar,ranges,cIds,cOption):
             dom.name = name.get()
             dom.comp = self.config.getComponentByName(cVar.get())
             dom.ranges = dom.parse(ranges.get())
             dom.color = cOption.get()
             dom.chainIds = cIds.get()
-            _apply.configure(bg="light grey")
-
 
         def _updateList():
             _str = lambda l: str(l)[1:-1]
@@ -1567,11 +1561,11 @@ class SetupFrame(TabFrame):
                     cMenu.grid(sticky='W', row=0,column=2)
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
-                                   value=d.rangeString(),command=_onEdit)
+                                   value=d.rangeString())
                     r.grid(sticky='WE', row=0,column=3,padx=5)
                     cIds = EntryField(dFrame,labelpos="w",\
                                    label_text="ChainIds: ", entry_width=9,\
-                                   value=str(d.getChainIds()),command=_onEdit)
+                                   value=str(d.getChainIds()))
                     cIds.grid(sticky='WE', row=0,column=4,padx=5)
 
                     cOption = ColorOption(dFrame,0,None,None,None,startCol=5)
@@ -1642,7 +1636,146 @@ class SetupFrame(TabFrame):
         self.menu.grid()
 
     def onSub(self):
-        pass
+        domNames = self.config.getDomainNames()
+        compNames = self.config.getComponentNames()
+        names = compNames+domNames
+        if not compNames:
+            title = "No components or domains yet"
+            message = "Please add some components or domains before configuring."
+            tkMessageBox.showinfo(title,message,parent=self.master)
+            return
+
+        row = 0
+        self.menu = Toplevel()
+        frame = Frame(self.menu,padx=5,pady=5)
+        lFrame = Frame(frame,padx=5,pady=5)
+        iFrame = LabelFrame(frame,padx=5,pady=5,borderwidth=1)
+        _domains = self.config.domains
+
+        def _onDel(_comp,_dom):
+            _comp.domains.remove(_dom)
+            _updateList()
+
+
+        def _onApp(dom,name,cVar,ranges,cIds,cOption):
+            dom.name = name.get()
+            dom.comp = self.config.getComponentByName(cVar.get())
+            dom.ranges = dom.parse(ranges.get())
+            dom.color = cOption.get()
+            dom.chainIds = cIds.get()
+            _apply.configure(bg="light grey")
+
+
+        def _updateList():
+            _str = lambda l: str(l)[1:-1]
+            _del = lambda: _dict.__getitem__(_from).pop
+            _compVars = []
+            _nameVars = []
+
+            for child in lFrame.winfo_children():
+                child.destroy()
+
+            comps = self.config.getComponentWithDomains()
+
+
+            lrow = 0
+            for i,c in enumerate(comps):
+                for j,d in enumerate(c.domains):
+                    dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
+                    _apply = Button(dFrame,text=unichr(10004),\
+                             command=lambda:_onApp(d,n,cVar,r,cIds,cOption))
+                    _nameVar = StringVar("")
+                    _nameVars.append(_nameVar)
+                    _nameVar.set(d.name)
+                    _nameVar.trace("w",lambda n,i,m: n+i)
+                    n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
+                               entry_width=9,\
+                               entry_textvariable=_nameVar)
+                    n.grid(sticky='WE', row=0,column=0,padx=5)
+                    Label(dFrame,text="Subunit: ")\
+                    .grid(sticky='WE', row=0,column=1,padx=5)
+                    cVar = StringVar("")
+                    cVar.set(d.comp.name)
+                    cMenu = OptionMenu(dFrame,cVar,*compNames)
+                    cMenu.configure(width=5)
+                    cMenu.grid(sticky='W', row=0,column=2)
+                    r = EntryField(dFrame,labelpos="w",\
+                                   label_text="Ranges: ", entry_width=9,\
+                                   value=d.rangeString())
+                    r.grid(sticky='WE', row=0,column=3,padx=5)
+                    cIds = EntryField(dFrame,labelpos="w",\
+                                   label_text="ChainIds: ", entry_width=9,\
+                                   value=str(d.getChainIds()))
+                    cIds.grid(sticky='WE', row=0,column=4,padx=5)
+
+                    cOption = ColorOption(dFrame,0,None,None,None,startCol=5)
+                    cOption.set(d.color)
+
+                    _apply.grid(sticky='WE', row=0,column=6,padx=5)
+                    self.createToolTip(_apply,"Apply Changes")
+                    _delete = Button(dFrame,text="x",\
+                                     command=lambda:_onDel(c,d))
+                    _delete.grid(sticky='WE', row=0,column=7,padx=5)
+                    self.createToolTip(_delete,"Delete")
+
+                    dFrame.grid(sticky='WE',row=lrow,column=0,pady=1)
+                    lrow += 1
+
+                    self.menu.grid()
+
+
+        def _onAdd():
+            name = nField.get()
+            ranges = rField.get()
+            color = cOption.get()
+            chains = cField.get()
+            subunit = self.config.getComponentByName(compVar.get())
+            config = subunit.config
+            d = Domain(name,config,subunit,ranges,color,chains)
+            subunit.domains.append(d)
+            _updateList()
+
+        def _onSave():
+            self.menu.destroy()
+
+
+        Label(frame,text="Add Subcomplexes:")\
+             .grid(row=row,column=0,sticky="W",pady=5)
+
+        row+=1
+        nField = EntryField(iFrame,labelpos="w",label_text="Name: ",\
+                                             entry_width=9,\
+                                             command=None)
+        nField.grid(sticky='W', row=0,column=0,padx=5)
+        Label(iFrame,text="Subunit/Domain: ")\
+             .grid(row=0,column=1,sticky="W",padx=5)
+        compVar = StringVar("")
+        compMenu = OptionMenu(iFrame,compVar,*names)
+        compMenu.configure(width=5)
+        compMenu.grid(sticky='W', row=0,column=2)
+        rField = EntryField(iFrame,labelpos="w",label_text="Ranges: ",\
+                                             entry_width=9)
+        rField.grid(sticky='W', row=0,column=3,padx=5)
+        self.createToolTip(rField.interior(),"E.g.: 1-22,99,50-101")
+        cField = EntryField(iFrame,labelpos="w",label_text="ChainIds: ",\
+                                             entry_width=9)
+        cField.grid(sticky='W', row=0,column=4,padx=5)
+        cOption = ColorOption(iFrame,0,None,None,None,startCol=5)
+
+        Button(frame,text="Add",command=_onAdd)\
+               .grid(sticky="W",row=1,column=1,padx=5,pady=9)
+        _updateList()
+
+
+        iFrame.grid(sticky='WE', row=1,column=0)
+        lFrame.grid(sticky='WE', row=2,column=0,columnspan=8)
+
+        Button(frame,text="Save",command=_onSave)\
+               .grid(sticky="W",row=3,column=0,padx=5,pady=9)
+
+        frame.grid(sticky='WE', row=0,column=0)
+        self.menu.grid()
+
 
     def onComponentAdd(self):
         if self.addComponentFrame.populate():
