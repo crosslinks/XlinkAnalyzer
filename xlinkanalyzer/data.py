@@ -188,6 +188,16 @@ class Domain(object):
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
 
+    def __str__(self):
+        s = "Domain: \n \
+             -------------------------\n\
+             Name:\t%s\n\
+             Color:\t%s\n"%(self.name,self.color.rgba())
+        return str(s)
+
+    def __repr__(self):
+        return self.__str__()
+
 class Subcomplex(object):
     def __init__(self,name,color=None):
         self.name = name
