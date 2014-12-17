@@ -2282,7 +2282,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
         modelSelect.grid(row = curRow, columnspan=2, sticky="we")
         curRow += 1
 
-        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit', xlinkMgrTabFrame.config)
+        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuFrom.grid(row = curRow, column = 0)
         self.compOptMenuTo = ComponentsOptionMenu(self, 'to subunit (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuTo.grid(row = curRow, column=1)
