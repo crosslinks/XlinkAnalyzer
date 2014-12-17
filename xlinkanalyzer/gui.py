@@ -205,6 +205,24 @@ class ComponentsOptionMenu(Tkinter.OptionMenu):
         self.config(font=('calibri',(10)),bg='white',width=20)
         self['menu'].config(font=('calibri',(10)), bg='white')
 
+class ComponentsDomainsOptionMenu(Tkinter.OptionMenu):
+    def __init__(self, master, defOption, config):
+        self.var = Tkinter.StringVar(master)
+        defOption = defOption
+        self.var.set(defOption)
+
+        options = [defOption] + config.getComponentNames()
+
+        for comp, compDomains in config.getDomains().iteritems():
+            if len(compDomains) > 0:
+                for dom in compDomains:
+                    domOpt = "{0}, {1}".format(comp, dom.name)
+                    options.append(domOpt)
+
+        Tkinter.OptionMenu.__init__(self, master, self.var, *options)
+        self.config(font=('calibri',(10)),bg='white',width=20)
+        self['menu'].config(font=('calibri',(10)), bg='white')
+
 class ComponentsHandleOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master):
         self.var = Tkinter.StringVar(master)
