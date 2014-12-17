@@ -1560,6 +1560,8 @@ class SetupFrame(TabFrame):
             dom.color = cOption.get()
             dom.chainIds = cIds.get()
 
+            chimera.triggers.activateTrigger('configUpdated', self.config)
+
         def _updateList():
             _str = lambda l: str(l)[1:-1]
             _del = lambda: _dict.__getitem__(_from).pop
