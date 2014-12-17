@@ -2306,16 +2306,6 @@ class ColorXlinkedFrame(Tkinter.Frame):
         self.compOptMenuTo.grid(row = curRow, column=1)
         curRow += 1
 
-        fromComp = None
-        fromCompSel = self.compOptMenuFrom.var.get()
-        if fromCompSel in xlinkMgrTabFrame.config.getComponentNames():
-            fromComp = fromCompSel
-
-        toComp = None
-        toCompSel = self.compOptMenuTo.var.get()
-        if toCompSel in xlinkMgrTabFrame.config.getComponentNames():
-            toComp = toCompSel
-
         self.colorOptionVar = Tkinter.IntVar()
         self.colorOptionVar.set(1)
 
