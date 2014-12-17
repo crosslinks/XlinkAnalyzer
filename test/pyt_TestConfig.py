@@ -8,7 +8,7 @@ import pyt_TestUtil as util
 
 # for this test to run do:
 # ln -s pyt_TestExample.py [Chimeradir]/test/pytests/pyt_[Name].py
-
+# /Applications/Chimera.app/Contents/MacOS/chimera --silent --pypath ~/devel/XlinkAnalyzer --pypath ~/devel/pyxlinks/ --pypath ~/devel/XlinkAnalyzer/test/ 
 
 RUNME = True
 
@@ -24,9 +24,10 @@ class TestConfig_PolI(util.XLABaseTest):
     def testSubunits(self):
         self.assertEqual(len(self.config.getComponents()), 14)
 
+
 class TestConfig_Rvb12(util.XLABaseTest):
 
-   def setUp(self):
+    def setUp(self):
         mPaths = ['Rvb12/yRvb12.hexamer.pdb']
         cPath = 'Rvb12/Rvb12.json'
         super(TestConfig_Rvb12, self).setUp(mPaths, cPath)
