@@ -1,6 +1,8 @@
 import unittest
 from os import path
 
+from Tkinter import Toplevel
+
 import chimera
 
 import xlinkanalyzer
@@ -30,5 +32,15 @@ class XLABaseTest(unittest.TestCase):
         self.models = chimera.openModels.list()
         # self.xla_models = [Model(chimeraModel, self.config) for chimeraModel in self.models]
 
+    def _createTestWindow(self):
+        self.testWindow = Toplevel()
+        w = self.testWindow.winfo_screenwidth()
+        h = self.testWindow.winfo_screenheight()
+        x = w/2
+        y = h/2
+        self.testWindow.geometry("+%d+%d" % (x, y))
+        self.testWindow.geometry("400x200")
+
     def tearDown(self):
         chimera.openModels.close(chimera.openModels.list())
+
