@@ -3,7 +3,7 @@ import chimera
 import xlinkanalyzer
 from xlinkanalyzer import Assembly, ResourceManager
 from xlinkanalyzer.manager import Model
-
+from xlinkanalyzer import gui
 import pyt_TestUtil as util
 
 # for this test to run do:
@@ -25,6 +25,12 @@ class TestDomains_PolI(util.XLABaseTest):
     def testDomainsLoaded(self):
         self.assertEqual(len(self.config.getDomains('A49')), 1)
         self.assertEqual(len(self.config.getComponentWithDomains()), 1)
+
+    def testComponentsDomainsOptionMenu(self):
+        self._createTestWindow()
+        compOptMenuTo = gui.ComponentsDomainsOptionMenu(self.testWindow, 'to subunit (def: all)', self.config)
+        compOptMenuTo.pack()
+
 
 # class TestDomains_Rvb12(util.XLABaseTest):
 
