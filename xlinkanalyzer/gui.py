@@ -205,23 +205,39 @@ class ComponentsOptionMenu(Tkinter.OptionMenu):
         self.config(font=('calibri',(10)),bg='white',width=20)
         self['menu'].config(font=('calibri',(10)), bg='white')
 
-class ComponentsDomainsOptionMenu(Tkinter.OptionMenu):
+class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
     def __init__(self, master, defOption, config):
+        self.xlaConfig = config
         self.var = Tkinter.StringVar(master)
         defOption = defOption
         self.var.set(defOption)
 
-        options = [defOption] + config.getComponentNames()
+        self.objectsToOptions = []
 
-        for comp, compDomains in config.getDomains().iteritems():
+        options = [defOption]
+        # options = [defOption] + self.xlaConfig.getComponentNames()
+
+        self.objectsToOptions.append((None, defOption))
+
+        for comp in self.xlaConfig.getComponents():
+            options.append(comp.name)
+            self.objectsToOptions.append((comp, comp.name))
+
+        for comp, compDomains in self.xlaConfig.getDomains().iteritems():
             if len(compDomains) > 0:
                 for dom in compDomains:
                     domOpt = "{0}, {1}".format(comp, dom.name)
                     options.append(domOpt)
+                    self.objectsToOptions.append((dom, domOpt))
 
-        Tkinter.OptionMenu.__init__(self, master, self.var, *options)
-        self.config(font=('calibri',(10)),bg='white',width=20)
-        self['menu'].config(font=('calibri',(10)), bg='white')
+        Pmw.OptionMenu.__init__(self, master, menubutton_textvariable=self.var, items=options)
+        # self.config(font=('calibri',(10)),bg='white',width=20)
+        # self['menu'].config(font=('calibri',(10)), bg='white')
+
+    def getSelected(self):
+        idx = self.index(Pmw.SELECT)
+        return self.objectsToOptions[idx][0]
+
 
 class ComponentsHandleOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master):
@@ -2302,7 +2318,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuFrom.grid(row = curRow, column = 0)
-        self.compOptMenuTo = ComponentsOptionMenu(self, 'to subunit (def: all)', xlinkMgrTabFrame.config)
+        self.compOptMenuTo = ComponentsDomainsOptionMenu(self, 'to subunit or domain (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuTo.grid(row = curRow, column=1)
         curRow += 1
 
@@ -2338,10 +2354,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
         if fromCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
             fromComp = fromCompSel
 
-        toComp = None
-        toCompSel = self.compOptMenuTo.var.get()
-        if toCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
-            toComp = toCompSel
+        to = self.compOptMenuTo.getSelected()
 
         colorOption = self.colorOptionVar.get()
         color = None
@@ -2358,7 +2371,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                mgr.color_xlinked(to=toComp, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
+                mgr.color_xlinked(to=to, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
 
 
 class XlinkMgrTabFrame(TabFrame):

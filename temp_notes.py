@@ -9,7 +9,7 @@ xframe = gui.Xlinks
 xframe.dataMgrs
 
 
-config = gui.assemblyFrame.assembly
+config = gui.configFrame.config
 
 rm = xla.RMF_Model(m, config)
 

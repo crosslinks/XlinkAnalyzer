@@ -132,6 +132,9 @@ class Component(Item):
             _dict.pop("domains")
         super(Component,self).deserialize(_dict)
 
+    def contains(self, compName, resiId):
+        return compName == self.name
+
     def __str__(self):
         s = "Component: \n \
              -------------------------\n\
@@ -187,6 +190,19 @@ class Domain(object):
             self.__dict__[key] = value
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
+
+    def getRangesAsResiList(self):
+        l = []
+        for r in self.ranges:
+            if len(r) == 2:
+                l.extend(range(r[0], r[1]+1))
+            else:
+                l.append(r[0])
+
+        return l
+
+    def contains(self, compName, resiId):
+        return (compName == self.comp.name) and (int(resiId) in self.getRangesAsResiList())
 
     def __str__(self):
         s = "Domain: \n \
