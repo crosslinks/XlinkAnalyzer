@@ -1177,7 +1177,7 @@ class XlinkDataMgr(DataMgr):
                     shortest_to_use = []
                     first_shortest = shortest[0]
                     shortest_to_use.append(first_shortest)
-                    for other_shortest in shortest:
+                    for other_shortest in shortest[1:]:
                         if approx_equal(first_shortest, other_shortest, 0.1):
                             shortest_to_use.append(other_shortest)
                     to_show.append(sorted(shortest_to_use, cmp=cmp_by_chains)[0])
