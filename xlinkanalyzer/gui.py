@@ -1593,7 +1593,6 @@ class SetupFrame(TabFrame):
                     cVar = StringVar("")
                     cVar.set(d.comp.name)
                     cMenu = OptionMenu(dFrame,cVar,*compNames)
-                    cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
