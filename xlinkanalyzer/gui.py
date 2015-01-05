@@ -2328,7 +2328,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         Tkinter.Radiobutton(self, text="Color red", variable=self.colorOptionVar, value=1).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
-        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
+        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit or domain", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
 
         var = Tkinter.BooleanVar()
