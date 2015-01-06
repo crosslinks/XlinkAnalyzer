@@ -962,7 +962,11 @@ class XlinkDataMgr(DataMgr):
 
         for obj, xlinked_to in good:
             if colorByCompTo:
-                to_color = self.model.config.getColor(xlinked_to)
+                if to:
+                    to_color = to.color
+                else:
+                    to_color = self.model.config.getColor(xlinked_to)
+
             obj_atoms = get_atoms_for_obj(obj)
             for atom in obj_atoms:
                 # if atom.residue.type == 'LYS':

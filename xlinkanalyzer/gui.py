@@ -1593,7 +1593,6 @@ class SetupFrame(TabFrame):
                     cVar = StringVar("")
                     cVar.set(d.comp.name)
                     cMenu = OptionMenu(dFrame,cVar,*compNames)
-                    cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
@@ -2329,7 +2328,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         Tkinter.Radiobutton(self, text="Color red", variable=self.colorOptionVar, value=1).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
-        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
+        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit or domain", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
 
         var = Tkinter.BooleanVar()
