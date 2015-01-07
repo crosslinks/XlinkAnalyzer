@@ -1573,6 +1573,10 @@ class SetupFrame(TabFrame):
 
             chimera.triggers.activateTrigger('configUpdated', self.config)
 
+            if self.config.state != "unsaved":
+                self.mainWindow.setTitle(self.config.file+"*")
+                self.config.state = "changed"
+
         def _updateList():
             _str = lambda l: str(l)[1:-1]
             _del = lambda: _dict.__getitem__(_from).pop
@@ -1640,6 +1644,10 @@ class SetupFrame(TabFrame):
             d = Domain(name,config,subunit,ranges,color,chains)
             subunit.domains.append(d)
             _updateList()
+
+            if self.config.state != "unsaved":
+                self.mainWindow.setTitle(self.config.file+"*")
+                self.config.state = "changed"
 
         def _onSave():
             chimera.triggers.activateTrigger('configUpdated', self.config)
