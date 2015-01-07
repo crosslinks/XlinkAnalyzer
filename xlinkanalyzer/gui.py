@@ -1544,6 +1544,7 @@ class SetupFrame(TabFrame):
 
         row = 0
         self.menu = Toplevel()
+        self.menu.title('Domains')
         frame = Frame(self.menu,padx=5,pady=5)
         lFrame = Frame(frame,padx=5,pady=5)
         iFrame = LabelFrame(frame,padx=5,pady=5,borderwidth=1)
