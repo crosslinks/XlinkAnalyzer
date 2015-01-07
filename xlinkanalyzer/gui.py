@@ -206,6 +206,40 @@ class ComponentsOptionMenu(Tkinter.OptionMenu):
         self.config(font=('calibri',(10)),bg='white',width=20)
         self['menu'].config(font=('calibri',(10)), bg='white')
 
+class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
+    def __init__(self, master, defOption, config):
+        self.xlaConfig = config
+        self.var = Tkinter.StringVar(master)
+        defOption = defOption
+        self.var.set(defOption)
+
+        self.objectsToOptions = []
+
+        options = [defOption]
+        # options = [defOption] + self.xlaConfig.getComponentNames()
+
+        self.objectsToOptions.append((None, defOption))
+
+        for comp in self.xlaConfig.getComponents():
+            options.append(comp.name)
+            self.objectsToOptions.append((comp, comp.name))
+
+        for comp, compDomains in self.xlaConfig.getDomains().iteritems():
+            if len(compDomains) > 0:
+                for dom in compDomains:
+                    domOpt = "{0}, {1}".format(comp, dom.name)
+                    options.append(domOpt)
+                    self.objectsToOptions.append((dom, domOpt))
+
+        Pmw.OptionMenu.__init__(self, master, menubutton_textvariable=self.var, items=options)
+        # self.config(font=('calibri',(10)),bg='white',width=20)
+        # self['menu'].config(font=('calibri',(10)), bg='white')
+
+    def getSelected(self):
+        idx = self.index(Pmw.SELECT)
+        return self.objectsToOptions[idx][0]
+
+
 class ComponentsHandleOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master):
         self.var = Tkinter.StringVar(master)
@@ -416,9 +450,9 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                              borderwidth=0, width=width)
             label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
 
-        rowData = []
 
         for row in range(1, len(models) + 1):
+            rowData = []
             col = 0
             model = models[row-1]
             xlinkDataMgrs = self.getDataMgrsForModel(model)
@@ -1109,8 +1143,8 @@ class ItemFrame(LabelFrame):
 
         compNames = self.config.getComponentNames()
         if not compNames:
-            title = "No components yet"
-            message = "Please add some components before configuring."
+            title = "No subunits yet"
+            message = "Please add some subunits before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
@@ -1511,6 +1545,7 @@ class SetupFrame(TabFrame):
 
         row = 0
         self.menu = Toplevel()
+        self.menu.title('Domains')
         frame = Frame(self.menu,padx=5,pady=5)
         lFrame = Frame(frame,padx=5,pady=5)
         iFrame = LabelFrame(frame,padx=5,pady=5,borderwidth=1)
@@ -1526,6 +1561,8 @@ class SetupFrame(TabFrame):
             dom.ranges = dom.parse(ranges.get())
             dom.color = cOption.get()
             dom.chainIds = cIds.get()
+
+            chimera.triggers.activateTrigger('configUpdated', self.config)
 
         def _updateList():
             _str = lambda l: str(l)[1:-1]
@@ -1558,7 +1595,6 @@ class SetupFrame(TabFrame):
                     cVar = StringVar("")
                     cVar.set(d.comp.name)
                     cMenu = OptionMenu(dFrame,cVar,*compNames)
-                    cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
@@ -2285,28 +2321,18 @@ class ColorXlinkedFrame(Tkinter.Frame):
         modelSelect.grid(row = curRow, columnspan=2, sticky="we")
         curRow += 1
 
-        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit', xlinkMgrTabFrame.config)
+        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuFrom.grid(row = curRow, column = 0)
-        self.compOptMenuTo = ComponentsOptionMenu(self, 'to subunit (def: all)', xlinkMgrTabFrame.config)
+        self.compOptMenuTo = ComponentsDomainsOptionMenu(self, 'to subunit or domain (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuTo.grid(row = curRow, column=1)
         curRow += 1
-
-        fromComp = None
-        fromCompSel = self.compOptMenuFrom.var.get()
-        if fromCompSel in xlinkMgrTabFrame.config.getComponentNames():
-            fromComp = fromCompSel
-
-        toComp = None
-        toCompSel = self.compOptMenuTo.var.get()
-        if toCompSel in xlinkMgrTabFrame.config.getComponentNames():
-            toComp = toCompSel
 
         self.colorOptionVar = Tkinter.IntVar()
         self.colorOptionVar.set(1)
 
         Tkinter.Radiobutton(self, text="Color red", variable=self.colorOptionVar, value=1).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
-        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
+        Tkinter.Radiobutton(self, text="Color by a color of xlinked subunit or domain", variable=self.colorOptionVar, value=2).grid(row=curRow, columnspan=2, sticky='w')
         curRow += 1
 
         var = Tkinter.BooleanVar()
@@ -2333,10 +2359,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
         if fromCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
             fromComp = fromCompSel
 
-        toComp = None
-        toCompSel = self.compOptMenuTo.var.get()
-        if toCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
-            toComp = toCompSel
+        to = self.compOptMenuTo.getSelected()
 
         colorOption = self.colorOptionVar.get()
         color = None
@@ -2353,7 +2376,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                mgr.color_xlinked(to=toComp, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
+                mgr.color_xlinked(to=to, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
 
 
 class XlinkMgrTabFrame(TabFrame):

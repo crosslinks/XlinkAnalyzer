@@ -888,8 +888,9 @@ class XlinkDataMgr(DataMgr):
         if hasattr(self.model, 'show_missing_loops'):
             self.model.show_missing_loops()
 
-    def color_xlinked(self, to=None, fromComp=None, minLdScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
+    def color_xlinked(self, to=None, toDomain=None, fromComp=None, minLdScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
         """
+        toDomain - xlinkanalyzer.Domain object or domain name
         color - chimera.MaterialColor or string (overrides colorByCompTo)
         colorByCompTo - color by color of a component it crosslinks
         """
@@ -914,18 +915,27 @@ class XlinkDataMgr(DataMgr):
             # xlinked_components = list(data_interface.get_xlinked_components(f))
             xlinked_components = [pyxlinks.get_protein(f, 1), pyxlinks.get_protein(f, 2)] #xlinks return by self.iter_obj_xlinks are renamed to component names already
 
-            index = xlinked_components.index(component)
-            del xlinked_components[index]
-            xlinked_to = xlinked_components[0]
+            prot1 = pyxlinks.get_protein(f, 1)
+            pos1 = pyxlinks.get_AbsPos(f, 1)
+            prot2 = pyxlinks.get_protein(f, 2)
+            pos2 = pyxlinks.get_AbsPos(f, 2)
+            objResiId = str(obj.id.position)
+
+            if prot1 == component and pos1 == objResiId:
+                posTo = pos2
+                xlinked_to = prot2
+            elif prot2 == component and pos2 == objResiId:
+                posTo = pos1
+                xlinked_to = prot1
+
+            xlinked_to_comp = self.model.config.getComponentByName(xlinked_to)
 
             if minLdScore is not None and float(f['ld-Score']) < minLdScore:
                 bad.append([obj, xlinked_to])
                 continue
 
-
-
             if to is not None:
-                if xlinked_to != to:
+                if not to.contains(xlinked_to_comp.name, posTo):
                     bad.append([obj, xlinked_to])
                     continue
 
@@ -952,7 +962,11 @@ class XlinkDataMgr(DataMgr):
 
         for obj, xlinked_to in good:
             if colorByCompTo:
-                to_color = self.model.config.getColor(xlinked_to)
+                if to:
+                    to_color = to.color
+                else:
+                    to_color = self.model.config.getColor(xlinked_to)
+
             obj_atoms = get_atoms_for_obj(obj)
             for atom in obj_atoms:
                 # if atom.residue.type == 'LYS':
@@ -1167,7 +1181,7 @@ class XlinkDataMgr(DataMgr):
                     shortest_to_use = []
                     first_shortest = shortest[0]
                     shortest_to_use.append(first_shortest)
-                    for other_shortest in shortest:
+                    for other_shortest in shortest[1:]:
                         if approx_equal(first_shortest, other_shortest, 0.1):
                             shortest_to_use.append(other_shortest)
                     to_show.append(sorted(shortest_to_use, cmp=cmp_by_chains)[0])

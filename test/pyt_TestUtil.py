@@ -1,13 +1,13 @@
 import unittest
 from os import path
 
+from Tkinter import Toplevel
+
 import chimera
 
 import xlinkanalyzer
 from xlinkanalyzer import Assembly, ResourceManager
 from xlinkanalyzer.manager import Model
-# for this test to run do:
-# ln -s pyt_TestExample.py [Chimeradir]/test/pytests/pyt_[Name].py
 
 
 RUNME = False
@@ -31,3 +31,16 @@ class XLABaseTest(unittest.TestCase):
         [chimera.openModels.open(_path) for _path in self.xlaTestMPaths]
         self.models = chimera.openModels.list()
         # self.xla_models = [Model(chimeraModel, self.config) for chimeraModel in self.models]
+
+    def _createTestWindow(self):
+        self.testWindow = Toplevel()
+        w = self.testWindow.winfo_screenwidth()
+        h = self.testWindow.winfo_screenheight()
+        x = w/2
+        y = h/2
+        self.testWindow.geometry("+%d+%d" % (x, y))
+        self.testWindow.geometry("400x200")
+
+    def tearDown(self):
+        chimera.openModels.close(chimera.openModels.list())
+
