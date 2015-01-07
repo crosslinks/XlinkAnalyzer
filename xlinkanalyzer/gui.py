@@ -449,9 +449,9 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                              borderwidth=0, width=width)
             label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
 
-        rowData = []
 
         for row in range(1, len(models) + 1):
+            rowData = []
             col = 0
             model = models[row-1]
             xlinkDataMgrs = self.getDataMgrsForModel(model)
