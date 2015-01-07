@@ -16,6 +16,7 @@ import xlinkanalyzer
 from xlinkanalyzer import minify_json
 
 class Item(object):
+    SHOW = ["name"]
     def __init__(self,name,config):
         self.type = "item"
         self.name = name
@@ -44,6 +45,7 @@ class Item(object):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
 class Component(Item):
+    SHOW = ["name","chainIds","color"]
     def __init__(self,name,config):
         Item.__init__(self,name,config)
         self.type = "component"
@@ -189,9 +191,10 @@ class Domain(object):
             self.color = chimera.MaterialColor(*_dict["color"])
 
 class Subcomplex(object):
-    def __init__(self,name,color=None):
+    def __init__(self,name,config,color=None):
         self.name = name
         self.color = color
+        self.config = config
         self.domains = []
 
     def addDomain(self,_struc):
@@ -377,6 +380,7 @@ class Assembly(object):
     def __init__(self,frame=None):
         self.items = []
         self.domains = []
+        self.subcomplexes = []
         self.root = ""
         self.file = ""
         self.state = "unsaved"
@@ -561,7 +565,26 @@ class Assembly(object):
                      if isinstance(i,Component)])
 
     def getDomainNames(self):
-        return self.getDomains().keys()
+        ret = self.getAllDomains()
+        ret = [d.name for d in ret]
+        ret = list(unique(ret))
+        return ret
+
+    def getDomainByName(self):
+        ret = self.getAllDomains()
+        ret = [d.name for d in ret if d.name == name]
+        if ret:
+            return ret[0]
+        else:
+            return []
+
+    def getComponentOrDomain(self,name):
+        #TODO: Ambiguity!
+        ret = None
+        ret = self.getComponentByName(name)
+        if ret is not None:
+            ret = self.getDomainByName(name)
+        return ret
 
     def getAllDomains(self):
         return sum([c.domains for c in self.getComponents()],[])

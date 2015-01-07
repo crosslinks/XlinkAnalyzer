@@ -31,7 +31,8 @@ import pyxlinks
 
 
 from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
-                 Assembly, ResourceManager, Item, InteractingResidueItem,Domain
+                 Assembly, ResourceManager, Item, InteractingResidueItem,\
+                 Domain, Subcomplex
 
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
@@ -1638,7 +1639,8 @@ class SetupFrame(TabFrame):
     def onSub(self):
         domNames = self.config.getDomainNames()
         compNames = self.config.getComponentNames()
-        names = compNames+domNames
+        names = domNames+compNames
+
         if not compNames:
             title = "No components or domains yet"
             message = "Please add some components or domains before configuring."
@@ -1675,8 +1677,7 @@ class SetupFrame(TabFrame):
             for child in lFrame.winfo_children():
                 child.destroy()
 
-            comps = self.config.getComponentWithDomains()
-
+            domains = self.config.getDomains()
 
             lrow = 0
             for i,c in enumerate(comps):
@@ -1723,16 +1724,18 @@ class SetupFrame(TabFrame):
 
                     self.menu.grid()
 
-
         def _onAdd():
             name = nField.get()
             ranges = rField.get()
             color = cOption.get()
             chains = cField.get()
-            subunit = self.config.getComponentByName(compVar.get())
+            subunit = self.config.getComponentOrDomain(compVar.get())
             config = subunit.config
-            d = Domain(name,config,subunit,ranges,color,chains)
-            subunit.domains.append(d)
+            if isinstance(subunit,Component):
+                d = Domain(name,config,subunit,ranges,color,chains)
+            elif isinstance(subunit,Domain):
+                d = subunit
+            subcomplex = Subcomplex(name,config)
             _updateList()
 
         def _onSave():
