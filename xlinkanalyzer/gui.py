@@ -37,7 +37,7 @@ import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
 
 DEBUG_MODE = False
-
+DEV = True
 
 class XlinkAnalyzer_Dialog(ModelessDialog):
 
@@ -885,12 +885,19 @@ class ItemFrame(LabelFrame):
 
                 self.typeVar = StringVar("")
                 self.typeVar.set("Data Type")
-                self.typeMenu = OptionMenu(self,\
-                                       self.typeVar,\
-                                       xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
-                                       xlinkanalyzer.XQUEST_DATA_TYPE,\
-                                       xlinkanalyzer.SEQUENCES_DATA_TYPE,\
-                                       xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
+                if DEV:
+                    self.typeMenu = OptionMenu(self,\
+                                           self.typeVar,\
+                                           xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
+                                           xlinkanalyzer.XQUEST_DATA_TYPE,\
+                                           xlinkanalyzer.SEQUENCES_DATA_TYPE,\
+                                           xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
+                else:
+                    self.typeMenu = OptionMenu(self,\
+                                           self.typeVar,\
+                                           xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
+                                           xlinkanalyzer.XQUEST_DATA_TYPE,\
+                                           xlinkanalyzer.SEQUENCES_DATA_TYPE)                    
                 self.typeMenu.config(width=10)
                 self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
                 self.resource = []
@@ -1502,8 +1509,10 @@ class SetupFrame(TabFrame):
         curRow = curRow + 1
         self.domainsButton = Button(self,text="Domains", command=self.onDomain)
         self.domainsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
-        self.subButton = Button(self,text="Subcomplexes",command=self.onSub)
-        self.subButton.grid(row = curRow,column = 1, sticky = "W",**layout)
+
+        if DEV:
+            self.subButton = Button(self,text="Subcomplexes",command=self.onSub)
+            self.subButton.grid(row = curRow,column = 1, sticky = "W",**layout)
 
         curRow = curRow + 1
         self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
@@ -2516,9 +2525,13 @@ class XlinkMgrTabFrame(TabFrame):
                 variable=self.smartMode,
                 command=self.onSmartModeChange)
             self.smartModeBtn.var = self.smartMode
-            self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
-            Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
-                .grid(sticky='W', row=curRow, column=1)
+            if DEV:
+                self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
+                Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
+                    .grid(sticky='W', row=curRow, column=1)
+            else:
+                self.smartModeBtn.grid(row=curRow, columnspan=totalCols)
+
             curRow += 1
 
             self.ld_score_var = Tkinter.DoubleVar()
