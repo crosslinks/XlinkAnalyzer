@@ -898,7 +898,7 @@ class ItemFrame(LabelFrame):
                                            self.typeVar,\
                                            xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,\
                                            xlinkanalyzer.XQUEST_DATA_TYPE,\
-                                           xlinkanalyzer.SEQUENCES_DATA_TYPE)                    
+                                           xlinkanalyzer.SEQUENCES_DATA_TYPE)
                 self.typeMenu.config(width=10)
                 self.typeMenu.grid(row=0,column=3,sticky="w",**self.layout)
                 self.resource = []
@@ -1176,7 +1176,6 @@ class ItemFrame(LabelFrame):
         def _onApp(_from,_to,i):
             _dict[_from][_to] = [int(s.strip()) for s in \
                                  resiList[i].get().split(",")]
-            print _dict[_from][_to]
 
         def _updateList():
             _str = lambda l: str(l)[1:-1]
@@ -1221,6 +1220,7 @@ class ItemFrame(LabelFrame):
             _updateList()
 
         def _onSave():
+            chimera.triggers.activateTrigger('configUpdated', self.config)
             self.menu.destroy()
 
         Label(frame,text="From: ").grid(row=row,column=0,sticky="W")
@@ -1642,6 +1642,7 @@ class SetupFrame(TabFrame):
             _updateList()
 
         def _onSave():
+            chimera.triggers.activateTrigger('configUpdated', self.config)
             self.menu.destroy()
 
 
@@ -1784,6 +1785,7 @@ class SetupFrame(TabFrame):
             _updateList()
 
         def _onSave():
+            chimera.triggers.activateTrigger('configUpdated', self.config)
             self.menu.destroy()
 
 
