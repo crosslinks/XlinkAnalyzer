@@ -1142,8 +1142,8 @@ class ItemFrame(LabelFrame):
 
         compNames = self.config.getComponentNames()
         if not compNames:
-            title = "No components yet"
-            message = "Please add some components before configuring."
+            title = "No subunits yet"
+            message = "Please add some subunits before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
