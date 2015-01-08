@@ -1555,6 +1555,9 @@ class SetupFrame(TabFrame):
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
+        self.applies = []
+        self.nameVars = []
+        self.rangeVars = []
         row = 0
         self.menu = Toplevel()
         self.menu.title('Domains')
@@ -1567,14 +1570,17 @@ class SetupFrame(TabFrame):
             _comp.domains.remove(_dom)
             _updateList()
 
-        def _onColorChange(dom,cOption=None):
+        def _onEdit(_apply):
+            _apply.configure(bg="#00A8FF")
+
+        def _onColorChange(dom,_apply,cOption=None):
+            _onEdit(_apply)
             dom.color = cOption.get()
             if self.config.state != "unsaved":
                 self.mainWindow.setTitle(self.config.file+"*")
                 self.config.state = "changed"
 
-
-        def _onApply(dom,name,cVar,ranges,cIds):
+        def _onApply(dom,name,cVar,ranges,cIds,_apply):
             dom.name = name.get()
             dom.comp = self.config.getComponentByName(cVar.get())
             dom.ranges = dom.parse(ranges.get())
@@ -1586,48 +1592,65 @@ class SetupFrame(TabFrame):
                 self.mainWindow.setTitle(self.config.file+"*")
                 self.config.state = "changed"
 
+            _apply.configure(bg="light grey")
+
         def _updateList():
             _str = lambda l: str(l)[1:-1]
             _del = lambda: _dict.__getitem__(_from).pop
-            _compVars = []
-            _nameVars = []
+            self.compVars = []
+            self.nameVars = []
+            self.rangeVars = []
+            self.chainVars = []
 
             for child in lFrame.winfo_children():
                 child.destroy()
 
             comps = self.config.getComponentWithDomains()
 
-
             lrow = 0
             for i,c in enumerate(comps):
                 for j,d in enumerate(c.domains):
                     dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
                     _apply = Button(dFrame,text=unichr(10004),\
-                             command=lambda:_onApply(d,n,cVar,r,cIds))
+                             command=lambda:_onApply(d,n,cVar,r,cIds,_apply))
+                    self.applies.append(_apply)
                     _nameVar = StringVar("")
-                    _nameVars.append(_nameVar)
+                    self.nameVars.append(_nameVar)
                     _nameVar.set(d.name)
-                    _nameVar.trace("w",lambda n,i,m: _onEdit(n,i,m))
+                    _nameVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
                                entry_width=9,\
                                entry_textvariable=_nameVar)
                     n.grid(sticky='WE', row=0,column=0,padx=5)
                     Label(dFrame,text="Subunit: ")\
                     .grid(sticky='WE', row=0,column=1,padx=5)
-                    cVar = StringVar("")
-                    cVar.set(d.comp.name)
-                    cMenu = OptionMenu(dFrame,cVar,*compNames)
+                    compVar = StringVar("")
+                    self.compVars.append(compVar)
+                    compVar.set(d.comp.name)
+                    compVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    cMenu = OptionMenu(dFrame,compVar,*compNames)
+                    cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
+
+                    rVar = StringVar("")
+                    self.rangeVars.append(rVar)
+                    rVar.set(d.rangeString())
+                    rVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
-                                   value=d.rangeString())
+                                   entry_textvariable=rVar)
                     r.grid(sticky='WE', row=0,column=3,padx=5)
+
+                    cVar = StringVar("")
+                    self.chainVars.append(cVar)
+                    cVar.set(str(d.getChainIds()))
+                    cVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     cIds = EntryField(dFrame,labelpos="w",\
                                    label_text="ChainIds: ", entry_width=9,\
-                                   value=str(d.getChainIds()))
+                                   entry_textvariable=rVar)
                     cIds.grid(sticky='WE', row=0,column=4,padx=5)
 
-                    cOption = ColorOption(dFrame,0,None,None,partial(_onColorChange,d),startCol=5)
+                    cOption = ColorOption(dFrame,0,None,None,partial(_onColorChange,d,_apply),startCol=5)
                     cOption.set(d.color)
 
                     _apply.grid(sticky='WE', row=0,column=6,padx=5)
