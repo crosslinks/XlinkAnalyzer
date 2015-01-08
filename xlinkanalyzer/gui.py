@@ -2,6 +2,7 @@ import math
 import string
 import csv
 from sys import platform as _platform
+from functools import partial
 
 import chimera
 from chimera import selection
@@ -921,8 +922,9 @@ class ItemFrame(LabelFrame):
                 self.chainField.grid(row=0,column=1)
                 self.chainVar.set(item.commaList(item.chainIds))
                 self.chainVar.trace("w", lambda n,i,m: self.onEdit(n,i,m))
-                ColorOption(self,0,None,None,self.populate,\
-                            startCol=2,**self.layout).set(item.color)
+                self.cOption = ColorOption(self,0,None,None,self.populate,\
+                            startCol=2,**self.layout)
+                self.cOption.set(item.color)
                 self.apply = Button(self,text=unichr(10004),\
                                     command=self.onApply)
                 self.createToolTip(self.apply,"Apply Changes")
@@ -955,11 +957,10 @@ class ItemFrame(LabelFrame):
                 self.delete.grid(row=0,column=3,sticky="w",**self.layout)
                 self.createToolTip(self.delete,"Delete")
 
-    def onEdit(self,n,i,m):
-        print self.chainVar.get(),self.item.commaList(self.item.chainIds),\
-        self.chainVar.get() == self.item.commaList(self.item.chainIds)
+    def onEdit(self,n=None,i=None,m=None):
         if self.nameVar.get() != self.item.name \
-           or self.chainVar.get() != self.item.commaList(self.item.chainIds):
+           or self.chainVar.get() != self.item.commaList(self.item.chainIds)\
+           or self.cOption.get() != self.item.color:
             self.apply.configure(bg="#00A8FF")
         else:
             self.apply.configure(bg="light grey")
@@ -989,6 +990,8 @@ class ItemFrame(LabelFrame):
             self.populate()
 
     def populate(self,colorOption= None):
+        if colorOption:
+            self.onEdit()
         oldName = self.item.name
         self.item.name = self.nameField.get()
         if type(self.item) == Component:
@@ -1173,7 +1176,7 @@ class ItemFrame(LabelFrame):
             resiList.pop(i)
             _updateList()
 
-        def _onApp(_from,_to,i):
+        def _onApply(_from,_to,i):
             _dict[_from][_to] = [int(s.strip()) for s in \
                                  resiList[i].get().split(",")]
 
@@ -1201,7 +1204,7 @@ class ItemFrame(LabelFrame):
                     e.grid(sticky='W', row=i*l+j,column=4)
                     resiList.append(e)
                     _apply = Button(listFrame,text=unichr(10004),\
-                                       command=lambda:_onApp(_from,_to,i*l+j))
+                                       command=lambda:_onApply(_from,_to,i*l+j))
                     _apply.grid(sticky='W', row=i*l+j,column=5)
                     self.createToolTip(_apply,"Apply Changes")
                     _delete = Button(listFrame,text="x",\
@@ -1564,11 +1567,17 @@ class SetupFrame(TabFrame):
             _comp.domains.remove(_dom)
             _updateList()
 
-        def _onApp(dom,name,cVar,ranges,cIds,cOption):
+        def _onColorChange(dom,cOption=None):
+            dom.color = cOption.get()
+            if self.config.state != "unsaved":
+                self.mainWindow.setTitle(self.config.file+"*")
+                self.config.state = "changed"
+
+
+        def _onApply(dom,name,cVar,ranges,cIds):
             dom.name = name.get()
             dom.comp = self.config.getComponentByName(cVar.get())
             dom.ranges = dom.parse(ranges.get())
-            dom.color = cOption.get()
             dom.chainIds = cIds.get()
 
             chimera.triggers.activateTrigger('configUpdated', self.config)
@@ -1594,7 +1603,7 @@ class SetupFrame(TabFrame):
                 for j,d in enumerate(c.domains):
                     dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
                     _apply = Button(dFrame,text=unichr(10004),\
-                             command=lambda:_onApp(d,n,cVar,r,cIds,cOption))
+                             command=lambda:_onApply(d,n,cVar,r,cIds))
                     _nameVar = StringVar("")
                     _nameVars.append(_nameVar)
                     _nameVar.set(d.name)
@@ -1618,7 +1627,7 @@ class SetupFrame(TabFrame):
                                    value=str(d.getChainIds()))
                     cIds.grid(sticky='WE', row=0,column=4,padx=5)
 
-                    cOption = ColorOption(dFrame,0,None,None,None,startCol=5)
+                    cOption = ColorOption(dFrame,0,None,None,partial(_onColorChange,d),startCol=5)
                     cOption.set(d.color)
 
                     _apply.grid(sticky='WE', row=0,column=6,padx=5)
@@ -1713,7 +1722,7 @@ class SetupFrame(TabFrame):
             _updateList()
 
 
-        def _onApp(dom,name,cVar,ranges,cIds,cOption):
+        def _onApply(dom,name,cVar,ranges,cIds,cOption):
             dom.name = name.get()
             dom.comp = self.config.getComponentByName(cVar.get())
             dom.ranges = dom.parse(ranges.get())
@@ -1738,7 +1747,7 @@ class SetupFrame(TabFrame):
                 for j,d in enumerate(c.domains):
                     dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
                     _apply = Button(dFrame,text=unichr(10004),\
-                             command=lambda:_onApp(d,n,cVar,r,cIds,cOption))
+                             command=lambda:_onApply(d,n,cVar,r,cIds,cOption))
                     _nameVar = StringVar("")
                     _nameVars.append(_nameVar)
                     _nameVar.set(d.name)
