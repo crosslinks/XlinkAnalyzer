@@ -149,6 +149,7 @@ class Component(Item):
         return self.__str__()
 
 class Domain(object):
+    SHOW = ["name","comp","ranges","color"]
     def __init__(self,name=None,config=None,comp=None,\
                  ranges=None,color=None,chains=None):
         self.name = name

@@ -1570,8 +1570,8 @@ class SetupFrame(TabFrame):
             _comp.domains.remove(_dom)
             _updateList()
 
-        def _onEdit(_apply):
-            _apply.configure(bg="#00A8FF")
+        def _onEdit(lrow):
+            self.applies[lrow-1].configure(bg="#00A8FF")
 
         def _onColorChange(dom,_apply,cOption=None):
             _onEdit(_apply)
@@ -1608,6 +1608,7 @@ class SetupFrame(TabFrame):
             comps = self.config.getComponentWithDomains()
 
             lrow = 0
+            self.applies=[]
             for i,c in enumerate(comps):
                 for j,d in enumerate(c.domains):
                     dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
@@ -1617,7 +1618,7 @@ class SetupFrame(TabFrame):
                     _nameVar = StringVar("")
                     self.nameVars.append(_nameVar)
                     _nameVar.set(d.name)
-                    _nameVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    _nameVar.trace("w",lambda n,i,m: _onEdit(lrow))
                     n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
                                entry_width=9,\
                                entry_textvariable=_nameVar)
@@ -1626,8 +1627,8 @@ class SetupFrame(TabFrame):
                     .grid(sticky='WE', row=0,column=1,padx=5)
                     compVar = StringVar("")
                     self.compVars.append(compVar)
-                    compVar.set(d.comp.name)
-                    compVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    compVar.set(c.name)
+                    compVar.trace("w",lambda n,i,m: _onEdit(lrow))
                     cMenu = OptionMenu(dFrame,compVar,*compNames)
                     cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
@@ -1635,7 +1636,7 @@ class SetupFrame(TabFrame):
                     rVar = StringVar("")
                     self.rangeVars.append(rVar)
                     rVar.set(d.rangeString())
-                    rVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    rVar.trace("w",lambda n,i,m: _onEdit(lrow))
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
                                    entry_textvariable=rVar)
@@ -1644,7 +1645,7 @@ class SetupFrame(TabFrame):
                     cVar = StringVar("")
                     self.chainVars.append(cVar)
                     cVar.set(str(d.getChainIds()))
-                    cVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    cVar.trace("w",lambda n,i,m: _onEdit(lrow))
                     cIds = EntryField(dFrame,labelpos="w",\
                                    label_text="ChainIds: ", entry_width=9,\
                                    entry_textvariable=rVar)
@@ -1662,7 +1663,7 @@ class SetupFrame(TabFrame):
 
                     dFrame.grid(sticky='WE',row=lrow,column=0,pady=1)
                     lrow += 1
-
+                    print lrow,len(self.applies)
                     self.menu.grid()
 
 
