@@ -1570,8 +1570,8 @@ class SetupFrame(TabFrame):
             _comp.domains.remove(_dom)
             _updateList()
 
-        def _onEdit(lrow):
-            self.applies[lrow-1].configure(bg="#00A8FF")
+        def _onEdit(_apply):
+            _apply.configure(bg="#00A8FF")
 
         def _onColorChange(dom,_apply,cOption=None):
             _onEdit(_apply)
@@ -1618,7 +1618,7 @@ class SetupFrame(TabFrame):
                     _nameVar = StringVar("")
                     self.nameVars.append(_nameVar)
                     _nameVar.set(d.name)
-                    _nameVar.trace("w",lambda n,i,m: _onEdit(lrow))
+                    _nameVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
                                entry_width=9,\
                                entry_textvariable=_nameVar)
@@ -1628,7 +1628,7 @@ class SetupFrame(TabFrame):
                     compVar = StringVar("")
                     self.compVars.append(compVar)
                     compVar.set(c.name)
-                    compVar.trace("w",lambda n,i,m: _onEdit(lrow))
+                    compVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     cMenu = OptionMenu(dFrame,compVar,*compNames)
                     cMenu.configure(width=5)
                     cMenu.grid(sticky='W', row=0,column=2)
@@ -1636,7 +1636,7 @@ class SetupFrame(TabFrame):
                     rVar = StringVar("")
                     self.rangeVars.append(rVar)
                     rVar.set(d.rangeString())
-                    rVar.trace("w",lambda n,i,m: _onEdit(lrow))
+                    rVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     r = EntryField(dFrame,labelpos="w",\
                                    label_text="Ranges: ", entry_width=9,\
                                    entry_textvariable=rVar)
@@ -1645,10 +1645,10 @@ class SetupFrame(TabFrame):
                     cVar = StringVar("")
                     self.chainVars.append(cVar)
                     cVar.set(str(d.getChainIds()))
-                    cVar.trace("w",lambda n,i,m: _onEdit(lrow))
+                    cVar.trace("w",lambda n,i,m: _onEdit(_apply))
                     cIds = EntryField(dFrame,labelpos="w",\
                                    label_text="ChainIds: ", entry_width=9,\
-                                   entry_textvariable=rVar)
+                                   entry_textvariable=cVar)
                     cIds.grid(sticky='WE', row=0,column=4,padx=5)
 
                     cOption = ColorOption(dFrame,0,None,None,partial(_onColorChange,d,_apply),startCol=5)
@@ -1663,7 +1663,6 @@ class SetupFrame(TabFrame):
 
                     dFrame.grid(sticky='WE',row=lrow,column=0,pady=1)
                     lrow += 1
-                    print lrow,len(self.applies)
                     self.menu.grid()
 
 
