@@ -1618,7 +1618,9 @@ class SetupFrame(TabFrame):
                     _nameVar = StringVar("")
                     self.nameVars.append(_nameVar)
                     _nameVar.set(d.name)
-                    _nameVar.trace("w",lambda n,i,m: _onEdit(_apply))
+                    # lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar)
+                    rebindApply=_apply
+                    _nameVar.trace("w",lambda n,i,m: _onEdit(rebindApply))
                     n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
                                entry_width=9,\
                                entry_textvariable=_nameVar)
