@@ -352,7 +352,7 @@ class ItemList(LabelFrame):
     def initUIElements(self):
 
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
-        print "items",self.items
+
         self.activeItemFrame = ItemFrame(self.activeFrame,self.items[0],True,\
                                          self,borderwidth=1)
         self.listFrame = LabelFrame(self,padx=5,pady=5,borderwidth=1)

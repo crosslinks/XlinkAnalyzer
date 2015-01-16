@@ -131,7 +131,6 @@ class Component(Item):
                     d.deserialize(_dom)
                     d.subunit=self
                     self.domains.append(d)
-                    print d
             _dict.pop("domains")
         super(Component,self).deserialize(_dict)
 
@@ -184,8 +183,11 @@ class Domain(object):
 
     def rangeString(self,rlist=None):
         if rlist:
-            return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+            if rlist[0]:
+                return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
                    if len(l)>1 else str(l[0]) for l in rlist],"")[:-1]
+            else:
+                return ""
         else:
             return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
                     if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
@@ -652,7 +654,10 @@ class Assembly(object):
         return ret
 
     def getAllDomains(self):
-        return sum([c.domains for c in self.getComponents()],[])
+        ret = sum([c.domains for c in self.getComponents()],[])
+        if not ret:
+            ret = [Domain(config=self)]
+        return ret
 
     def getChains(self):
         chains = [c.chainIds for c in self.getComponents()\
