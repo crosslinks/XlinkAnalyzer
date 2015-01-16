@@ -964,12 +964,13 @@ class ItemFrame(LabelFrame):
                 self.createToolTip(self.delete,"Delete")
 
     def onEdit(self,n=None,i=None,m=None):
-        if self.nameVar.get() != self.item.name \
-           or self.chainVar.get() != self.item.commaList(self.item.chainIds)\
-           or self.cOption.get() != self.item.color:
-            self.apply.configure(bg="#00A8FF")
-        else:
-            self.apply.configure(bg="light grey")
+        if hasattr(self, 'apply'):
+            if self.nameVar.get() != self.item.name \
+               or self.chainVar.get() != self.item.commaList(self.item.chainIds)\
+               or self.cOption.get() != self.item.color:
+                self.apply.configure(bg="#00A8FF")
+            else:
+                self.apply.configure(bg="light grey")
 
     def onApply(self):
         self.populate()
