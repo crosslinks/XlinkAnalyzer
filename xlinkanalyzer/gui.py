@@ -38,6 +38,12 @@ from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
 
+###########
+# TEMPORARY
+###########
+
+from dev import ItemList
+
 DEBUG_MODE = False
 DEV = True
 
@@ -1548,181 +1554,15 @@ class SetupFrame(TabFrame):
         self.update()
 
     def onDomain(self):
-        compNames = self.config.getComponentNames()
-        if not compNames:
+        subunitNames = self.config.getComponentNames()
+        if not subunitNames:
             title = "No components yet"
             message = "Please add some components before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
-        self.applies = []
-        self.nameVars = []
-        self.rangeVars = []
-        row = 0
-        self.menu = Toplevel()
-        self.menu.title('Domains')
-        frame = Frame(self.menu,padx=5,pady=5)
-        lFrame = Frame(frame,padx=5,pady=5)
-        iFrame = LabelFrame(frame,padx=5,pady=5,borderwidth=1)
-        _domains = self.config.domains
+        I = ItemList(Toplevel(),self.config,"domains",True)
 
-        def _onDel(_comp,_dom):
-            _comp.domains.remove(_dom)
-            _updateList()
-
-        def _onEdit(_apply):
-            _apply.configure(bg="#00A8FF")
-
-        def _onColorChange(dom,_apply,cOption=None):
-            _onEdit(_apply)
-            dom.color = cOption.get()
-            if self.config.state != "unsaved":
-                self.mainWindow.setTitle(self.config.file+"*")
-                self.config.state = "changed"
-
-        def _onApply(dom,name,cVar,ranges,cIds,_apply):
-            dom.name = name.get()
-            dom.comp = self.config.getComponentByName(cVar.get())
-            dom.ranges = dom.parse(ranges.get())
-            dom.chainIds = cIds.get()
-
-            chimera.triggers.activateTrigger('configUpdated', self.config)
-
-            if self.config.state != "unsaved":
-                self.mainWindow.setTitle(self.config.file+"*")
-                self.config.state = "changed"
-
-            _apply.configure(bg="light grey")
-
-        def _updateList():
-            _str = lambda l: str(l)[1:-1]
-            _del = lambda: _dict.__getitem__(_from).pop
-            self.compVars = []
-            self.nameVars = []
-            self.rangeVars = []
-            self.chainVars = []
-
-            for child in lFrame.winfo_children():
-                child.destroy()
-
-            comps = self.config.getComponentWithDomains()
-
-            lrow = 0
-            self.applies=[]
-            for i,c in enumerate(comps):
-                for j,d in enumerate(c.domains):
-                    dFrame =  LabelFrame(lFrame,padx=5,pady=1,borderwidth=1)
-                    _apply = Button(dFrame,text=unichr(10004),\
-                             command=lambda:_onApply(d,n,cVar,r,cIds,_apply))
-                    self.applies.append(_apply)
-                    _nameVar = StringVar("")
-                    self.nameVars.append(_nameVar)
-                    _nameVar.set(d.name)
-                    # lambda rebindItem=item, rebindVar=var: self.toggleActive(rebindItem, rebindVar)
-                    rebindApply=_apply
-                    _nameVar.trace("w",lambda n,i,m: _onEdit(rebindApply))
-                    n = EntryField(dFrame,labelpos="we",label_text="Name: ",\
-                               entry_width=9,\
-                               entry_textvariable=_nameVar)
-                    n.grid(sticky='WE', row=0,column=0,padx=5)
-                    Label(dFrame,text="Subunit: ")\
-                    .grid(sticky='WE', row=0,column=1,padx=5)
-                    compVar = StringVar("")
-                    self.compVars.append(compVar)
-                    compVar.set(c.name)
-                    compVar.trace("w",lambda n,i,m: _onEdit(_apply))
-                    cMenu = OptionMenu(dFrame,compVar,*compNames)
-                    cMenu.configure(width=5)
-                    cMenu.grid(sticky='W', row=0,column=2)
-
-                    rVar = StringVar("")
-                    self.rangeVars.append(rVar)
-                    rVar.set(d.rangeString())
-                    rVar.trace("w",lambda n,i,m: _onEdit(_apply))
-                    r = EntryField(dFrame,labelpos="w",\
-                                   label_text="Ranges: ", entry_width=9,\
-                                   entry_textvariable=rVar)
-                    r.grid(sticky='WE', row=0,column=3,padx=5)
-
-                    cVar = StringVar("")
-                    self.chainVars.append(cVar)
-                    cVar.set(str(d.getChainIds()))
-                    cVar.trace("w",lambda n,i,m: _onEdit(_apply))
-                    cIds = EntryField(dFrame,labelpos="w",\
-                                   label_text="ChainIds: ", entry_width=9,\
-                                   entry_textvariable=cVar)
-                    cIds.grid(sticky='WE', row=0,column=4,padx=5)
-
-                    cOption = ColorOption(dFrame,0,None,None,partial(_onColorChange,d,_apply),startCol=5)
-                    cOption.set(d.color)
-
-                    _apply.grid(sticky='WE', row=0,column=6,padx=5)
-                    self.createToolTip(_apply,"Apply Changes")
-                    _delete = Button(dFrame,text="x",\
-                                     command=lambda:_onDel(c,d))
-                    _delete.grid(sticky='WE', row=0,column=7,padx=5)
-                    self.createToolTip(_delete,"Delete")
-
-                    dFrame.grid(sticky='WE',row=lrow,column=0,pady=1)
-                    lrow += 1
-                    self.menu.grid()
-
-
-        def _onAdd():
-            name = nField.get()
-            ranges = rField.get()
-            color = cOption.get()
-            chains = cField.get()
-            subunit = self.config.getComponentByName(compVar.get())
-            config = subunit.config
-            d = Domain(name,config,subunit,ranges,color,chains)
-            subunit.domains.append(d)
-            _updateList()
-
-            if self.config.state != "unsaved":
-                self.mainWindow.setTitle(self.config.file+"*")
-                self.config.state = "changed"
-
-        def _onSave():
-            chimera.triggers.activateTrigger('configUpdated', self.config)
-            self.menu.destroy()
-
-
-        Label(frame,text="Add Domains:")\
-             .grid(row=row,column=0,sticky="W",pady=5)
-
-        row+=1
-        nField = EntryField(iFrame,labelpos="w",label_text="Name: ",\
-                                             entry_width=9,\
-                                             command=None)
-        nField.grid(sticky='W', row=0,column=0,padx=5)
-        Label(iFrame,text="Subunit: ").grid(row=0,column=1,sticky="W",padx=5)
-        compVar = StringVar("")
-        compMenu = OptionMenu(iFrame,compVar,*compNames)
-        compMenu.configure(width=5)
-        compMenu.grid(sticky='W', row=0,column=2)
-        rField = EntryField(iFrame,labelpos="w",label_text="Ranges: ",\
-                                             entry_width=9)
-        rField.grid(sticky='W', row=0,column=3,padx=5)
-        self.createToolTip(rField.interior(),"E.g.: 1-22,99,50-101")
-        cField = EntryField(iFrame,labelpos="w",label_text="ChainIds: ",\
-                                             entry_width=9)
-        cField.grid(sticky='W', row=0,column=4,padx=5)
-        cOption = ColorOption(iFrame,0,None,None,None,startCol=5)
-
-        Button(frame,text="Add",command=_onAdd)\
-               .grid(sticky="W",row=1,column=1,padx=5,pady=9)
-        _updateList()
-
-
-        iFrame.grid(sticky='WE', row=1,column=0)
-        lFrame.grid(sticky='WE', row=2,column=0,columnspan=8)
-
-        Button(frame,text="Save",command=_onSave)\
-               .grid(sticky="W",row=3,column=0,padx=5,pady=9)
-
-        frame.grid(sticky='WE', row=0,column=0)
-        self.menu.grid()
 
     def onSub(self):
         domNames = self.config.getDomainNames()

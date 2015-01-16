@@ -17,10 +17,10 @@ from xlinkanalyzer import minify_json
 
 class Item(object):
     SHOW = ["name"]
-    def __init__(self,name,config):
+    def __init__(self,name="",config=None):
         self.type = "item"
         self.name = name
-        self.config = config
+        self.config = config if config else Assembly()
 
     def commaList(self,l):
         return reduce(lambda x,y: x+","+str(y),l,"")[1:]
@@ -46,7 +46,7 @@ class Item(object):
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
-    def __init__(self,name,config):
+    def __init__(self,name="",config=None):
         Item.__init__(self,name,config)
         self.type = "component"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
@@ -129,8 +129,9 @@ class Component(Item):
                 for _dom in _dict["domains"]:
                     d = Domain(_dom["name"],self.config)
                     d.deserialize(_dom)
-                    d.comp=self
+                    d.subunit=self
                     self.domains.append(d)
+                    print d
             _dict.pop("domains")
         super(Component,self).deserialize(_dict)
 
@@ -149,27 +150,44 @@ class Component(Item):
         return self.__str__()
 
 class Domain(object):
-    SHOW = ["name","comp","ranges","color"]
-    def __init__(self,name=None,config=None,comp=None,\
-                 ranges=None,color=None,chains=None):
+    def __init__(self,name="",\
+                      config=None,\
+                      subunit=None,\
+                      ranges=[[]],\
+                      color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
+                      chains=[]):
         self.name = name
         self.config = config
-        self.comp = comp
+        self.subunit = subunit
         self.ranges = self.parse(ranges)
         self.color = color
-        if color is None:
-            self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = chains
+
+        #all this could easily be avoided by following conventions
+        self.SHOW = ["name","subunit","ranges","color"]
+        self.TOSTRING = dict([("ranges",self.rangeString),\
+                                ("subunit",lambda x:x.name)])
+        self.FROMSTRING = dict([("ranges",self.parse),\
+                                ("subunit",self.getComponentByName)])
 
     def parse(self,rangeS):
         ret = []
-        if rangeS:
+        if rangeS and type(rangeS) == str:
             ret = [s.split("-") for s in rangeS.split(",")]
             ret = [[int(s) for s in l] for l in ret]
+        elif type(rangeS) and type(rangeS) == list:
+            ret = rangeS
         return ret
 
-    def rangeString(self):
-        return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+    def getComponentByName(self,name):
+        return self.config.getComponentByName(name)
+
+    def rangeString(self,rlist=None):
+        if rlist:
+            return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+                   if len(l)>1 else str(l[0]) for l in rlist],"")[:-1]
+        else:
+            return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
                     if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
 
     def getChainIds(self):
@@ -182,13 +200,16 @@ class Domain(object):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict["color"] = self.color.rgba()
         _dict.pop("config")
-        _dict.pop("comp")
+        _dict.pop("subunit")
+        _dict.pop("SHOW")
+        _dict.pop("FROMSTRING")
+        _dict.pop("TOSTRING")
         return _dict
 
     def deserialize(self,_dict):
         #TODO: Temporal
-        if "comp" in _dict:
-            _dict.pop("comp")
+        if "subunit" in _dict:
+            _dict.pop("subunit")
         for key,value in _dict.items():
             self.__dict__[key] = value
         if type(_dict["color"]) == list:
@@ -208,10 +229,16 @@ class Domain(object):
         return (compName == self.comp.name) and (int(resiId) in self.getRangesAsResiList())
 
     def __str__(self):
+        subName = "No Subunit"
+        if self.subunit:
+            subName = self.subunit.name
         s = "Domain: \n \
              -------------------------\n\
              Name:\t%s\n\
-             Color:\t%s\n"%(self.name,self.color.rgba())
+             Color:\t%s\n\
+             Ranges:\t%s\n\
+             Subununit:\t%s\n"%(self.name,self.color.rgba(),\
+                                self.rangeString(),subName)
         return str(s)
 
     def __repr__(self):
@@ -406,7 +433,7 @@ class SequenceItem(DataItem):
 class Assembly(object):
     def __init__(self,frame=None):
         self.items = []
-        self.domains = []
+        self.domains = [Domain(config=self)]
         self.subcomplexes = []
         self.root = ""
         self.file = ""
@@ -443,9 +470,7 @@ class Assembly(object):
         components = _dict["subunits"]
         dataItems = _dict["data"]
         #TODO: this is a temporary solution
-        domains = []
-        if "domains" in _dict:
-            domains = _dict["domains"]
+
         for compD in components:
             c = Component(compD["name"],self)
             c.deserialize(compD)
@@ -461,6 +486,8 @@ class Assembly(object):
                 d.serialize()
             if not d.informed:
                 self.addItem(d)
+
+        self.domains = self.getAllDomains()
 
     def convert(self,_input):
         """
@@ -491,11 +518,22 @@ class Assembly(object):
         return color
 
     def addItem(self,item):
-        self.items.append(item)
+        if issubclass(item.__class__,Item):
+            self.items.append(item)
+        elif issubclass(item.__class__,Domain):
+            self.domains.append(item)
+            item.subunit.domains.append(item)
 
     def deleteItem(self,item):
-        if item in self:
-            self.items.remove(item)
+        if issubclass(item.__class__,Item):
+            if item in self:
+                self.items.remove(item)
+        elif issubclass(item.__class__,Domain):
+            self.domains.remove(item)
+            if item in item.subunit.domains:
+                item.subunit.domains.remove(item)
+            if not self.domains:
+                self.domains.append(Domain())
 
     def clear(self):
         for item in self:
