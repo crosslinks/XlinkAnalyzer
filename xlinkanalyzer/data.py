@@ -20,7 +20,7 @@ class Item(object):
     def __init__(self,name="",config=None):
         self.type = "item"
         self.name = name
-        self.config = config if config else Assembly()
+        self.config = config
 
     def commaList(self,l):
         return reduce(lambda x,y: x+","+str(y),l,"")[1:]
@@ -189,8 +189,11 @@ class Domain(object):
             else:
                 return ""
         else:
-            return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+            if self.ranges[0]:
+                return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
                     if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
+            else:
+                return ""
 
     def getChainIds(self):
         if self.chainIds is None:
@@ -656,7 +659,7 @@ class Assembly(object):
     def getAllDomains(self):
         ret = sum([c.domains for c in self.getComponents()],[])
         if not ret:
-            ret = [Domain(config=self)]
+            ret = [Domain(config=self,subunit=Component(config=self))]
         return ret
 
     def getChains(self):
