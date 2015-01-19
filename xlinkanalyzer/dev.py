@@ -58,7 +58,6 @@ class ItemFrame(LabelFrame):
 
         for fK in fieldKeys:
             data = _dict[fK]
-            print "type",type(data)
             if type(data) in _classD:
                 self.fields[fK] = (data,_classD[type(data)],None)
             else:
@@ -66,9 +65,11 @@ class ItemFrame(LabelFrame):
                     for v in data.__dict__.values():
                         if hasattr(v,"__dict__"):
                             for v1 in v.__dict__.values():
-                                if type(v1) == list and data in v1:
-                                    self.fields[fK] = (data,OptionMenu,v1)
-        print "analyze",self.fields
+                                if type(v1) == list and v1:
+                                    print v1[0].__class__,data.__class__
+                                    if issubclass(v1[0].__class__,\
+                                        data.__class__):
+                                        self.fields[fK] = (data,OptionMenu,v1)
 
     def initUIElements(self):
 
@@ -114,7 +115,6 @@ class ItemFrame(LabelFrame):
             self.add = Button(self,text="Add",command=self.onAdd)
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
 
-        print self.fields
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
@@ -352,7 +352,7 @@ class ItemList(LabelFrame):
     def initUIElements(self):
 
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
-        print "items",self.items
+
         self.activeItemFrame = ItemFrame(self.activeFrame,self.items[0],True,\
                                          self,borderwidth=1)
         self.listFrame = LabelFrame(self,padx=5,pady=5,borderwidth=1)
