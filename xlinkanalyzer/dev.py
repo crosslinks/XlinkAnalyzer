@@ -208,8 +208,8 @@ class ItemFrame(LabelFrame):
             self.empty()
         else:
             title = "Empty Fields"
-            message = "Required Fields are not Shown!"
-            tkMessageBox.showinfo(title,message)
+            message = "Please fill in all fields."
+            tkMessageBox.showinfo(title,message,parent=self)
 
     def validate(self):
         ret = True
