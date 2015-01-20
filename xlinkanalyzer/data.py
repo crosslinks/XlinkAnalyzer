@@ -243,7 +243,7 @@ class Domain(object):
         return l
 
     def contains(self, compName, resiId):
-        return (compName == self.comp.name) and (int(resiId) in self.getRangesAsResiList())
+        return (compName == self.subunit.name) and (int(resiId) in self.getRangesAsResiList())
 
     def __str__(self):
         subName = "No Subunit"
