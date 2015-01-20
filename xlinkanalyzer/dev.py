@@ -67,7 +67,6 @@ class ItemFrame(LabelFrame):
                             for v1 in v.__dict__.values():
                                 if type(v1) == list and v1:
                                     classL = [item for item in v1 if item.__class__==data.__class__]
-                                    print classL
                                     if classL:
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
@@ -362,7 +361,7 @@ class ItemList(LabelFrame):
             self.frames.append(ItemFrame(self.listFrame,item,False,\
                                          self))
 
-        self.quit = Button(self,text="Save",command=self.parent.destroy)
+        self.quit = Button(self,text="Close",command=self.parent.destroy)
 
     def gridUIElements(self):
         r = 0
