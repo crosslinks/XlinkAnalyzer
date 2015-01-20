@@ -249,6 +249,13 @@ class Domain(object):
     def __repr__(self):
         return self.__str__()
 
+    def validate(self):
+        #TODO: Extend this
+        ret = True
+        if not self.name:
+            ret = False
+        return ret
+
 class Subcomplex(object):
     def __init__(self,name,config,color=None):
         self.name = name
@@ -438,7 +445,7 @@ class SequenceItem(DataItem):
 class Assembly(object):
     def __init__(self,frame=None):
         self.items = []
-        self.domains = [Domain(config=self)]
+        self.domains = []
         self.subcomplexes = []
         self.root = ""
         self.file = ""
@@ -449,6 +456,8 @@ class Assembly(object):
         self.proteinToChains = {}
         self.chainToProtein = {}
         self.componentToProtein = {}
+
+        self.dataMap = dict([("domains",Domain(config = self,subunit=Component(config=self)))])
 
     def __str__(self):
         s = ""
@@ -658,8 +667,6 @@ class Assembly(object):
 
     def getAllDomains(self):
         ret = sum([c.domains for c in self.getComponents()],[])
-        if not ret:
-            ret = [Domain(config=self,subunit=Component(config=self))]
         return ret
 
     def getChains(self):

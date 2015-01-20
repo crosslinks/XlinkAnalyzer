@@ -348,14 +348,15 @@ class ItemList(LabelFrame):
         if not self.items:
             print "No DataItems"
 
-
     def initUIElements(self):
 
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
 
-        self.activeItemFrame = ItemFrame(self.activeFrame,self.items[0],True,\
+        dummy = self.container.dataMap[self.show]
+        self.activeItemFrame = ItemFrame(self.activeFrame,dummy,True,\
                                          self,borderwidth=1)
         self.listFrame = LabelFrame(self,padx=5,pady=5,borderwidth=1)
+
 
         for item in self.items:
             self.frames.append(ItemFrame(self.listFrame,item,False,\
@@ -383,8 +384,14 @@ class ItemList(LabelFrame):
                 if not item in [frame.data for frame in self.frames]:
                     self.frames.append(ItemFrame(self.listFrame,item))
                     self.listFrame.grid()
+                    self.grid()
         else:
-            pass
+            #TODO: Test this
+            for item in container:
+                if not item in [frame.data for frame in self.frames]:
+                    self.frames.append(ItemFrame(self.listFrame,item))
+                    self.listFrame.grid()
+                    self.grid()
 
 if __name__ == "__main__":
     tl = Toplevel()
