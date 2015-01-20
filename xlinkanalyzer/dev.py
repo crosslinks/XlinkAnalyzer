@@ -66,10 +66,11 @@ class ItemFrame(LabelFrame):
                         if hasattr(v,"__dict__"):
                             for v1 in v.__dict__.values():
                                 if type(v1) == list and v1:
-                                    print v1[0].__class__,data.__class__
-                                    if issubclass(v1[0].__class__,\
-                                        data.__class__):
-                                        self.fields[fK] = (data,OptionMenu,v1)
+                                    classL = [item for item in v1 if item.__class__==data.__class__]
+                                    print classL
+                                    if classL:
+                                        self.fields[fK] = (data,OptionMenu,\
+                                                           classL)
 
     def initUIElements(self):
 
