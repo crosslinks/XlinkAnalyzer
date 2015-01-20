@@ -2,7 +2,7 @@ import re
 import inspect
 
 from collections import OrderedDict
-from copy import copy
+from copy import deepcopy
 
 from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
                     Toplevel, Label, OptionMenu, TclError
@@ -22,8 +22,7 @@ class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
-        if active:
-            self.data = copy(data)
+        self.data = deepcopy(data)
         self.fields = OrderedDict()
         self.parent = parent
         self.listFrame = listFrame
@@ -47,7 +46,6 @@ class ItemFrame(LabelFrame):
         self.initUIElements()
         self.gridUIElelemts()
         self.grid(pady=2)
-
 
     def analyzeData(self):
         _data = self.data
@@ -203,8 +201,9 @@ class ItemFrame(LabelFrame):
         if self.validate():
             self.synchronize()
             if self.listFrame:
-                self.listFrame.container.addItem(self.data)
+                self.listFrame.container.addItem(deepcopy(self.data))
                 self.listFrame.synchronize()
+                print "ids",[id(d) for d in self.listFrame.container.domains]
             self.empty()
         else:
             title = "Empty Fields"
@@ -235,6 +234,7 @@ class ItemFrame(LabelFrame):
 
             elif isinstance(_ui,OptionMenu):
                 _var.set("")
+
 
     def onDelete(self):
         if self.listFrame:

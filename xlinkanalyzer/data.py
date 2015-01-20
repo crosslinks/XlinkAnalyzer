@@ -169,6 +169,18 @@ class Domain(object):
         self.FROMSTRING = dict([("ranges",self.parse),\
                                 ("subunit",self.getComponentByName)])
 
+    def __deepcopy__(self,x):
+        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
+                      ranges=self.ranges,color=self.color,chains=self.chainIds)
+
+    def __eq__(self,other):
+        if other.name == self.name and other.subunit == self.subunit\
+        and other.ranges == self.ranges and other.color == self.color\
+        and other.chainIds == self.chainIds:
+            return True
+        else:
+            return False
+
     def parse(self,rangeS):
         ret = []
         if rangeS and type(rangeS) == str:
@@ -543,11 +555,10 @@ class Assembly(object):
             if item in self:
                 self.items.remove(item)
         elif issubclass(item.__class__,Domain):
-            self.domains.remove(item)
+            if [item==d for d in self.getAllDomains()]:
+                self.domains.remove(item)
             if item in item.subunit.domains:
                 item.subunit.domains.remove(item)
-            if not self.domains:
-                self.domains.append(Domain())
 
     def clear(self):
         for item in self:
