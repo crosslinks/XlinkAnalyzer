@@ -8,6 +8,7 @@ from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
                     Toplevel, Label, OptionMenu, TclError
 import tkMessageBox
 
+import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
@@ -203,7 +204,6 @@ class ItemFrame(LabelFrame):
             if self.listFrame:
                 self.listFrame.container.addItem(deepcopy(self.data))
                 self.listFrame.synchronize()
-                print "ids",[id(d) for d in self.listFrame.container.domains]
             self.empty()
         else:
             title = "Empty Fields"
@@ -392,6 +392,9 @@ class ItemList(LabelFrame):
                     self.frames.append(ItemFrame(self.listFrame,item))
                     self.listFrame.grid()
                     self.grid()
+
+        #TODO: move this to Assembly class
+        chimera.triggers.activateTrigger('configUpdated', self.container)
 
 if __name__ == "__main__":
     tl = Toplevel()

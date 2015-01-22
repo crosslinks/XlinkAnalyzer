@@ -1452,6 +1452,10 @@ class SetupFrame(TabFrame):
 
         Frame.__init__(self,master)
 
+        self._handlers = []
+        self._addHandlers()
+
+
         #ROW 0:
         curRow = 0
 
@@ -1561,9 +1565,7 @@ class SetupFrame(TabFrame):
             message = "Please add some components before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
-
         I = ItemList(Toplevel(),self.config,"domains",True)
-
 
     def onSub(self):
         domNames = self.config.getDomainNames()
@@ -1836,6 +1838,10 @@ class SetupFrame(TabFrame):
         else:
             return True
 
+    def reload(self, name, userData, cfg):
+        self.mainWindow.setTitle(self.config.file+"*")
+        self.config.state = "changed"
+
     def createToolTip(self, widget, text):
         toolTip = ToolTip(widget)
         def enter(event):
@@ -1861,7 +1867,6 @@ class DataMgrTabFrame(TabFrame):
         Label(self, anchor='w', bg='white', padx=4, pady=4,
                 text='This panel allows selecting which data sets should be used for displaying cross-links and statistics.').grid(row=curRow, columnspan=2)
         curRow += 1
-
         if len(self.config.getDataItems()) > 0:
 
 

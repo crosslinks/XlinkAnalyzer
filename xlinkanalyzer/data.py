@@ -549,6 +549,7 @@ class Assembly(object):
         elif issubclass(item.__class__,Domain):
             self.domains.append(item)
             item.subunit.domains.append(item)
+        self.state = "changed"
 
     def deleteItem(self,item):
         if issubclass(item.__class__,Item):
@@ -559,6 +560,7 @@ class Assembly(object):
                 self.domains.remove(item)
             if item in item.subunit.domains:
                 item.subunit.domains.remove(item)
+        self.state = "changed"
 
     def clear(self):
         for item in self:
