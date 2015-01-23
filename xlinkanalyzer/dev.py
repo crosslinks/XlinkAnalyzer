@@ -23,7 +23,8 @@ class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
-        self.data = deepcopy(data)
+        if active:
+            self.data = deepcopy(data)
         self.fields = OrderedDict()
         self.parent = parent
         self.listFrame = listFrame
