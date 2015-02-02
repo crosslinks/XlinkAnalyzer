@@ -360,8 +360,7 @@ class ItemList(LabelFrame):
 
 
         for item in self.items:
-            self.frames.append(ItemFrame(self.listFrame,item,False,\
-                                         self))
+            self.frames.append(ItemFrame(self.listFrame,item,False,self))
 
         self.quit = Button(self,text="Close",command=self.parent.destroy)
 

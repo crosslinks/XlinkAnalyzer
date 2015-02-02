@@ -2,6 +2,7 @@ import json
 import sys
 import os
 from numpy import unique
+from sys import platform as _platform
 
 import chimera
 import tkMessageBox
@@ -360,7 +361,7 @@ class DataItem(Item):
         root = self.config.root
         #check for windows paths in unix systems
         for r in self.resource:
-            if '\\' in r and system() == 'Linux':
+            if '\\' in r and _platform == "linux" or _platform == "linux2":
                 formatedRes.append(r.replace('\\','/'))
             else:
                 formatedRes.append(r)
