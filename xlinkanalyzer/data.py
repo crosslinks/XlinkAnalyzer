@@ -778,7 +778,7 @@ class Assembly(object):
 
     def serialize(self):
         _dict = {}
-        _dict["xlinkanalyzerVersion"] = "0.1"
+        _dict["xlinkanalyzerVersion"] = "1.0"
         _dict["subunits"] = []
         _dict["data"] = []
         for item in self.items:
