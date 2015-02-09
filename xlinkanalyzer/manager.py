@@ -82,22 +82,19 @@ class Model(object):
             chains = self.config.getChainIdsByComponentName(name)
             for chain in chains:
                 for dom in cfg:
-                    color = chimera.MaterialColor(*[x/255. for x in dom['color']])
-                    for resiRange in dom['ranges']:
-                        for resiID in range(*resiRange):
-                            try:
-                                resi_list = self.resi_lookup_map[chain][resiID]
-                            except:
-                                pass
-                            else:
-                                for resi in resi_list:
-                                    resi.color = color
-                                    resi.ribbonColor = color
+                    color = dom.color
+                    for resiID in dom.getRangesAsResiList():
+                        try:
+                            resi_list = self.resi_lookup_map[chain][resiID]
+                        except:
+                            pass
+                        else:
+                            for resi in resi_list:
+                                resi.color = color
+                                resi.ribbonColor = color
 
-                                    for atom in resi.atoms:
-                                        # atom.color = chimera.colorTable.getColorByName('red')
-
-                                        atom.color = color
+                                for atom in resi.atoms:
+                                    atom.color = color
 
 
     def colorAll(self):
