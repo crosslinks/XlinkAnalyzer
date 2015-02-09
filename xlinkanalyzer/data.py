@@ -369,7 +369,7 @@ class DataItem(Item):
             if exists(r):
                 locatedRes.append(relpath(r,root))
             elif exists(join(root,r)):
-                locatedRes.append(join(root,r))
+                locatedRes.append(r)
             else:
                 missing.append(r)
         if missing and not self.informed:
