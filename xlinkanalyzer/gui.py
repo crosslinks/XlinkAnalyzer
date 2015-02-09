@@ -1018,6 +1018,10 @@ class ItemFrame(LabelFrame):
                 self.item = XQuestItem(self.item.name,\
                                        self.item.config,\
                                        self.item.resource)
+            elif self.typeVar.get() == xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE:
+                self.item = XQuestItem(self.item.name,\
+                                       self.item.config,\
+                                       self.item.resource)
             elif self.typeVar.get() == xlinkanalyzer.SEQUENCES_DATA_TYPE:
                 self.item = SequenceItem(self.item.name,\
                                          self.item.config,\
