@@ -369,7 +369,7 @@ class DataItem(Item):
             if exists(r):
                 locatedRes.append(relpath(r,root))
             elif exists(join(root,r)):
-                locatedRes.append(join(root,r))
+                locatedRes.append(r)
             else:
                 missing.append(r)
         if missing and not self.informed:
@@ -778,7 +778,7 @@ class Assembly(object):
 
     def serialize(self):
         _dict = {}
-        _dict["xlinkanalyzerVersion"] = "0.1"
+        _dict["xlinkanalyzerVersion"] = "1.0"
         _dict["subunits"] = []
         _dict["data"] = []
         for item in self.items:
