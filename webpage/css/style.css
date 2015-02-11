@@ -15,16 +15,21 @@ IMG.displayed {
 body {}
 
 div.text {
-	width: 70%;
+	width: 80%;
     margin: 0 auto;
     background-color: #ffffff;
-    border-left:5px solid #000063;
-    border-top: 1px solid #5A79A5;
-    border-right: 1px solid #5A79A5;
-    border-bottom: 1px solid #5A79A5;
+    border-left:15px solid #000063;
     padding: 5px 0px 5px 15px;
     margin-top: 20px;
+    letter-spacing: 1px;
+    font-size:16px;
 }
+
+div.text h1 {
+	color:#000063;
+	font-family: 'Arvo', serif;
+}
+
 
 .background {
 	width: 100%;
@@ -78,8 +83,6 @@ a.glow:hover, a.glow:focus
 }
 #cssmenu {
   line-height: 1;
-  -moz-border-radius: 5px 5px 0 0;
-  -webkit-border-radius: 5px 5px 0 0;
   background: #141414;
   border-bottom: 2px solid#5A79A5;
   border-top: 1px solid#5A79A5;
@@ -128,7 +131,7 @@ a.glow:hover, a.glow:focus
 }
 #cssmenu > ul > li > a {
   color: #ffffff;
-  font-size: 16px;
+  font-size: 18px;
 }
 #cssmenu > ul > li:hover:after {
   content: '';

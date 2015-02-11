@@ -1,0 +1,8 @@
+digraph "packages_No_Name" {
+charset="utf-8"
+rankdir=BT
+"3" [shape="box", label="minify_json"];
+"5" [shape="box", label="gui"];
+"43" [shape="box", label="ChimeraExtension"];
+"45" [shape="box", label="__init__"];
+}
