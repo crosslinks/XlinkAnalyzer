@@ -14,6 +14,8 @@ IMG.displayed {
     
 body {}
 
+div {position: relative}
+
 div.text {
 	width: 80%;
     margin: 0 auto;
@@ -25,9 +27,14 @@ div.text {
     font-size:16px;
 }
 
+
 div.text h1 {
 	color:#000063;
 	font-family: 'Arvo', serif;
+}
+
+div.center {
+	margin: 0 auto;
 }
 
 
