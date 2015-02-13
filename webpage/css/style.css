@@ -17,7 +17,7 @@ body {}
 div {position: relative}
 
 div.text {
-	width: 80%;
+	width: 70%;
     margin: 0 auto;
     background-color: #ffffff;
     border-left:15px solid #000063;
@@ -25,6 +25,7 @@ div.text {
     margin-top: 20px;
     letter-spacing: 1px;
     font-size:16px;
+    font-family: 'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif;
 }
 
 
