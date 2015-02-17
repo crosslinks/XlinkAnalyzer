@@ -470,8 +470,9 @@ class XlinkDataMgr(DataMgr):
     def __init__(self, model, data):
         super(XlinkDataMgr, self).__init__(model, data)
 
-        handler = chimera.triggers.addHandler('configUpdated', self.onConfigUpdated, None)
-        self._handlers.append((chimera.triggers, 'configUpdated', handler))
+        if 'configUpdated' in chimera.triggers.triggerNames():
+            handler = chimera.triggers.addHandler('configUpdated', self.onConfigUpdated, None)
+            self._handlers.append((chimera.triggers, 'configUpdated', handler))
         self.minLdScore = 0
         self.load()
 
