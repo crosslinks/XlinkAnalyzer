@@ -1,35 +1,97 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
 
-    <head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-        <title>XlinkAnalyzer - cross-link analysis and visualization for chimera - download page</title>
+		<title>Xlink Analyzer</title>
+		<meta name="description" content="">
+		<meta name="author" content="Kai Karius">
 
-    </head>
+		<meta name="viewport" content="width=device-width; initial-scale=1.0">
 
-<body>
+		<link rel="shortcut icon" href="/favicon.ico">
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+	</head>
 
-<h1>XlinkAnalyzer - download page</h1>
+	<body class="background">
+		
+<div class="content">
+	<img class="displayed" src="logo.png" align="middle" alt="logo" height="77" width="554" vspace="20">
+	<div id='cssmenu'>
+		<ul>
+		   <li class="active"><a href=''><span>Home</span></a></li>
+		   <li><a href='downloads.html'><span>Download</span></a></li>
+		   <li><a href='documentation.html'><span>Documentation</span></a></li>
+		   <li><a href='contact.html'><span>Contact</span></a></li>
+		</ul>
+	</div>
+	
+	<div id="slider1_container" style="margin: 7px auto; width: 640px; height: 480px;">
+    	<div u="slides" style="cursor: move; overflow: hidden; width: 640px; height: 480px;">
+        	<div><img u="image" src="img/abbey0.jpg" /></div>
+        	<div><img u="image" src="img/abbey1.jpg" /></div>
+    	</div>
+    	  <!-- Arrow Navigator Skin Begin -->
+        <style>
+            /* jssor slider arrow navigator skin 03 css */
+            /*
+            .jssora03l              (normal)
+            .jssora03r              (normal)
+            .jssora03l:hover        (normal mouseover)
+            .jssora03r:hover        (normal mouseover)
+            .jssora03ldn            (mousedown)
+            .jssora03rdn            (mousedown)
+            */
+            .jssora03l, .jssora03r, .jssora03ldn, .jssora03rdn
+            {
+            	position: absolute;
+            	cursor: pointer;
+            	display: block;
+                background: url(img/a03.png) no-repeat;
+                overflow:hidden;
+            }
+            .jssora03l { background-position: -3px -33px; }
+            .jssora03r { background-position: -63px -33px; }
+            .jssora03l:hover { background-position: -123px -33px; }
+            .jssora03r:hover { background-position: -183px -33px; }
+            .jssora03ldn { background-position: -243px -33px; }
+            .jssora03rdn { background-position: -303px -33px; }
+        </style>
+        <!-- Arrow Left -->
+        <span u="arrowleft" class="jssora03l" style="width: 55px; height: 55px; top: 212px; left: 8px;">
+        </span>
+        <!-- Arrow Right -->
+        <span u="arrowright" class="jssora03r" style="width: 55px; height: 55px; top: 212px; right: 8px">
+        </span>
+        <!-- Arrow Navigator Skin End -->
+	</div>
+	<div class="text">
+		<h1>Introducing: The Xlink Analyzer</h1>
+		<p>Xlink Analyzer is an interactive software for visualizing cross-links on structures and analyzing how the structures agree with the cross-links.</p>
+		<p>If you used this software, place cite:</p>
+		<p>Manuscript in press</p>
+		<p>Please cite also UCSF Chimera: <a href='http://www.cgl.ucsf.edu/chimera/docs/credits.html'>http://www.cgl.ucsf.edu/chimera/docs/credits.html</a></p>
+	</div>
 
-<p>
-    Software package: <a href="downloads/XlinkAnalyzer.zip">XlinkAnalyzer.zip</a>
-</p>
-
-<p>
-    Documentation and installation instructions: <a href="downloads/XlinkAnalyzer_documentation.zip">XlinkAnalyzer_documentation.zip</a>
-</p>
-
-<p>
-    If you used this software, <b>place cite:</b>
-</p>
-
-<p>
-    <i>Manuscript in preperation</i>
-</p>
-
-<p>
-    Please cite also UCSF Chimera: <a href="http://www.cgl.ucsf.edu/chimera/docs/credits.html">http://www.cgl.ucsf.edu/chimera/docs/credits.html</a>
-</p>
-
-</body>
-
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/docs.min.js"></script>
+    <script src="js/ie10-viewport-bug-workaround.js"></script>
+    <script type="text/javascript" src="js/jssor.slider.mini.js"></script>
+    <script>
+    jQuery(document).ready(function ($) {
+        var options = {
+            $ArrowNavigatorOptions: {
+                $Class: $JssorArrowNavigator$,
+                $ChanceToShow: 2,
+                $AutoPlay: false 
+            }
+        };
+        var jssor_slider1 = new $JssorSlider$('slider1_container', options);
+    });
+</script>
+ 	</body>
 </html>

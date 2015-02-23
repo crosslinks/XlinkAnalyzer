@@ -2,6 +2,7 @@ import json
 import sys
 import os
 from numpy import unique
+from sys import platform as _platform
 
 import chimera
 import tkMessageBox
@@ -15,13 +16,12 @@ from pyxlinks import XlinksSet
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
 
-
-
 class Item(object):
-    def __init__(self,name,assembly):
+    SHOW = ["name"]
+    def __init__(self,name="",config=None):
         self.type = "item"
         self.name = name
-        self.assembly = assembly
+        self.config = config
 
     def commaList(self,l):
         return reduce(lambda x,y: x+","+str(y),l,"")[1:]
@@ -31,20 +31,24 @@ class Item(object):
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
-        _dict.pop("assembly")
+        _dict.pop("config")
         return _dict
 
     def deserialize(self,_dict):
         for key,value in _dict.items():
-            self.__dict__[key] = value
+            if key == "domains" and _dict[key] is None: #TODO: this is temporal
+                self.__dict__[key] = []
+            else:
+                self.__dict__[key] = value
+
 
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-
 class Component(Item):
-    def __init__(self,name,assembly):
-        Item.__init__(self,name,assembly)
+    SHOW = ["name","chainIds","color"]
+    def __init__(self,name="",config=None):
+        Item.__init__(self,name,config)
         self.type = "component"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
@@ -52,7 +56,7 @@ class Component(Item):
         self.chainToComponent = {}
         self.componentToChain = {}
         self.sequence = ""
-        self.domains = None
+        self.domains = []
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
@@ -114,12 +118,25 @@ class Component(Item):
     def serialize(self):
         _dict = super(Component,self).serialize()
         _dict["color"] = self.color.rgba()
+        _dict["domains"] = [d.serialize() for d in self.domains]
         return _dict
 
     def deserialize(self,_dict):
-        super(Component,self).deserialize(_dict)
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
+            _dict.pop("color")
+        if "domains" in _dict:
+            if _dict["domains"]:
+                for _dom in _dict["domains"]:
+                    d = Domain(_dom["name"],self.config)
+                    d.deserialize(_dom)
+                    d.subunit=self
+                    self.domains.append(d)
+            _dict.pop("domains")
+        super(Component,self).deserialize(_dict)
+
+    def contains(self, compName, resiId):
+        return compName == self.name
 
     def __str__(self):
         s = "Component: \n \
@@ -132,9 +149,141 @@ class Component(Item):
     def __repr__(self):
         return self.__str__()
 
+class Domain(object):
+    def __init__(self,name="",\
+                      config=None,\
+                      subunit=None,\
+                      ranges=[[]],\
+                      color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
+                      chains=[]):
+        self.name = name
+        self.config = config
+        self.subunit = subunit
+        self.ranges = self.parse(ranges)
+        self.color = color
+        self.chainIds = chains
+
+        #all this could easily be avoided by following conventions
+        self.SHOW = ["name","subunit","ranges","color"]
+        self.TOSTRING = dict([("ranges",self.rangeString),\
+                                ("subunit",lambda x:x.name)])
+        self.FROMSTRING = dict([("ranges",self.parse),\
+                                ("subunit",self.getComponentByName)])
+
+    def __deepcopy__(self,x):
+        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
+                      ranges=self.ranges,color=self.color,chains=self.chainIds)
+
+    def __eq__(self,other):
+        if other.name == self.name and other.subunit == self.subunit\
+        and other.ranges == self.ranges and other.color == self.color\
+        and other.chainIds == self.chainIds:
+            return True
+        else:
+            return False
+
+    def parse(self,rangeS):
+        ret = []
+        if rangeS and type(rangeS) == str:
+            ret = [s.split("-") for s in rangeS.split(",")]
+            ret = [[int(s) for s in l] for l in ret]
+        elif type(rangeS) and type(rangeS) == list:
+            ret = rangeS
+        return ret
+
+    def getComponentByName(self,name):
+        return self.config.getComponentByName(name)
+
+    def rangeString(self,rlist=None):
+        if rlist:
+            if rlist[0]:
+                return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+                   if len(l)>1 else str(l[0]) for l in rlist],"")[:-1]
+            else:
+                return ""
+        else:
+            if self.ranges[0]:
+                return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
+                    if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
+            else:
+                return ""
+
+    def getChainIds(self):
+        if self.chainIds is None:
+            return self.comp.chainIds
+        else:
+            return self.chainIds
+
+    def serialize(self):
+        _dict = dict([(k,v) for k,v in self.__dict__.items()])
+        _dict["color"] = self.color.rgba()
+        _dict.pop("config")
+        _dict.pop("subunit")
+        _dict.pop("SHOW")
+        _dict.pop("FROMSTRING")
+        _dict.pop("TOSTRING")
+        return _dict
+
+    def deserialize(self,_dict):
+        #TODO: Temporal
+        if "subunit" in _dict:
+            _dict.pop("subunit")
+        for key,value in _dict.items():
+            self.__dict__[key] = value
+        if type(_dict["color"]) == list:
+            self.color = chimera.MaterialColor(*_dict["color"])
+
+    def getRangesAsResiList(self):
+        l = []
+        for r in self.ranges:
+            if len(r) == 2:
+                l.extend(range(r[0], r[1]+1))
+            else:
+                l.append(r[0])
+
+        return l
+
+    def contains(self, compName, resiId):
+        return (compName == self.subunit.name) and (int(resiId) in self.getRangesAsResiList())
+
+    def __str__(self):
+        subName = "No Subunit"
+        if self.subunit:
+            subName = self.subunit.name
+        s = "Domain: \n \
+             -------------------------\n\
+             Name:\t%s\n\
+             Color:\t%s\n\
+             Ranges:\t%s\n\
+             Subununit:\t%s\n"%(self.name,self.color.rgba(),\
+                                self.rangeString(),subName)
+        return str(s)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def validate(self):
+        #TODO: Extend this
+        ret = True
+        if not self.name:
+            ret = False
+        return ret
+
+class Subcomplex(object):
+    def __init__(self,name,config,color=None):
+        self.name = name
+        self.color = color
+        self.config = config
+        self.domains = []
+
+    def addDomain(self,_struc):
+        if isinstance(_struc,Domain):
+            self.domains.append(struc)
+
+
 class SimpleDataItem(Item):
-    def __init__(self,name,assembly,data):
-        super(SimpleDataItem,self).__init__(name,assembly)
+    def __init__(self,name,config,data):
+        super(SimpleDataItem,self).__init__(name,config)
         self.type = "simpleData"
         self.informed = False
         self.data = data
@@ -151,10 +300,13 @@ class SimpleDataItem(Item):
         return self.__str__()
 
 class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,assembly,data):
-        super(InteractingResidueItem,self).__init__(name,assembly,data)
+    def __init__(self,name,config,data=None):
+        super(InteractingResidueItem,self).__init__(name,config,data)
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
+        self.data = {}
+        if data:
+            self.data = data
 
     def deserialize(self):
         #mirror the old structure
@@ -162,8 +314,8 @@ class InteractingResidueItem(SimpleDataItem):
         self.active = True
 
 class DataItem(Item):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(DataItem,self).__init__(name,assembly)
+    def __init__(self,name,config,resource,mapping=None):
+        super(DataItem,self).__init__(name,config)
         self.type = "data"
         self.mapping = mapping or {}
         self.resource = resource
@@ -206,10 +358,10 @@ class DataItem(Item):
         formatedRes = []
         locatedRes = []
         missing = []
-        root = self.assembly.root
+        root = self.config.root
         #check for windows paths in unix systems
         for r in self.resource:
-            if '\\' in r and system() == 'Linux':
+            if '\\' in r and _platform == "linux" or _platform == "linux2":
                 formatedRes.append(r.replace('\\','/'))
             else:
                 formatedRes.append(r)
@@ -217,7 +369,7 @@ class DataItem(Item):
             if exists(r):
                 locatedRes.append(relpath(r,root))
             elif exists(join(root,r)):
-                locatedRes.append(join(root,r))
+                locatedRes.append(r)
             else:
                 missing.append(r)
         if missing and not self.informed:
@@ -231,7 +383,7 @@ class DataItem(Item):
     def resourcePaths(self):
         self.locate()
         paths = []
-        root = self.assembly.root
+        root = self.config.root
 
         for res in self.resource:
             res = normpath(res)
@@ -256,8 +408,8 @@ class DataItem(Item):
         return [k for k,v in self.mapping.items() if name in v]
 
 class XQuestItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(XQuestItem,self).__init__(name,assembly,resource,mapping)
+    def __init__(self,name,config,resource,mapping=None):
+        super(XQuestItem,self).__init__(name,config,resource,mapping)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
@@ -286,8 +438,8 @@ class XQuestItem(DataItem):
 
 
 class SequenceItem(DataItem):
-    def __init__(self,name,assembly,resource,mapping=None):
-        super(SequenceItem,self).__init__(name,assembly,resource,mapping)
+    def __init__(self,name,config,resource,mapping=None):
+        super(SequenceItem,self).__init__(name,config,resource,mapping)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.sequences = {}
         self.data = {}
@@ -302,13 +454,12 @@ class SequenceItem(DataItem):
         _dict.pop("sequences")
         return _dict
 
-class InteractionSiteItem(Item):
-    def __init__(self,name,assembly,resourceFile):
-        Item.__init__(self,name,assembly,resourceFile)
 
 class Assembly(object):
-    def __init__(self,frame):
+    def __init__(self,frame=None):
         self.items = []
+        self.domains = []
+        self.subcomplexes = []
         self.root = ""
         self.file = ""
         self.state = "unsaved"
@@ -318,6 +469,8 @@ class Assembly(object):
         self.proteinToChains = {}
         self.chainToProtein = {}
         self.componentToProtein = {}
+
+        self.dataMap = dict([("domains",Domain(config = self,subunit=Component(config=self)))])
 
     def __str__(self):
         s = ""
@@ -343,6 +496,8 @@ class Assembly(object):
                           InteractingResidueItem)])
         components = _dict["subunits"]
         dataItems = _dict["data"]
+        #TODO: this is a temporary solution
+
         for compD in components:
             c = Component(compD["name"],self)
             c.deserialize(compD)
@@ -354,9 +509,12 @@ class Assembly(object):
             elif "resource" in dataD:
                 d = classDir[dataD["type"]]\
                     (dataD["name"],self,dataD["resource"],dataD["mapping"])
+                #TODO: What does this achieve
                 d.serialize()
             if not d.informed:
                 self.addItem(d)
+
+        self.domains = self.getAllDomains()
 
     def convert(self,_input):
         """
@@ -387,18 +545,30 @@ class Assembly(object):
         return color
 
     def addItem(self,item):
-        self.items.append(item)
+        if issubclass(item.__class__,Item):
+            self.items.append(item)
+        elif issubclass(item.__class__,Domain):
+            self.domains.append(item)
+            item.subunit.domains.append(item)
+        self.state = "changed"
 
     def deleteItem(self,item):
-        if item in self:
-            self.items.remove(item)
+        if issubclass(item.__class__,Item):
+            if item in self:
+                self.items.remove(item)
+        elif issubclass(item.__class__,Domain):
+            if [item==d for d in self.getAllDomains()]:
+                self.domains.remove(item)
+            if item in item.subunit.domains:
+                item.subunit.domains.remove(item)
+        self.state = "changed"
 
     def clear(self):
         for item in self:
             self.items.remove(item)
 
     def getComponentByName(self,name):
-        candidates = [c for c in self.getComponentNames() if c.name==name]
+        candidates = [c for c in self.getComponents() if c.name==name]
         if candidates:
             return candidates[0]
         else:
@@ -406,16 +576,16 @@ class Assembly(object):
 
     def getComponents(self):
         return [i for i in self.items \
-                if issubclass(i.__class__,Component)]
+                if isinstance(i,Component)]
 
     def getComponentNames(self):
         return [i.name for i in self.items \
-                if issubclass(i.__class__,Component)]
+                if isinstance(i,Component)]
 
     def getDataItems(self,_type = None):
         dataItems = [i for i in self.items \
-                     if (issubclass(i.__class__,DataItem) \
-                         or issubclass(i.__class__,SimpleDataItem))]
+                     if (isinstance(i,DataItem) \
+                         or isinstance(i,SimpleDataItem))]
         if not _type:
             return dataItems
         else:
@@ -425,26 +595,26 @@ class Assembly(object):
     def getComponentColors(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].color
             else:
                 return None
         else:
             return dict([(i.name,i.color) for i in self.items\
-                     if issubclass(i,Component)])
+                     if isinstance(i,Component)])
 
     def getComponentChains(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].chainIds
             else:
                 return None
         else:
             return dict([(i.name,i.chainIds) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
 
     def getComponentSelections(self,name = None):
         if name:
@@ -455,7 +625,12 @@ class Assembly(object):
                 return None
         else:
             return dict([(i.name,i.selection) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
+
+    def getComponentWithDomains(self):
+        ret = self.getComponents()
+        ret = [c for c in ret if len(c.domains)>0]
+        return ret
 
     def getSequences(self,key=None):
         sequence = {}
@@ -473,14 +648,40 @@ class Assembly(object):
     def getDomains(self,name=None):
         if name:
             compL = [i for i in self.items \
-                     if (issubclass(i.__class__,Component) and i.name == name)]
+                     if (isinstance(i,Component) and i.name == name)]
             if compL:
                 return compL[0].domains
             else:
                 return None
         else:
             return dict([(i.name,i.domains) for i in self.items\
-                     if issubclass(i.__class__,Component)])
+                     if isinstance(i,Component)])
+
+    def getDomainNames(self):
+        ret = self.getAllDomains()
+        ret = [d.name for d in ret]
+        ret = list(unique(ret))
+        return ret
+
+    def getDomainByName(self):
+        ret = self.getAllDomains()
+        ret = [d.name for d in ret if d.name == name]
+        if ret:
+            return ret[0]
+        else:
+            return []
+
+    def getComponentOrDomain(self,name):
+        #TODO: Ambiguity!
+        ret = None
+        ret = self.getComponentByName(name)
+        if ret is not None:
+            ret = self.getDomainByName(name)
+        return ret
+
+    def getAllDomains(self):
+        ret = sum([c.domains for c in self.getComponents()],[])
+        return ret
 
     def getChains(self):
         chains = [c.chainIds for c in self.getComponents()\
@@ -521,6 +722,7 @@ class Assembly(object):
                 return protein
             else:
                 return None
+
     def getProteinByComponent(self,name=None):
         if name in self.componentToProtein:
             return self.componentToProtein[name]
@@ -576,7 +778,7 @@ class Assembly(object):
 
     def serialize(self):
         _dict = {}
-        _dict["xlinkanalyzerVersion"] = "0.1"
+        _dict["xlinkanalyzerVersion"] = "1.0"
         _dict["subunits"] = []
         _dict["data"] = []
         for item in self.items:
@@ -611,12 +813,12 @@ class Assembly(object):
 
     def locate(self):
         for item in self.items:
-            if  issubclass(item.__class__,DataItem):
+            if  isinstance(item,DataItem):
                 item.locate()
 
 class ResourceManager(object):
-    def __init__(self,assembly):
-        self.assembly = assembly
+    def __init__(self,config):
+        self.config = config
         self.root = ""
 
     def saveAssembly(self,parent,saveAs=True):
@@ -624,32 +826,34 @@ class ResourceManager(object):
             _file = tkFileDialog.asksaveasfilename(\
                 initialfile = "myProject.json",\
                 defaultextension=".json",\
-                initialdir=self.assembly.root,\
+                initialdir=self.config.root,\
                 parent=parent)
         else:
-            _file = self.assembly.file
+            _file = self.config.file
         if _file:
-            self.assembly.locate()
+            self.config.locate()
             self.dumpJson(_file)
-            self.assembly.file = _file
+            self.config.file = _file
             self.state = "unchanged"
 
-    def loadAssembly(self,parent):
-        _file = tkFileDialog.askopenfilename(title="Choose file",\
-                                             parent=parent)
+    def loadAssembly(self,parent,_file=None):
+        if not _file:
+            _file = tkFileDialog.askopenfilename(title="Choose file",\
+                                                 parent=parent)
         if _file:
-            self.assembly.file = _file
+            self.config.file = _file
             with open(_file,'r') as f:
                 data = json.loads(minify_json.json_minify(f.read()))
-                self.assembly.root = dirname(_file)
-                self.assembly.frame.clear()
-                self.assembly.loadFromDict(data)
+                self.config.root = dirname(_file)
+                if self.config.frame:
+                    self.config.frame.clear()
+                self.config.loadFromDict(data)
 
 
     def dumpJson(self,_file):
         with open(_file,'w') as f:
-            self.assembly.root = dirname(_file)
-            content = self.assembly.serialize()
+            self.config.root = dirname(_file)
+            content = self.config.serialize()
             f.write(json.dumps(content,\
                     sort_keys=True,\
                     indent=4,\
