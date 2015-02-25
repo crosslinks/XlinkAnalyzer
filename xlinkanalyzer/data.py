@@ -157,23 +157,22 @@ class Domain(object):
                       color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
                       chains=[]):
         self.name = name
-        self.config = config
+        self._config = config
         self.subunit = subunit
         self.ranges = self.parseRanges(ranges)
         self.color = color
-        self.chainIds = chains
+        self._chainIds = chains
 
-        #all this could easily be avoided by following conventions
-        self.SHOW = ["name","subunit","ranges","color"]
 
     def __deepcopy__(self,x):
-        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
-                      ranges=self.ranges,color=self.color,chains=self.chainIds)
+        return Domain(name=self.name,config=self._config,subunit=self.subunit,\
+                      ranges=self.ranges,color=self.color,\
+                      chains=self._chainIds)
 
     def __eq__(self,other):
         if other.name == self.name and other.subunit == self.subunit\
         and other.ranges == self.ranges and other.color == self.color\
-        and other.chainIds == self.chainIds:
+        and other.chainIds == self._chainIds:
             return True
         else:
             return False
@@ -191,7 +190,7 @@ class Domain(object):
         return ret
 
     def parseSubunit(self,name):
-        comp = self.config.getComponentByName(name)
+        comp = self._config.getComponentByName(name)
         self.moveDomain(comp)
         return comp
 
@@ -216,17 +215,16 @@ class Domain(object):
                 return ""
 
     def getChainIds(self):
-        if self.chainIds is None:
+        if self._chainIds is None:
             return self.comp.chainIds
         else:
-            return self.chainIds
+            return self._chainIds
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict["color"] = self.color.rgba()
-        _dict.pop("config")
+        _dict.pop("_config")
         _dict.pop("subunit")
-        _dict.pop("SHOW")
         return _dict
 
     def deserialize(self,_dict):
@@ -234,7 +232,11 @@ class Domain(object):
         if "subunit" in _dict:
             _dict.pop("subunit")
         for key,value in _dict.items():
-            self.__dict__[key] = value
+            if key == "chainIds":
+                self.__dict__["_chainIds"] = value
+            else:
+                self.__dict__[key] = value
+
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
 
@@ -261,7 +263,7 @@ class Domain(object):
              Color:\t%s\n\
              Ranges:\t%s\n\
              Subununit:\t%s\n"%(self.name,self.color.rgba(),\
-                                self.rangeString(),subName)
+                                self.rangesToString(),subName)
         return str(s)
 
     def __repr__(self):

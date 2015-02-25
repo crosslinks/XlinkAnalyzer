@@ -53,10 +53,20 @@ class ItemFrame(LabelFrame):
         _data = self.data
         _dict = _data.__dict__
         _classD = self.classDict
-        fieldKeys = [key for key in _dict.keys() if key in _data.SHOW]
-        fieldKeys.sort(lambda x,y:_data.SHOW.index(x)-_data.SHOW.index(y))
+        fields = _dict.keys()
+        fields = [f for f in fields if (f[0] != "-" and f[0] != "_")]
+        fields = [f for f in fields if not callable(_data.__getattribute__(f))]
 
-        for fK in fieldKeys:
+        #TODO: Custom order replace by class property
+        if "color" in fields:
+            fields.pop(fields.index("color"))
+            fields += ["color"]
+
+        if "name" in fields:
+            fields.pop(fields.index("name"))
+            fields = ["name"]+fields
+
+        for fK in fields:
             data = _dict[fK]
             if type(data) in _classD:
                 self.fields[fK] = (data,_classD[type(data)],None)
@@ -417,6 +427,5 @@ if __name__ == "__main__":
     tl.grid()
 
     #TODO: Measure Textinput
-    #TODO: Workout conventions for SHOW, TOSTRING, FROMSTRING
-    #TODO:
+    #TODO: order by class property (override __new__ or smth)
 
