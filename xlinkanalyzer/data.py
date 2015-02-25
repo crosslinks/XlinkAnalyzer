@@ -192,7 +192,15 @@ class Domain(object):
         return ret
 
     def getComponentByName(self,name):
-        return self.config.getComponentByName(name)
+        comp = self.config.getComponentByName(name)
+        self.moveDomain(comp)
+        return comp
+
+    def moveDomain(self,newComponent):
+        domains = self.subunit.domains
+        if self in domains:
+            domains.pop(domains.index(self))
+        newComponent.domains.append(self)
 
     def rangeString(self,rlist=None):
         if rlist:
