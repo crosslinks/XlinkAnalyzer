@@ -80,9 +80,10 @@ class ItemFrame(LabelFrame):
             _UIClass = self.fields[k][1]
             _context = self.fields[k][2]
             _toString = lambda x: x
-            if hasattr(self.data,"TOSTRING"):
-                if k in self.data.TOSTRING:
-                    _toString = self.data.TOSTRING[k]
+            methods = [m for m in dir(self.data) \
+                       if m.lower() == k+"tostring"]
+            if methods:
+                _toString = self.data.__getattribute__(methods[0])
 
             if _UIClass == Entry:
                 _var = StringVar("")
@@ -164,9 +165,9 @@ class ItemFrame(LabelFrame):
                 _ui = v[1]
                 _var = v[3]
                 _parse = lambda x: x
-                if hasattr(self.data,"FROMSTRING"):
-                    if k in self.data.FROMSTRING:
-                        _parse = self.data.FROMSTRING[k]
+                methods = [m for m in dir(self.data) if m.lower() == "parse"+k]
+                if methods:
+                    _parse = self.data.__getattribute__(methods[0])
 
                 if isinstance(_ui,Entry):
                     _dict[k] = _parse(_var.get())
@@ -185,9 +186,10 @@ class ItemFrame(LabelFrame):
                 _ui = v[1]
                 _var = v[3]
                 _toString = lambda x: x
-                if hasattr(self.data,"TOSTRING"):
-                    if k in self.data.TOSTRING:
-                        _toString = self.data.TOSTRING[k]
+                methods = [m for m in dir(self.data) \
+                           if m.lower() == k+"tostring"]
+                if methods:
+                    _toString = self.data.__getattribute__(methods[0])
 
                 if isinstance(_ui,Entry):
                     _var.set(_toString(_dict[k]))

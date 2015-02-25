@@ -159,16 +159,12 @@ class Domain(object):
         self.name = name
         self.config = config
         self.subunit = subunit
-        self.ranges = self.parse(ranges)
+        self.ranges = self.parseRanges(ranges)
         self.color = color
         self.chainIds = chains
 
         #all this could easily be avoided by following conventions
         self.SHOW = ["name","subunit","ranges","color"]
-        self.TOSTRING = dict([("ranges",self.rangeString),\
-                                ("subunit",lambda x:x.name)])
-        self.FROMSTRING = dict([("ranges",self.parse),\
-                                ("subunit",self.getComponentByName)])
 
     def __deepcopy__(self,x):
         return Domain(name=self.name,config=self.config,subunit=self.subunit,\
@@ -182,7 +178,10 @@ class Domain(object):
         else:
             return False
 
-    def parse(self,rangeS):
+    def subunitToString(self,subunit):
+        return subunit.name
+
+    def parseRanges(self,rangeS):
         ret = []
         if rangeS and type(rangeS) == str:
             ret = [s.split("-") for s in rangeS.split(",")]
@@ -191,7 +190,7 @@ class Domain(object):
             ret = rangeS
         return ret
 
-    def getComponentByName(self,name):
+    def parseSubunit(self,name):
         comp = self.config.getComponentByName(name)
         self.moveDomain(comp)
         return comp
@@ -202,7 +201,7 @@ class Domain(object):
             domains.pop(domains.index(self))
         newComponent.domains.append(self)
 
-    def rangeString(self,rlist=None):
+    def rangesToString(self,rlist=None):
         if rlist:
             if rlist[0]:
                 return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
@@ -228,8 +227,6 @@ class Domain(object):
         _dict.pop("config")
         _dict.pop("subunit")
         _dict.pop("SHOW")
-        _dict.pop("FROMSTRING")
-        _dict.pop("TOSTRING")
         return _dict
 
     def deserialize(self,_dict):
