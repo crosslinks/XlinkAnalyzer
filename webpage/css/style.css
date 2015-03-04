@@ -31,7 +31,6 @@ div.text {
 
 div.text h1 {
 	color:#000063;
-	font-family: 'Arvo', serif;
 }
 
 div.center {
@@ -106,7 +105,7 @@ a.glow:hover, a.glow:focus
   background: #141414;
   color: #ffffff;
   display: block;
-  font-family: 'Arvo', serif;
+  font-family: 'Lucida Grande','Lucida Sans Unicode','Geneva','Verdana',sans-serif;
   padding: 19px 20px;
   text-decoration: none;
 }
