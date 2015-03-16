@@ -8,6 +8,8 @@ from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
                     Toplevel, Label, OptionMenu, TclError
 import tkMessageBox
 
+from Pmw import ScrolledFrame
+
 import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
@@ -17,7 +19,6 @@ from data import Item, Assembly, Component, Domain
 
 class MapFrame(object):
     pass
-
 
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
@@ -50,39 +51,34 @@ class ItemFrame(LabelFrame):
         self.grid(pady=2)
 
     def analyzeData(self):
-        _data = self.data
-        _dict = _data.__dict__
-        _classD = self.classDict
-        fields = _dict.keys()
-        fields = [f for f in fields if (f[0] != "-" and f[0] != "_")]
-        fields = [f for f in fields if not callable(_data.__getattribute__(f))]
+        if type(self.data) == list and self.active:
+            shows = [data.SHOW for data in self.data]
+            common = list(set.intersection([set(s) for s in shows ]))
+        else:
+            _dict = self.data.__dict__
+            self._classD = self.classDict
+            fields = _dict.keys()
+            fields = [f for f in fields if f in self.data.SHOW]
 
         #TODO: Custom order replace by class property
-        if "color" in fields:
-            fields.pop(fields.index("color"))
-            fields += ["color"]
-
-        if "name" in fields:
-            fields.pop(fields.index("name"))
-            fields = ["name"]+fields
 
         for fK in fields:
             data = _dict[fK]
-            if type(data) in _classD:
-                self.fields[fK] = (data,_classD[type(data)],None)
+            if type(data) in self._classD:
+                self.fields[fK] = (data,self._classD[type(data)],None)
             else:
                 if hasattr(data,"__dict__"):
                     for v in data.__dict__.values():
                         if hasattr(v,"__dict__"):
                             for v1 in v.__dict__.values():
                                 if type(v1) == list and v1:
-                                    classL = [item for item in v1 if item.__class__==data.__class__]
+                                    classL = [item for item in v1\
+                                            if isinstance(item,data.__class__)]
                                     if classL:
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
 
     def initUIElements(self):
-
         _onEdit = lambda i,j,k: self.onEdit()
 
         for k,v in self.fields.items():
@@ -91,7 +87,7 @@ class ItemFrame(LabelFrame):
             _context = self.fields[k][2]
             _toString = lambda x: x
             methods = [m for m in dir(self.data) \
-                       if m.lower() == k+"tostring"]
+                       if m.lower() == k.lower()+"tostring"]
             if methods:
                 _toString = self.data.__getattribute__(methods[0])
 
@@ -125,7 +121,6 @@ class ItemFrame(LabelFrame):
         else:
             self.add = Button(self,text="Add",command=self.onAdd)
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
-
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
@@ -175,7 +170,8 @@ class ItemFrame(LabelFrame):
                 _ui = v[1]
                 _var = v[3]
                 _parse = lambda x: x
-                methods = [m for m in dir(self.data) if m.lower() == "parse"+k]
+                methods = [m for m in dir(self.data) if m.lower()\
+                           == "parse"+k.lower()]
                 if methods:
                     _parse = self.data.__getattribute__(methods[0])
 
@@ -197,7 +193,7 @@ class ItemFrame(LabelFrame):
                 _var = v[3]
                 _toString = lambda x: x
                 methods = [m for m in dir(self.data) \
-                           if m.lower() == k+"tostring"]
+                           if m.lower() == k.lower()+"tostring"]
                 if methods:
                     _toString = self.data.__getattribute__(methods[0])
 
@@ -268,9 +264,10 @@ class ItemFrame(LabelFrame):
                 _var = v[3]
                 #TODO move this to analysis
                 _toString = lambda x: x
-                if hasattr(self.data,"TOSTRING"):
-                    if k in self.data.TOSTRING:
-                        _toString = self.data.TOSTRING[k]
+                methods = [m for m in dir(self.data) \
+                       if m.lower() == k.lower()+"tostring"]
+                if methods:
+                    _toString = self.data.__getattribute__(methods[0])
 
                 if isinstance(_ui,Entry):
                     bList.append(_var.get() != _toString(_data))
@@ -345,7 +342,11 @@ class ToolTip(object):
 class ItemList(LabelFrame):
     def __init__(self,parent,container,show,active=False,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
+        self._class = None
+        if ":" in show:
+            show,self._class = show.split(":")
         self.items = container.__dict__[show]
+
         self.active = active
         self.parent = parent
         self.frames = []
@@ -361,6 +362,9 @@ class ItemList(LabelFrame):
         if not self.items:
             print "No DataItems"
 
+    def classFilter(self,item):
+        return item.__class__.__name__ == self._class
+
     def initUIElements(self):
 
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
@@ -368,13 +372,14 @@ class ItemList(LabelFrame):
         dummy = self.container.dataMap[self.show]
         self.activeItemFrame = ItemFrame(self.activeFrame,dummy,True,\
                                          self,borderwidth=1)
-        self.listFrame = LabelFrame(self,padx=5,pady=5,borderwidth=1)
-
+        self.scrolledFrame = ScrolledFrame(self)
 
         for item in self.items:
-            self.frames.append(ItemFrame(self.listFrame,item,False,self))
+            self.frames.append(\
+                    ItemFrame(self.scrolledFrame.interior(),item,False,self))
 
-        self.quit = Button(self,text="Close",command=self.parent.destroy)
+        if isinstance(self.parent,Toplevel):
+            self.quit = Button(self,text="Close",command=self.parent.destroy)
 
     def gridUIElements(self):
         r = 0
@@ -386,46 +391,25 @@ class ItemList(LabelFrame):
         for i,frame in enumerate(self.frames):
             frame.grid(sticky="WE",row=i,column=0)
 
-        self.listFrame.grid(sticky="WE",row=r,column=0)
+        self.scrolledFrame.grid(sticky = "WESN",row=r)
         r += 1
-        self.quit.grid(sticky="WE",row=r,column=0)
+        if isinstance(self.parent,Toplevel):
+            self.quit.grid(sticky="WE",row=r,column=0)
 
     def synchronize(self,container = None):
-        if not container:
-            for item in self.items:
-                if not item in [frame.data for frame in self.frames]:
-                    self.frames.append(ItemFrame(self.listFrame,item))
-                    self.listFrame.grid()
-                    self.grid()
-        else:
-            #TODO: Test this
-            for item in container:
-                if not item in [frame.data for frame in self.frames]:
-                    self.frames.append(ItemFrame(self.listFrame,item))
-                    self.listFrame.grid()
-                    self.grid()
+        if container:
+            self.container = container
 
+        for item in self.container:
+            if not item in [frame.data for frame in self.frames] and\
+                self.classFilter(item):
+                print self.classFilter(item),self.__class__
+                self.frames.append(\
+                    ItemFrame(self.scrolledFrame.interior(),item))
+                self.scrolledFrame.grid()
+                self.grid()
         #TODO: move this to Assembly class
         chimera.triggers.activateTrigger('configUpdated', self.container)
-
-if __name__ == "__main__":
-    tl = Toplevel()
-    A = Assembly()
-    C = Component("Comp",A)
-    C2 = Component("MegaComp",A)
-    C.setColor([1,1,0,1])
-    C.setChainIds(["A","B","C"])
-    A.items.append(C)
-    A.items.append(C2)
-    D = Domain("Domain",A,C,[[11]],MaterialColor(*[0,0,0,0]),["A","B"])
-    D2 = Domain("Domain2",A,C2,[[12]],MaterialColor(*[1,0,0,0]),["C","D"])
-    A.domains.append(D)
-    A.domains.append(D2)
-    #F = ItemFrame(tl,D)
-    #F.synchronize(D2)
-    I = ItemList(tl,A,"domains",True)
-    tl.grid()
-
-    #TODO: Measure Textinput
-    #TODO: order by class property (override __new__ or smth)
+        #TODO: Measure Textinput
+        #TODO: order by class property (override __new__ or smth)
 

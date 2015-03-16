@@ -1459,69 +1459,12 @@ class SetupFrame(TabFrame):
         self._handlers = []
         self._addHandlers()
 
-
         #ROW 0:
         curRow = 0
-
-        #ROW 1:
-        Label(self, text="Add subunit:").grid(row=curRow,\
-                                    column=0,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-
-        Label(self, text="Add data (e.g. files with cross-links):").grid(row=curRow,\
-                                    column=3,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-        curRow = curRow + 1
-
-        #ROW 2:
-        self.addComponentFrame = ItemFrame(self,\
-                                           Component("",self.config),\
-                                           self,\
-                                           active=True)
-        self.addComponentFrame.grid(row=curRow,\
-                                    column=0,\
-                                    sticky="W",\
-                                    columnspan=2,\
-                                    **layout)
-
-        self.addCompButton = Button(self,\
-                                    text="Add",\
-                                    command=self.onComponentAdd)
-        self.addCompButton.grid(row = curRow,\
-                                column = 2, \
-                                sticky = "W",**layout)
-        self.addDataFrame = ItemFrame(self,\
-                                      DataItem("",self.config,None),\
-                                      self,\
-                                      active=True)
-        self.addDataFrame.grid(row = curRow, column = 3, sticky = "W",**layout)
-
-        self.addDataButton = Button(self,text="Add",command=self.onDataItemAdd)
-        self.addDataButton.grid(row = curRow,column = 4, sticky = "W",**layout)
-
-        curRow = curRow + 1
-
-        #ROW 3:
-        self.prettyComponentFrame = LabelFrame(self,text="Subunits")
-        self.prettyComponentFrame.grid(sticky="NESW",\
-                                  row=curRow,\
-                                  column=0,\
-                                  columnspan=3,\
-                                  **layout)
-        self.prettyDataFrame = LabelFrame(self,text="Data Sets")
-        self.prettyDataFrame.grid(sticky="NESW",\
-                             row=curRow,\
-                             column=3,\
-                             columnspan=2,\
-                             **layout)
-        self.compFrame = ScrolledFrame(self.prettyComponentFrame)
-        self.compFrame.pack(fill="both",expand=1,**layout)
-        self.dataFrame = ScrolledFrame(self.prettyDataFrame)
-        self.dataFrame.pack(fill="both",expand=1,**layout)
+        self.subUnitFrame = ItemList(self,self.config,"subunits",True)
+        self.subUnitFrame.grid(row=curRow,column=0,columnspan=3)
+        self.dataFrame = ItemList(self,self.config,"items:DataItem",True)
+        self.dataFrame.grid(row=curRow,column=4)
 
         self.grid_rowconfigure(curRow, weight=1)
 
@@ -1759,24 +1702,8 @@ class SetupFrame(TabFrame):
         self.config.state="unchanged"
 
     def update(self):
-        #remove non neccessary frames
-        for i in range(len(self.itemFrames)):
-            if not self.itemFrames[i].item in self.config.items:
-                self.itemFrames[i].destroy()
-                self.itemFrames[i] = None
-        #add frame for none present items
-        self.itemFrames = [f for f in self.itemFrames if f is not None]
-
-        for i in self.config.items:
-            if i not in [f.item for f in self.itemFrames]:
-                self.addItemFrame(i)
-
-        if self.config.state != "unsaved":
-            self.mainWindow.setTitle(self.config.file+"*")
-            self.config.state = "changed"
-
+        self.subUnitFrame.synchronize(self.config)
         chimera.triggers.activateTrigger('configUpdated', self.config)
-
 
     def addItemMenu(self):
         resourcePath = StringVar()
@@ -1817,24 +1744,6 @@ class SetupFrame(TabFrame):
 
         frame.grid(pady=5,padx=5)
         menu.grid()
-
-    def addItemFrame(self,item):
-        if  issubclass(item.__class__,Item):
-            if type(item) == Component:
-                itemFrame = ItemFrame(self.compFrame.interior(),\
-                                           item,\
-                                           self)
-            else:
-                itemFrame = ItemFrame(self.dataFrame.interior(),\
-                                        item,\
-                                        self)
-            itemFrame.grid(columnspan = 3, sticky = "WE")
-            self.itemFrames.append(itemFrame)
-
-            #if InteractingResidueItem present, add corresponding tab
-            if item.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE:
-                if not hasattr(xlinkanalyzer.get_gui(), 'Interacting'):
-                    xlinkanalyzer.get_gui().addTab('Interacting', InteractingResiMgrTabFrame)
 
     def checkName(self,item):
         if item.name in [item.name for item in self.config]:

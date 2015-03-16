@@ -149,7 +149,23 @@ class Component(Item):
     def __repr__(self):
         return self.__str__()
 
+    def __deepcopy__(self,x):
+        componentCopy =Component(name=self.name,config=self.config)
+        componentCopy.setColor(self.color)
+        componentCopy.setChainIds(self.chainIds)
+        componentCopy.setSelection(self.selection)
+        return componentCopy
+
+    def chainIdsToString(self,chainIds=None):
+        if chainIds is None:
+            chainIds = self.chainIds
+        return reduce(lambda x,y: str(x)+str(y)+",",chainIds,"")[:-1]
+
+    def parseChainIds(self,chainIdsS):
+        return [int(s) for s in chainIdsS.split(",")]
+
 class Domain(object):
+    SHOW = ["name","subunit","ranges","color"]
     def __init__(self,name="",\
                       config=None,\
                       subunit=None,\
@@ -162,7 +178,6 @@ class Domain(object):
         self.ranges = self.parseRanges(ranges)
         self.color = color
         self._chainIds = chains
-
 
     def __deepcopy__(self,x):
         return Domain(name=self.name,config=self._config,subunit=self.subunit,\
@@ -320,12 +335,53 @@ class InteractingResidueItem(SimpleDataItem):
         self.config = self.data
         self.active = True
 
+class File(object):
+    def __init__(self,path,root=None):
+        self.path = path
+        self.root = root
+
+    def locate(self):
+        path = self.path
+        locatedRes = []
+        missing = []
+        root = self.root
+        #check for windows paths in unix systems
+        if '\\' in path and _platform == "linux" or _platform == "linux2":
+            path = path.replace('\\','/')
+
+        if exists(path):
+            path = relpath(path,root)
+        elif exists(join(root,r)):
+            path = path
+        else:
+            missing = path
+
+        self.path = path
+
+    def resourcePath(self):
+        self.locate()
+        path = normpath(join(self.root,self.path))
+        if not os.path.exists(path):
+            path = ""
+        return path
+
+    def serialize(self):
+        self.locate()
+        _dict = self.__dict__
+        if "data" in _dict:
+            _dict.pop("data")
+        return _dict
+
+    def validate(self):
+        return os.path.exists(join(self.root,self.path))
+
+
 class DataItem(Item):
     def __init__(self,name,config,resource,mapping=None):
         super(DataItem,self).__init__(name,config)
         self.type = "data"
         self.mapping = mapping or {}
-        self.resource = resource
+        self.files = [File(r,config.root) for r in resource]
         self.active = True
         self.informed = False
 
@@ -362,42 +418,10 @@ class DataItem(Item):
         pass
 
     def locate(self):
-        formatedRes = []
-        locatedRes = []
-        missing = []
-        root = self.config.root
-        #check for windows paths in unix systems
-        for r in self.resource:
-            if '\\' in r and _platform == "linux" or _platform == "linux2":
-                formatedRes.append(r.replace('\\','/'))
-            else:
-                formatedRes.append(r)
-        for r in formatedRes:
-            if exists(r):
-                locatedRes.append(relpath(r,root))
-            elif exists(join(root,r)):
-                locatedRes.append(r)
-            else:
-                missing.append(r)
-        if missing and not self.informed:
-            title = "Missing Files"
-            fileList = reduce(lambda x,y: x+"%s\n"%(y),missing,"")
-            message = "These files could not be found:\n %s"%(fileList)
-            tkMessageBox.showinfo(title,message)
-            self.informed = True
-        self.resource = locatedRes
+        [f.locate() for f in self.files]
 
     def resourcePaths(self):
-        self.locate()
-        paths = []
-        root = self.config.root
-
-        for res in self.resource:
-            res = normpath(res)
-            path = normpath(join(root,res))
-            if os.path.exists(path):
-                paths.append(path)
-        return paths
+        return [f.resourcePath() for f in self.files]
 
     def serialize(self):
         self.locate()
@@ -407,8 +431,8 @@ class DataItem(Item):
         return _dict
 
     def validate(self):
-        allExist = reduce(lambda x,y: x and y, [os.path.exists(resPath) \
-                          for resPath in self.resourcePaths()],True)
+        allExist = reduce(lambda x,y: x and y, \
+                          [f.validate() for f in self.files],True)
         return True if super(DataItem,self).validate() and allExist else False
 
     def getProteinsByComponent(self,name):
@@ -443,7 +467,6 @@ class XQuestItem(DataItem):
         _dict.pop("xlinksSets")
         return _dict
 
-
 class SequenceItem(DataItem):
     def __init__(self,name,config,resource,mapping=None):
         super(SequenceItem,self).__init__(name,config,resource,mapping)
@@ -465,6 +488,8 @@ class SequenceItem(DataItem):
 class Assembly(object):
     def __init__(self,frame=None):
         self.items = []
+        self.subunits = []
+        self.dataItems = []
         self.domains = []
         self.subcomplexes = []
         self.root = ""
@@ -477,24 +502,35 @@ class Assembly(object):
         self.chainToProtein = {}
         self.componentToProtein = {}
 
-        self.dataMap = dict([("domains",Domain(config = self,subunit=Component(config=self)))])
+        self.dataMap = dict([\
+            ("domains",Domain(config = self,subunit=Component(config=self))),\
+            ("subunits",Component(config=self)),\
+            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self)]))
 
     def __str__(self):
         s = ""
-        for item in self.items:
-            s += str(item)+"\n"
+        s += "Subunits:\n"+\
+             "---------------------\n"
+        for subunit in self.subunits:
+            s += str(subunit)+"\n"
+        s += "Data Items:\n"+\
+             "---------------------\n"
+        for dataItem in self.dataItems:
+            s += str(dataItem)+"\n"
         return s
 
     def __iter__(self):
-        for item in self.items:
+        _iter = self.subunits+self.dataItems
+        for item in _iter:
             yield item
 
     def __contains__(self,item):
+        _contains = self.subunits+self.dataItems
         return reduce(lambda x,y: x or y, [item == i for i\
-                                            in self.items],False)
+                                            in _contains],False)
 
     def __len__(self):
-        return len(self.items)
+        return len(self.subunits+self.dataItems)
 
     def loadFromDict(self,_dict):
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
@@ -552,18 +588,23 @@ class Assembly(object):
         return color
 
     def addItem(self,item):
-        if issubclass(item.__class__,Item):
-            self.items.append(item)
+        if isinstance(item,Component):
+            self.subunits.append(item)
+        elif isinstance(item,DataItem):
+            self.dataItems.append(item)
         elif issubclass(item.__class__,Domain):
             self.domains.append(item)
             item.subunit.domains.append(item)
         self.state = "changed"
 
     def deleteItem(self,item):
-        if issubclass(item.__class__,Item):
-            if item in self:
-                self.items.remove(item)
-        elif issubclass(item.__class__,Domain):
+        if isinstance(item,Component):
+            if item in self.subunits:
+                self.subunits.remove(item)
+        elif isinstance(item,DataItem):
+            if item in self.dataItems:
+                self.dataItems.remove(item)
+        elif isinstance(item,Domain):
             if [item==d for d in self.getAllDomains()]:
                 self.domains.remove(item)
             if item in item.subunit.domains:
@@ -571,8 +612,10 @@ class Assembly(object):
         self.state = "changed"
 
     def clear(self):
-        for item in self:
-            self.items.remove(item)
+        for subunit in self.subunits:
+            self.subunits.remove(item)
+        for dataItem in self.dataItems:
+            self.dataItems.remove(item)
 
     def getComponentByName(self,name):
         candidates = [c for c in self.getComponents() if c.name==name]
@@ -582,57 +625,47 @@ class Assembly(object):
             return None
 
     def getComponents(self):
-        return [i for i in self.items \
-                if isinstance(i,Component)]
+        return self.subunits
 
     def getComponentNames(self):
-        return [i.name for i in self.items \
-                if isinstance(i,Component)]
+        return [i.name for i in self.subunits]
 
     def getDataItems(self,_type = None):
-        dataItems = [i for i in self.items \
-                     if (isinstance(i,DataItem) \
-                         or isinstance(i,SimpleDataItem))]
         if not _type:
             return dataItems
         else:
-            typeDataItems = [dI for dI in dataItems if dI.type == _type]
+            typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
             return typeDataItems
 
     def getComponentColors(self,name=None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
+            compL = [i for i in self.subunits if i.name == name)]
             if compL:
                 return compL[0].color
             else:
                 return None
         else:
-            return dict([(i.name,i.color) for i in self.items\
-                     if isinstance(i,Component)])
+            return dict([(i.name,i.color) for i in self.subunits])
 
     def getComponentChains(self,name=None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
+            compL = [i for i in self.subunits if i.name == name)]
             if compL:
                 return compL[0].chainIds
             else:
                 return None
         else:
-            return dict([(i.name,i.chainIds) for i in self.items\
-                     if isinstance(i,Component)])
+            return dict([(i.name,i.chainIds) for i in self.subunits])
 
     def getComponentSelections(self,name = None):
         if name:
-            compL = [i for i in self.getComponents() if i.name == name]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
                 return compL[0].selection
             else:
                 return None
         else:
-            return dict([(i.name,i.selection) for i in self.items\
-                     if isinstance(i,Component)])
+            return dict([(i.name,i.selection) for i in self.subunits])
 
     def getComponentWithDomains(self):
         ret = self.getComponents()
@@ -654,15 +687,13 @@ class Assembly(object):
 
     def getDomains(self,name=None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
+            compL = [i for i in self.subunits if i.name == name)]
             if compL:
                 return compL[0].domains
             else:
                 return None
         else:
-            return dict([(i.name,i.domains) for i in self.items\
-                     if isinstance(i,Component)])
+            return dict([(i.name,i.domains) for i in self.subunits])
 
     def getDomainNames(self):
         ret = self.getAllDomains()
@@ -786,18 +817,12 @@ class Assembly(object):
     def serialize(self):
         _dict = {}
         _dict["xlinkanalyzerVersion"] = "1.0"
-        _dict["subunits"] = []
-        _dict["data"] = []
-        for item in self.items:
-            if type(item) == Component:
-                _dict["subunits"].append(item.serialize())
-            else:
-                _dict["data"].append(item.serialize())
+        _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
+        _dict["data"] = [dataItem.serialize() for dataItem in self.dataItem]
         return _dict
 
     def dataItems(self):
-        return [item for item in self.items if item.type in \
-                [xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.SEQUENCES_DATA_TYPE]]
+        return self.dataItems
 
     def getPyxlinksConfig(self):
         '''
@@ -819,9 +844,8 @@ class Assembly(object):
         return cfg
 
     def locate(self):
-        for item in self.items:
-            if  isinstance(item,DataItem):
-                item.locate()
+        for item in self.dataItems:
+            item.locate()
 
 class ResourceManager(object):
     def __init__(self,config):
