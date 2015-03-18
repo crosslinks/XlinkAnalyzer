@@ -162,7 +162,7 @@ class Component(Item):
         return reduce(lambda x,y: str(x)+str(y)+",",chainIds,"")[:-1]
 
     def parseChainIds(self,chainIdsS):
-        return [int(s) for s in chainIdsS.split(",")]
+        return [s for s in chainIdsS.split(",")]
 
 class Domain(object):
     SHOW = ["name","subunit","ranges","color"]
