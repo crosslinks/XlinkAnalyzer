@@ -45,7 +45,7 @@ from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
 from dev import ItemList
 
 DEBUG_MODE = False
-DEV = False
+DEV = True
 
 class XlinkAnalyzer_Dialog(ModelessDialog):
 
