@@ -15,3 +15,9 @@ def get_gui():
     for insta in chimera.extension.manager.instances:
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta
+
+def getConfig():
+    for insta in chimera.extension.manager.instances:
+        if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
+            return insta.configFrame.config
+

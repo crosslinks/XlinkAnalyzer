@@ -336,9 +336,15 @@ class InteractingResidueItem(SimpleDataItem):
         self.active = True
 
 class File(object):
-    def __init__(self,path,root=None):
+    def __init__(self,path="",root=""):
         self.path = path
         self.root = root
+
+    def __str__(self):
+        return join(self.root,self.path)
+
+    def __repr__(self):
+        return self.__str__()
 
     def locate(self):
         path = self.path
@@ -351,14 +357,14 @@ class File(object):
 
         if exists(path):
             path = relpath(path,root)
-        elif exists(join(root,r)):
+        elif exists(join(root,path)):
             path = path
         else:
             missing = path
 
         self.path = path
 
-    def resourcePath(self):
+    def getResourcePath(self):
         self.locate()
         path = normpath(join(self.root,self.path))
         if not os.path.exists(path):
@@ -367,21 +373,53 @@ class File(object):
 
     def serialize(self):
         self.locate()
-        _dict = self.__dict__
-        if "data" in _dict:
-            _dict.pop("data")
-        return _dict
+        return self.resourcePath()
 
     def validate(self):
         return os.path.exists(join(self.root,self.path))
 
+class FileGroup(object):
+    def __init__(self,files=[],root=""):
+        self.files=[]
+        self.root = root
+        map(self.addFile,files)
+
+    def __iter__(self):
+        for f in self.files:
+            yield f
+
+    def __str__(self):
+        return "".join([str(f)+"\n" for f in self.files])
+
+    def __repr__(self):
+        return self.__str__()
+
+    def locate(self):
+        [f.locate() for f in self.files]
+
+    def validate(self):
+        bools = [f.validate() for f in self.files]
+        return reduce(lambda x,y:x and y,bools,True)
+
+    def serialize(self):
+        pass
+
+    def addFile(self,_file,root=None):
+        if type(_file) != File:
+            _file = File(_file,self.root)
+        self.files.append(_file)
+
+    def getResourcePaths(self):
+        self.locate()
+        return [f.getResourcePath() for f in self.files]
+
 
 class DataItem(Item):
-    def __init__(self,name,config,resource,mapping=None):
+    def __init__(self,name,config,fileGroup,mapping=None):
         super(DataItem,self).__init__(name,config)
         self.type = "data"
         self.mapping = mapping or {}
-        self.files = [File(r,config.root) for r in resource]
+        self.fileGroup = fileGroup
         self.active = True
         self.informed = False
 
@@ -390,7 +428,7 @@ class DataItem(Item):
              -------------------------\n\
              Name:\t%s\n\
              Type\t%s\n\
-             Files:\t%s\n"%(self.name,self.type,self.resource)
+             Files:\t%s\n"%(self.name,self.type,self.fileGroup)
         return str(s)
 
     def __repr__(self):
@@ -417,11 +455,15 @@ class DataItem(Item):
     def updateData(self):
         pass
 
+    def parseFiles(self,filePaths):
+        for fP in filePaths:
+            self.fileGroup.addFile(fP)
+
     def locate(self):
-        [f.locate() for f in self.files]
+        self.fileGroup.locate()
 
     def resourcePaths(self):
-        return [f.resourcePath() for f in self.files]
+        return [f.getResourcePath() for f in self.fileGroup]
 
     def serialize(self):
         self.locate()
@@ -439,15 +481,21 @@ class DataItem(Item):
         return [k for k,v in self.mapping.items() if name in v]
 
 class XQuestItem(DataItem):
-    def __init__(self,name,config,resource,mapping=None):
-        super(XQuestItem,self).__init__(name,config,resource,mapping)
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,config,name="",fileGroup=FileGroup(),mapping=None):
+        super(XQuestItem,self).__init__(name,config,fileGroup,mapping)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
-        self.resource = resource
+        self.fileGroup = fileGroup
         self.locate()
         self.updateData()
+
+    def __deepcopy__(self,x):
+        itemCopy = XQuestItem(config=self.config,name=self.name,\
+                              fileGroup=self.fileGroup,mapping=self.mapping)
+        return itemCopy
 
     def updateData(self):
         if self.resourcePaths():
@@ -468,9 +516,11 @@ class XQuestItem(DataItem):
         return _dict
 
 class SequenceItem(DataItem):
-    def __init__(self,name,config,resource,mapping=None):
-        super(SequenceItem,self).__init__(name,config,resource,mapping)
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,config,name="",fileGroup=FileGroup(),mapping={}):
+        super(SequenceItem,self).__init__(name,config,fileGroup,mapping)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
+        self.fileGroup = fileGroup
         self.sequences = {}
         self.data = {}
         for i,fileName in enumerate(self.resourcePaths()):
@@ -483,6 +533,11 @@ class SequenceItem(DataItem):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
         return _dict
+
+    def __deepcopy__(self,x):
+        itemCopy = SequenceItem(config=self.config,name=self.name,\
+                                fileGroup=self.fileGroup,mapping=self.mapping)
+        return itemCopy
 
 
 class Assembly(object):
@@ -505,7 +560,7 @@ class Assembly(object):
         self.dataMap = dict([\
             ("domains",Domain(config = self,subunit=Component(config=self))),\
             ("subunits",Component(config=self)),\
-            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self)]))
+            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self)])])
 
     def __str__(self):
         s = ""
@@ -550,13 +605,16 @@ class Assembly(object):
                 d = classDir[dataD["type"]]\
                     (dataD["name"],self,dataD["data"])
             elif "resource" in dataD:
+                fileGroup = FileGroup(dataD["resource"],self.root)
                 d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["resource"],dataD["mapping"])
+                    (name=dataD["name"],\
+                     config=self,\
+                     fileGroup=fileGroup,\
+                     mapping=dataD["mapping"])
                 #TODO: What does this achieve
                 d.serialize()
             if not d.informed:
                 self.addItem(d)
-
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
@@ -632,14 +690,14 @@ class Assembly(object):
 
     def getDataItems(self,_type = None):
         if not _type:
-            return dataItems
+            return [dI for dI in self.dataItems]
         else:
             typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
             return typeDataItems
 
     def getComponentColors(self,name=None):
         if name:
-            compL = [i for i in self.subunits if i.name == name)]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
                 return compL[0].color
             else:
@@ -649,7 +707,7 @@ class Assembly(object):
 
     def getComponentChains(self,name=None):
         if name:
-            compL = [i for i in self.subunits if i.name == name)]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
                 return compL[0].chainIds
             else:
@@ -687,7 +745,7 @@ class Assembly(object):
 
     def getDomains(self,name=None):
         if name:
-            compL = [i for i in self.subunits if i.name == name)]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
                 return compL[0].domains
             else:

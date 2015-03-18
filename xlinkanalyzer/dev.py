@@ -4,28 +4,141 @@ import inspect
 from collections import OrderedDict
 from copy import deepcopy
 
+import Tkinter
 from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
                     Toplevel, Label, OptionMenu, TclError
-import tkMessageBox
+import tkMessageBox, tkFileDialog
 
-from Pmw import ScrolledFrame
+from Pmw import ScrolledFrame, EntryField
 
 import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import Item, Assembly, Component, Domain
+from data import Item, Assembly, Component, Domain, FileGroup
+
+class FileFrame(Frame):
+    def __init__(self,parent,active=False,files=FileGroup(),\
+                 *args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
+        self.parent = parent
+        self.active = active
+        self.files = files
+        self.initUIElements()
+        self.gridUIElements()
+
+    def initUIElements(self):
+        filePaths = self.files.getResourcePaths()
+        self.var = StringVar(self)
+        if filePaths:
+            self.var.set(filePaths[0])
+            self.fileMenu = OptionMenu(self,self.var,*filePaths)
+        else:
+            self.fileMenu = OptionMenu(self,self.var,())
+        if self.active:
+            self.select = Button(self,text="Select",command=self.onSelect)
+
+    def gridUIElements(self):
+        self.fileMenu.config(width=10)
+        self.fileMenu.grid(row=0,column=0)
+        if self.active:
+            self.select.grid(row=0,column=1)
+
+    def onSelect(self):
+        menu = self.fileMenu["menu"]
+        menu.delete(0, "end")
+        paths = tkFileDialog.askopenfilenames(parent=self)
+        map(self.files.addFile,paths)
+        self.resetFileMenu(paths,0)
+
+    def resetFileMenu(self, options, index=None):
+        menu = self.fileMenu["menu"]
+        menu.delete(0, "end")
+        for string in options:
+            command=Tkinter._setit(self.var, string, None)
+            menu.add_command(label=string,command=command)
+        if index is not None:
+            self.var.set(options[index])
+
+class MapFrame(Frame):
+    def __init__(self,parent,mapFrom,mapTo,mapDict,\
+                 active=False,*args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
+        self.mapFrom = mapFrom
+        self.mapTo = mapTo
+        self.mapDict = mapDict
+        self.active = active
+
+        if not (mapFrom or mapTo or active):
+            title = "No elements to map yet"
+            message = "Please add some elements before mapping."
+            tkMessageBox.showinfo(title,message,parent=self.master)
+            return
 
 
-class MapFrame(object):
-    pass
+        self.mapButton = Button(self,text="Map",command=self.popUp)
+        self.mapButton.grid()
+        self.grid()
+
+    def popUp(self):
+
+        row = 0
+        self.pop = Toplevel()
+        self.frame = Frame(self.pop,padx=5,pady=5)
+        self.listFrame = LabelFrame(self.frame,padx=5,pady=5)
+        Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
+        fromVar = StringVar("")
+        fromMenu = OptionMenu(self.frame,fromVar,*self.mapFrom)
+        fromMenu.configure(width=10)
+        fromMenu.grid(sticky='W', row=row,column=1)
+
+        Label(self.frame,text="To: ").grid(row=row,column=2,sticky="W")
+        toVar = StringVar("")
+        toMenu = OptionMenu(self.frame,toVar,*self.mapTo)
+        toMenu.configure(width=10)
+        toMenu.grid(sticky='W', row=row,column=3)
+
+        entry = EntryField(self.frame,labelpos="w",label_text="Residues: ",\
+                           entry_width=20)
+        entry.grid(sticky='W', row=row,column=4)
+        Button(self.frame,text="Add",command=self.onAdd)\
+              .grid(sticky='W', row=row,column=5)
+        self.updateList()
+        self.listFrame.grid(sticky='W', row=1,column=0,columnspan=6)
+
+        Button(self.frame,text="Save",command=self.onSave)\
+               .grid(sticky='W',row=2,column=0)
+        self.frame.grid()
+        self.grid()
+        self.frame.update()
+
+    def onDelete(self,_from,_to,i):
+        pass
+
+    def onApply(self,_from,_to,i):
+        pass
+
+    def updateList(self):
+        pass
+
+    def onAdd(self):
+        pass
+
+    def onSave(self):
+        self.destroy()
+
+
 
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
         if active:
-            self.data = deepcopy(data)
+            if type(self.data) == list:
+                self.data = dict([(d.__class__.__name__,deepcopy(d)) \
+                                  for d in self.data])
+            else:
+                self.data = deepcopy(data)
         self.fields = OrderedDict()
         self.parent = parent
         self.listFrame = listFrame
@@ -39,7 +152,8 @@ class ItemFrame(LabelFrame):
                                 (unicode,Entry),\
                                 (MaterialColor,ColorOption),\
                                 (list,Entry),\
-                                (dict,MapFrame)\
+                                (dict,MapFrame),
+                                (FileGroup,FileFrame)\
                              ])
 
         """
@@ -51,21 +165,26 @@ class ItemFrame(LabelFrame):
         self.grid(pady=2)
 
     def analyzeData(self):
-        if type(self.data) == list and self.active:
-            shows = [data.SHOW for data in self.data]
-            common = list(set.intersection([set(s) for s in shows ]))
+        if type(self.data) == dict and self.active:
+            shows = [data.SHOW for data in self.data.values()]
+            common = list(set.intersection(*[set(s) for s in shows]))
+            #TODO: Enter some checks for consistency of dataItems
+            allFields = sum([d.__dict__.keys() for d in self.data.values()],[])
+            fields = list(set.intersection(set(common),set(allFields)))
+            fields.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
+            _dict = self.data.values()[0].__dict__
         else:
+            show = self.data.SHOW
             _dict = self.data.__dict__
-            self._classD = self.classDict
             fields = _dict.keys()
-            fields = [f for f in fields if f in self.data.SHOW]
-
-        #TODO: Custom order replace by class property
+            fields = [f for f in fields if f in show]
+            fields.sort(lambda x,y: show.index(x)-show.index(y))
 
         for fK in fields:
             data = _dict[fK]
-            if type(data) in self._classD:
-                self.fields[fK] = (data,self._classD[type(data)],None)
+            if type(data) in self.classDict:
+                self.fields[fK] = (data,self.classDict[type(data)],None,None)
+            #TODO: Recall how this worked
             else:
                 if hasattr(data,"__dict__"):
                     for v in data.__dict__.values():
@@ -78,8 +197,11 @@ class ItemFrame(LabelFrame):
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
 
+
+
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
+        _onType = lambda i,j,k: self.onType()
 
         for k,v in self.fields.items():
             _data = self.fields[k][0]
@@ -97,6 +219,7 @@ class ItemFrame(LabelFrame):
                 _var.trace("w",_onEdit)
                 _label = Label(self,text=self.parseName(k)+":")
                 _entry = Entry(self,textvariable=_var)
+                _entry.config(width=15)
                 self.fields[k] = (_data,_entry,_label,_var)
 
             elif _UIClass == ColorOption:
@@ -112,6 +235,17 @@ class ItemFrame(LabelFrame):
                 _menu.configure(width=5)
                 self.fields[k] = (_data,_menu,_label,_var)
 
+            elif _UIClass == FileFrame:
+                _menu = FileFrame(self,self.active,_data)
+                self.fields[k] = (_data,_menu,None,None)
+
+            elif _UIClass == MapFrame and not self.active:
+                _from = _data.keys()
+                _to = _data.values()
+                _dict = _data
+                _mapFrame = MapFrame(self,_from,_to,_data,True)
+                self.fields[k] = (_data,_mapFrame,None,None)
+
         if not self.active:
             self.apply = Button(self,text=unichr(10004),command=self.onApply)
             self.createToolTip(self.apply,"Apply")
@@ -121,6 +255,14 @@ class ItemFrame(LabelFrame):
         else:
             self.add = Button(self,text="Add",command=self.onAdd)
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
+            if type(self.data) == dict:
+                _data = self.data
+                _var = StringVar("")
+                _var.set(_data.keys()[0])
+                _var.trace("w",_onType)
+                _label = Label(self,text="Type: ")
+                _menu = OptionMenu(self,_var,*_data.keys())
+                self.fields["type"] = (_data,_menu,_label,_var)
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
@@ -151,6 +293,10 @@ class ItemFrame(LabelFrame):
                 _ui.grid(column=c,row=0,pady=5,padx=3)
                 c+=1
 
+            elif isinstance(_ui,FileFrame):
+                _ui.grid(column=c,row=0,pady=5,padx=3)
+                c+=1
+
         if not self.active:
             self.apply.grid(column=c,row=0,pady=5,padx=3)
             c+=1
@@ -165,7 +311,11 @@ class ItemFrame(LabelFrame):
 
     def synchronize(self,data = None):
         if data is None:
-            _dict = self.data.__dict__
+            if type(self.data) == dict:
+                _type = self.fields["type"][3].get()
+                _dict = self.data[_type].__dict__
+            else:
+                _dict = self.data.__dict__
             for k,v in self.fields.items():
                 _ui = v[1]
                 _var = v[3]
@@ -211,7 +361,12 @@ class ItemFrame(LabelFrame):
         if self.validate():
             self.synchronize()
             if self.listFrame:
-                self.listFrame.container.addItem(deepcopy(self.data))
+                if type(self.data) == dict:
+                    _type = self.fields["type"][3].get()
+                    cp = deepcopy(self.data[_type])
+                else:
+                    cp = deepcopy(self.data)
+                self.listFrame.container.addItem(cp)
                 self.listFrame.synchronize()
             self.empty()
         else:
@@ -233,6 +388,7 @@ class ItemFrame(LabelFrame):
 
     def empty(self):
          for k,v in self.fields.items():
+            print k,v
             _ui= v[1]
             _var = v[3]
             if isinstance(_ui,Entry):
@@ -285,6 +441,8 @@ class ItemFrame(LabelFrame):
             else:
                 self.apply.configure(bg="light grey")
 
+    def onType(self):
+        pass
 
     def commaList(self,l):
         return reduce(lambda x,y: x+","+str(y),l,"")[1:]
@@ -343,10 +501,7 @@ class ItemList(LabelFrame):
     def __init__(self,parent,container,show,active=False,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self._class = None
-        if ":" in show:
-            show,self._class = show.split(":")
         self.items = container.__dict__[show]
-
         self.active = active
         self.parent = parent
         self.frames = []
@@ -360,7 +515,7 @@ class ItemList(LabelFrame):
 
     def analyzeData(self):
         if not self.items:
-            print "No DataItems"
+            pass
 
     def classFilter(self,item):
         return item.__class__.__name__ == self._class
@@ -400,16 +555,14 @@ class ItemList(LabelFrame):
         if container:
             self.container = container
 
-        for item in self.container:
-            if not item in [frame.data for frame in self.frames] and\
-                self.classFilter(item):
-                print self.classFilter(item),self.__class__
+        for item in self.container.__dict__[self.show]:
+            if not item in [frame.data for frame in self.frames]:
                 self.frames.append(\
                     ItemFrame(self.scrolledFrame.interior(),item))
                 self.scrolledFrame.grid()
                 self.grid()
-        #TODO: move this to Assembly class
         chimera.triggers.activateTrigger('configUpdated', self.container)
+        #TODO: move this to Assembly class
         #TODO: Measure Textinput
         #TODO: order by class property (override __new__ or smth)
 

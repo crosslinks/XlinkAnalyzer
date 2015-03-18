@@ -1161,107 +1161,8 @@ class ItemFrame(LabelFrame):
         self.frame.update()
 
     def configureInteractingResidue(self):
+        pass
 
-        compNames = self.config.getComponentNames()
-        if not compNames:
-            title = "No subunits yet"
-            message = "Please add some subunits before configuring."
-            tkMessageBox.showinfo(title,message,parent=self.master)
-            return
-
-        row = 0
-        self.menu = Toplevel()
-        frame = Frame(self.menu,padx=5,pady=5)
-        listFrame = Frame(frame,padx=5,pady=5)
-        _dict = self.item.data
-        resiList = []
-
-        def _onDel(_from,_to,i):
-            print _dict[_from][_to]
-            if _dict[_from]:
-                _dict[_from].pop(_to)
-                if not _dict[_from]:
-                    _dict.pop(_from)
-            else:
-                _dict.pop(_from)
-            resiList.pop(i)
-            _updateList()
-
-        def _onApply(_from,_to,i):
-            _dict[_from][_to] = [int(s.strip()) for s in \
-                                 resiList[i].get().split(",")]
-
-        def _updateList():
-            _str = lambda l: str(l)[1:-1]
-            _del = lambda: _dict.__getitem__(_from).pop
-
-            for child in listFrame.winfo_children():
-                child.destroy()
-
-            for i,_from in enumerate(_dict):
-                l = len(_dict[_from])
-                for j,_to in enumerate(_dict[_from]):
-                    f = EntryField(listFrame,labelpos="w",label_text="From: ",\
-                               entry_width=14,value=_from)
-                    f.configure(entry_state="readonly")
-                    f.grid(sticky='W', row=i*l+j,column=0,columnspan=2)
-                    t = EntryField(listFrame,labelpos="w",label_text="To: ",\
-                               entry_width=14, value=_to)
-                    t.configure(entry_state="readonly")
-                    t.grid(sticky='W', row=i*l+j,column=2,columnspan=2)
-                    e = EntryField(listFrame,labelpos="w",\
-                                   label_text="Residues: ", entry_width=20,\
-                                   value=_str(_dict[_from][_to]))
-                    e.grid(sticky='W', row=i*l+j,column=4)
-                    resiList.append(e)
-                    _apply = Button(listFrame,text=unichr(10004),\
-                                       command=lambda:_onApply(_from,_to,i*l+j))
-                    _apply.grid(sticky='W', row=i*l+j,column=5)
-                    self.createToolTip(_apply,"Apply Changes")
-                    _delete = Button(listFrame,text="x",\
-                                     command=lambda:_onDel(_from,_to,i*l+j))
-                    _delete.grid(sticky='W', row=i*l+j,column=6)
-                    self.createToolTip(_delete,"Delete")
-
-        def _onAdd():
-            _from = fromVar.get()
-            _to = toVar.get()
-            if not _from in self.item.data:
-                self.item.data[_from]={}
-            self.item.data[_from][_to] = [int(s.strip()) for s in \
-                                                   entry.get().split(",")]
-            print _from,_to,self.item.data[_from][_to]
-            _updateList()
-
-        def _onSave():
-            chimera.triggers.activateTrigger('configUpdated', self.config)
-            self.menu.destroy()
-
-        Label(frame,text="From: ").grid(row=row,column=0,sticky="W")
-        fromVar = StringVar("")
-        fromMenu = OptionMenu(frame,fromVar,*compNames)
-        fromMenu.configure(width=10)
-        fromMenu.grid(sticky='W', row=row,column=1)
-
-        Label(frame,text="To: ").grid(row=row,column=2,sticky="W")
-        toVar = StringVar("")
-        toMenu = OptionMenu(frame,toVar,*compNames)
-        toMenu.configure(width=10)
-        toMenu.grid(sticky='W', row=row,column=3)
-
-        entry = EntryField(frame,labelpos="w",label_text="Residues: ",\
-                           entry_width=20)
-        entry.grid(sticky='W', row=row,column=4)
-        Button(frame,text="Add",command=_onAdd)\
-              .grid(sticky='W', row=row,column=5)
-        _updateList()
-        listFrame.grid(sticky='W', row=1,column=0,columnspan=6)
-
-        Button(frame,text="Save",command=_onSave)\
-               .grid(sticky='W',row=2,column=0)
-        frame.grid()
-        self.menu.grid()
-        self.frame.update()
 
     def copyMapping(self,name):
         #there is an ambiguity here, items need an unique identifier
@@ -1463,7 +1364,7 @@ class SetupFrame(TabFrame):
         curRow = 0
         self.subUnitFrame = ItemList(self,self.config,"subunits",True)
         self.subUnitFrame.grid(row=curRow,column=0,columnspan=3)
-        self.dataFrame = ItemList(self,self.config,"items:DataItem",True)
+        self.dataFrame = ItemList(self,self.config,"dataItems",True)
         self.dataFrame.grid(row=curRow,column=4)
 
         self.grid_rowconfigure(curRow, weight=1)
@@ -1703,6 +1604,7 @@ class SetupFrame(TabFrame):
 
     def update(self):
         self.subUnitFrame.synchronize(self.config)
+        self.dataFrame.synchronize(self.config)
         chimera.triggers.activateTrigger('configUpdated', self.config)
 
     def addItemMenu(self):
