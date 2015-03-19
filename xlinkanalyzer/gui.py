@@ -1581,9 +1581,9 @@ class SetupFrame(TabFrame):
     def onLoad(self):
         if self.resMngr.loadAssembly(self):
             self.clear()
-        self.update()
-        self.mainWindow.setTitle(self.config.file)
-        self.config.state="unchanged"
+            self.update()
+            self.mainWindow.setTitle(self.config.file)
+            self.config.state="unchanged"
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)
@@ -1650,6 +1650,7 @@ class SetupFrame(TabFrame):
             return True
 
     def reload(self, name, userData, o):
+        print "reloading"
         self.mainWindow.setTitle(self.config.file+"*")
         self.config.state = "changed"
 
