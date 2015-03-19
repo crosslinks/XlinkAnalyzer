@@ -577,7 +577,7 @@ class ItemList(LabelFrame):
                     ItemFrame(self.scrolledFrame.interior(),item))
                 self.scrolledFrame.grid()
                 self.grid()
-        chimera.triggers.activateTrigger('configUpdated', self.container)
+        chimera.triggers.activateTrigger('configUpdated', None)
         #TODO: move this to Assembly class
         #TODO: Measure Textinput
         #TODO: order by class property (override __new__ or smth)
