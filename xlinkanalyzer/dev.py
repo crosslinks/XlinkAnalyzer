@@ -18,17 +18,17 @@ from chimera.tkoptions import ColorOption
 from data import Item, Assembly, Component, Domain, FileGroup
 
 class FileFrame(Frame):
-    def __init__(self,parent,active=False,files=FileGroup(),\
+    def __init__(self,parent,active=False,fileGroup=FileGroup(),\
                  *args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         self.parent = parent
         self.active = active
-        self.files = files
+        self.fileGroup = fileGroup
         self.initUIElements()
         self.gridUIElements()
 
     def initUIElements(self):
-        filePaths = self.files.getResourcePaths()
+        filePaths = self.fileGroup.getResourcePaths()
         self.var = StringVar(self)
         if filePaths:
             self.var.set(filePaths[0])
@@ -48,7 +48,7 @@ class FileFrame(Frame):
         menu = self.fileMenu["menu"]
         menu.delete(0, "end")
         paths = tkFileDialog.askopenfilenames(parent=self)
-        map(self.files.addFile,paths)
+        map(self.fileGroup.addFile,paths)
         self.resetFileMenu(paths,0)
 
     def resetFileMenu(self, options, index=None):
@@ -60,16 +60,26 @@ class FileFrame(Frame):
         if index is not None:
             self.var.set(options[index])
 
+    def getResourcePaths(self):
+        return self.fileGroup.getResourcePaths()
+
 class MapFrame(Frame):
-    def __init__(self,parent,mapFrom,mapTo,mapDict,\
-                 active=False,*args,**kwargs):
+    def __init__(self,parent,mapDict,\
+                 getElements=None,active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
-        self.mapFrom = mapFrom
-        self.mapTo = mapTo
+        if not (mapDict.keys() and mapDict.values()) and getElements:
+            self.mapFrom,self.mapTo = getElements()
+        else:
+            self.mapFrom = mapDict.keys()
+            self.mapTo = mapDict.values()
+        self.mapTo = [self.parse(v) for v in self.mapTo]
         self.mapDict = mapDict
         self.active = active
+        self.vars = []
 
-        if not (mapFrom or mapTo or active):
+        print "self.mapFrom,self.mapTo",self.mapFrom,self.mapTo
+
+        if not (self.mapFrom or self.mapTo or active):
             title = "No elements to map yet"
             message = "Please add some elements before mapping."
             tkMessageBox.showinfo(title,message,parent=self.master)
@@ -80,31 +90,19 @@ class MapFrame(Frame):
         self.mapButton.grid()
         self.grid()
 
-    def popUp(self):
 
-        row = 0
+    def popUp(self):
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = LabelFrame(self.frame,padx=5,pady=5)
+
+        row = 0
         Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
-        fromVar = StringVar("")
-        fromMenu = OptionMenu(self.frame,fromVar,*self.mapFrom)
-        fromMenu.configure(width=10)
-        fromMenu.grid(sticky='W', row=row,column=1)
-
         Label(self.frame,text="To: ").grid(row=row,column=2,sticky="W")
-        toVar = StringVar("")
-        toMenu = OptionMenu(self.frame,toVar,*self.mapTo)
-        toMenu.configure(width=10)
-        toMenu.grid(sticky='W', row=row,column=3)
 
-        entry = EntryField(self.frame,labelpos="w",label_text="Residues: ",\
-                           entry_width=20)
-        entry.grid(sticky='W', row=row,column=4)
-        Button(self.frame,text="Add",command=self.onAdd)\
-              .grid(sticky='W', row=row,column=5)
+
         self.updateList()
-        self.listFrame.grid(sticky='W', row=1,column=0,columnspan=6)
+        self.listFrame.grid(sticky='W', row=1,column=0,columnspan=3)
 
         Button(self.frame,text="Save",command=self.onSave)\
                .grid(sticky='W',row=2,column=0)
@@ -112,22 +110,32 @@ class MapFrame(Frame):
         self.grid()
         self.frame.update()
 
-    def onDelete(self,_from,_to,i):
-        pass
-
-    def onApply(self,_from,_to,i):
-        pass
-
     def updateList(self):
-        pass
+        c = 1
+        for i,_from in enumerate(self.mapFrom):
+            Label(self.listFrame,text=_from)\
+                 .grid(row=i+c,column=0,pady=1,padx=3)
+            var = StringVar(self)
+            self.vars.append(var)
+            if _from in self.mapDict:
+                if self.mapDict[_from]:
+                    var.set(self.parse(self.mapDict[_from]))
+            var.trace("w",lambda a,b,c,index=i,key=_from:\
+                      self.updateMap(index,key))
+            OptionMenu(self.listFrame,var,*self.mapTo)\
+            .grid(row=i+c,column=2,sticky="W",pady=1,padx=3)
 
-    def onAdd(self):
-        pass
+    def parse(self,value):
+        if value and type(value) == list:
+            return value[0]
+        else:
+            return value
+
+    def updateMap(self,index,key):
+        self.mapDict[key]= self.vars[index].get()
 
     def onSave(self):
-        self.destroy()
-
-
+        self.pop.destroy()
 
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
@@ -219,7 +227,7 @@ class ItemFrame(LabelFrame):
                 _var.trace("w",_onEdit)
                 _label = Label(self,text=self.parseName(k)+":")
                 _entry = Entry(self,textvariable=_var)
-                _entry.config(width=15)
+                _entry.config(width=10)
                 self.fields[k] = (_data,_entry,_label,_var)
 
             elif _UIClass == ColorOption:
@@ -240,10 +248,11 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_menu,None,None)
 
             elif _UIClass == MapFrame and not self.active:
-                _from = _data.keys()
-                _to = _data.values()
                 _dict = _data
-                _mapFrame = MapFrame(self,_from,_to,_data,True)
+                _getMapping = None
+                if "getMappingElements" in dir(self.data):
+                    _getMapping = self.data.getMappingElements
+                _mapFrame = MapFrame(self,_data,_getMapping,True)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
         if not self.active:
@@ -262,12 +271,12 @@ class ItemFrame(LabelFrame):
                 _var.trace("w",_onType)
                 _label = Label(self,text="Type: ")
                 _menu = OptionMenu(self,_var,*_data.keys())
+                _menu.configure(width=12)
                 self.fields["type"] = (_data,_menu,_label,_var)
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
         c = 0
-
         for k,v in self.fields.items():
             _ui = self.fields[k][1]
             _data = self.fields[k][0]
@@ -294,6 +303,10 @@ class ItemFrame(LabelFrame):
                 c+=1
 
             elif isinstance(_ui,FileFrame):
+                _ui.grid(column=c,row=0,pady=5,padx=3)
+                c+=1
+
+            elif isinstance(_ui,MapFrame):
                 _ui.grid(column=c,row=0,pady=5,padx=3)
                 c+=1
 
@@ -334,6 +347,9 @@ class ItemFrame(LabelFrame):
                 elif isinstance(_ui,OptionMenu):
                     _dict[k] = _parse(_var.get())
 
+                elif isinstance(_ui,FileFrame):
+                    _dict[k] = _ui.fileGroup
+
         else:
             self.data = data
             _dict = data.__dict__
@@ -364,6 +380,7 @@ class ItemFrame(LabelFrame):
                 if type(self.data) == dict:
                     _type = self.fields["type"][3].get()
                     cp = deepcopy(self.data[_type])
+                    print "class",cp
                 else:
                     cp = deepcopy(self.data)
                 self.listFrame.container.addItem(cp)
@@ -388,7 +405,6 @@ class ItemFrame(LabelFrame):
 
     def empty(self):
          for k,v in self.fields.items():
-            print k,v
             _ui= v[1]
             _var = v[3]
             if isinstance(_ui,Entry):

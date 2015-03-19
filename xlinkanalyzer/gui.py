@@ -396,15 +396,11 @@ class ModelXlinkStatsTable(Tkinter.Frame):
             triggers.deleteHandler(trigName, handler)
 
     def clear(self):
-        # for child in self.winfo_children():
-        #     child.destroy()
-
         for child in self.winfo_children():
-            if isinstance(child, XlinkToolbar): #destroying XlinkToolbar was making problems with bound ld_score_var
+            if isinstance(child, XlinkToolbar):
                 child.pack_forget()
             else:
                 child.destroy()
-
 
     def render(self):
         self.clear()

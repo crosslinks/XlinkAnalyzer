@@ -405,14 +405,13 @@ class FileGroup(object):
         pass
 
     def addFile(self,_file,root=None):
-        if type(_file) != File:
+        if not isinstance(_file,File):
             _file = File(_file,self.root)
         self.files.append(_file)
 
     def getResourcePaths(self):
         self.locate()
         return [f.getResourcePath() for f in self.files]
-
 
 class DataItem(Item):
     def __init__(self,name,config,fileGroup,mapping=None):
@@ -456,8 +455,7 @@ class DataItem(Item):
         pass
 
     def parseFiles(self,filePaths):
-        for fP in filePaths:
-            self.fileGroup.addFile(fP)
+        map(self.fileGroup.addFile,filePaths)
 
     def locate(self):
         self.fileGroup.locate()
@@ -479,6 +477,9 @@ class DataItem(Item):
 
     def getProteinsByComponent(self,name):
         return [k for k,v in self.mapping.items() if name in v]
+
+    def getMappingElements(self):
+        return []
 
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
@@ -515,6 +516,12 @@ class XQuestItem(DataItem):
         _dict.pop("xlinksSets")
         return _dict
 
+    def getMappingElements(self):
+        _from = [e for e in self.xQuestNames] if self.xQuestNames else [""]
+        _to = [s.name for s in self.config.subunits] if self.config.subunits\
+              else [""]
+        return [_from,_to]
+
 class SequenceItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,config,name="",fileGroup=FileGroup(),mapping={}):
@@ -539,6 +546,12 @@ class SequenceItem(DataItem):
                                 fileGroup=self.fileGroup,mapping=self.mapping)
         return itemCopy
 
+    def getMappingElements(self):
+        _from = [e.split(" ")[0] for e in self.sequences.keys()]\
+                 if self.sequences.keys() else [""]
+        _to = [s.name for s in self.config.subunits] if self.config.subunits\
+            else [""]
+        return [_from,_to]
 
 class Assembly(object):
     def __init__(self,frame=None):
@@ -876,7 +889,7 @@ class Assembly(object):
         _dict = {}
         _dict["xlinkanalyzerVersion"] = "1.0"
         _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
-        _dict["data"] = [dataItem.serialize() for dataItem in self.dataItem]
+        _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
         return _dict
 
     def dataItems(self):
