@@ -36,7 +36,7 @@ class FileFrame(Frame):
         else:
             self.fileMenu = OptionMenu(self,self.var,())
         if self.active:
-            self.select = Button(self,text="Select",command=self.onSelect)
+            self.select = Button(self,text="Browse",command=self.onSelect)
 
     def gridUIElements(self):
         self.fileMenu.config(width=10)
@@ -77,8 +77,6 @@ class MapFrame(Frame):
         self.active = active
         self.vars = []
 
-        print "self.mapFrom,self.mapTo",self.mapFrom,self.mapTo
-
         if not (self.mapFrom or self.mapTo or active):
             title = "No elements to map yet"
             message = "Please add some elements before mapping."
@@ -102,7 +100,7 @@ class MapFrame(Frame):
 
 
         self.updateList()
-        self.listFrame.grid(sticky='W', row=1,column=0,columnspan=3)
+        self.listFrame.grid(sticky='W', row=1,column=0,columnspan=4)
 
         Button(self.frame,text="Save",command=self.onSave)\
                .grid(sticky='W',row=2,column=0)
@@ -380,7 +378,6 @@ class ItemFrame(LabelFrame):
                 if type(self.data) == dict:
                     _type = self.fields["type"][3].get()
                     cp = deepcopy(self.data[_type])
-                    print "class",cp
                 else:
                     cp = deepcopy(self.data)
                 self.listFrame.container.addItem(cp)
@@ -562,10 +559,13 @@ class ItemList(LabelFrame):
         for i,frame in enumerate(self.frames):
             frame.grid(sticky="WE",row=i,column=0)
 
+        #self.scrolledFrame.grid(sticky = "WESN",row=r)
         self.scrolledFrame.grid(sticky = "WESN",row=r)
+
         r += 1
         if isinstance(self.parent,Toplevel):
             self.quit.grid(sticky="WE",row=r,column=0)
+        self.grid()
 
     def synchronize(self,container = None):
         if container:
@@ -575,10 +575,7 @@ class ItemList(LabelFrame):
             if not item in [frame.data for frame in self.frames]:
                 self.frames.append(\
                     ItemFrame(self.scrolledFrame.interior(),item))
-                self.scrolledFrame.grid()
-                self.grid()
+        self.scrolledFrame.grid(sticky="WESN")
         chimera.triggers.activateTrigger('configUpdated', self.container)
         #TODO: move this to Assembly class
         #TODO: Measure Textinput
-        #TODO: order by class property (override __new__ or smth)
-
