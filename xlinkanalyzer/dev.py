@@ -575,7 +575,7 @@ class ItemList(LabelFrame):
             if not item in [frame.data for frame in self.frames]:
                 self.frames.append(\
                     ItemFrame(self.scrolledFrame.interior(),item))
-        self.scrolledFrame.grid(sticky="WESN")
-        chimera.triggers.activateTrigger('configUpdated', self.container)
-        #TODO: move this to Assembly class
+                self.scrolledFrame.grid()
+                self.grid()
+        chimera.triggers.activateTrigger('configUpdated', None)
         #TODO: Measure Textinput

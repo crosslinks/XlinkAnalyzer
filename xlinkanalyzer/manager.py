@@ -13,7 +13,7 @@ from chimera import runCommand, Bond, selection
 from chimera.misc import getPseudoBondGroup
 
 #TODO: check these
-from xlinkanalyzer import get_gui
+from xlinkanalyzer import get_gui, getConfig
 from xlinkanalyzer import XLINK_LEN_THRESHOLD
 
 class Model(object):
@@ -525,8 +525,8 @@ class XlinkDataMgr(DataMgr):
     def isXquestItem(self, item):
         return hasattr(item, 'xQuestNames')
 
-    def onConfigUpdated(self, name, userData, config):
-        self.reload(config)
+    def onConfigUpdated(self, name, userData, o):
+        self.reload(getConfig())
 
     def reload(self, config):
         data = []

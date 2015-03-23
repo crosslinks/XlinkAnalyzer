@@ -37,7 +37,7 @@ from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
-
+from xlinkanalyzer import getConfig
 ###########
 # TEMPORARY
 ###########
@@ -1045,7 +1045,7 @@ class ItemFrame(LabelFrame):
                                         for i,sqN in enumerate(\
                                             self.item.sequences.keys())])
         self.item.updateData()
-        chimera.triggers.activateTrigger('configUpdated', self.config)
+        chimera.triggers.activateTrigger('configUpdated', None)
         self.menu.destroy()
 
     def empty(self):
@@ -1514,7 +1514,7 @@ class SetupFrame(TabFrame):
             _updateList()
 
         def _onSave():
-            chimera.triggers.activateTrigger('configUpdated', self.config)
+            chimera.triggers.activateTrigger('configUpdated', None)
             self.menu.destroy()
 
 
@@ -1581,9 +1581,9 @@ class SetupFrame(TabFrame):
     def onLoad(self):
         if self.resMngr.loadAssembly(self):
             self.clear()
-        self.update()
-        self.mainWindow.setTitle(self.config.file)
-        self.config.state="unchanged"
+            self.update()
+            self.mainWindow.setTitle(self.config.file)
+            self.config.state="unchanged"
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)
@@ -1601,7 +1601,7 @@ class SetupFrame(TabFrame):
     def update(self):
         self.subUnitFrame.synchronize(self.config)
         self.dataFrame.synchronize(self.config)
-        chimera.triggers.activateTrigger('configUpdated', self.config)
+        chimera.triggers.activateTrigger('configUpdated', None)
 
     def addItemMenu(self):
         resourcePath = StringVar()
@@ -1649,7 +1649,8 @@ class SetupFrame(TabFrame):
         else:
             return True
 
-    def reload(self, name, userData, cfg):
+    def reload(self, name, userData, o):
+        print "reloading"
         self.mainWindow.setTitle(self.config.file+"*")
         self.config.state = "changed"
 
@@ -1672,7 +1673,7 @@ class DataMgrTabFrame(TabFrame):
         for child in self.winfo_children():
             child.destroy()
 
-    def reload(self, name, userData, cfg):
+    def reload(self, name, userData, o):
         self.clear()
         curRow = 0
         Label(self, anchor='w', bg='white', padx=4, pady=4,
@@ -1708,7 +1709,8 @@ class ComponentsTabFrame(TabFrame):
         for child in self.winfo_children():
             child.destroy()
 
-    def reload(self, name, userData, cfg):
+    def reload(self, name, userData, o):
+        cfg = getConfig()
         if len(cfg.getComponentNames()) > 0:
             self.clear()
 
@@ -2172,7 +2174,7 @@ class XlinkMgrTabFrame(TabFrame):
         for child in self.winfo_children():
             child.destroy()
 
-    def reload(self, name, userData, cfg):
+    def reload(self, name, userData, o):
 
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
@@ -2546,8 +2548,8 @@ class InteractingResiMgrTabFrame(TabFrame):
                 data.append(item)
         return data
 
-    def reload(self, name, userData, cfg):
-        self.config = xlinkanalyzer.get_gui().configFrame.config
+    def reload(self, name, userData, o):
+        self.config = getConfig()
 
         data = self.config.getDataItems(xlinkanalyzer.INTERACTING_RESI_DATA_TYPE)
         if data:

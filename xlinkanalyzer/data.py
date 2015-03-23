@@ -951,6 +951,7 @@ class ResourceManager(object):
                     self.config.frame.clear()
                 self.config.loadFromDict(data)
 
+        return _file
 
     def dumpJson(self,_file):
         with open(_file,'w') as f:
