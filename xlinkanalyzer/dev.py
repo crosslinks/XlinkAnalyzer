@@ -203,8 +203,6 @@ class ItemFrame(LabelFrame):
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
 
-
-
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()
@@ -371,6 +369,8 @@ class ItemFrame(LabelFrame):
                     _var.set(_toString(_dict[k]))
             self.apply.config(bg="light grey")
 
+        chimera.triggers.activateTrigger('configUpdated', None)
+
     def onAdd(self):
         if self.validate():
             self.synchronize()
@@ -520,6 +520,7 @@ class ItemList(LabelFrame):
         self.frames = []
         self.show = show
         self.container = container
+        self.maxSize = 0
 
         self.analyzeData()
         self.initUIElements()
@@ -540,7 +541,17 @@ class ItemList(LabelFrame):
         dummy = self.container.dataMap[self.show]
         self.activeItemFrame = ItemFrame(self.activeFrame,dummy,True,\
                                          self,borderwidth=1)
-        self.scrolledFrame = ScrolledFrame(self)
+
+        if isinstance(self.parent,Toplevel):
+            options = {"usehullsize":1,\
+                       "hull_width":560,\
+                       "hull_height":400}
+        else:
+            options = {"usehullsize":1,\
+                       "hull_width":460,\
+                       "hull_height":320}
+        print options
+        self.scrolledFrame = ScrolledFrame(self,**options)
 
         for item in self.items:
             self.frames.append(\
@@ -562,10 +573,14 @@ class ItemList(LabelFrame):
         #self.scrolledFrame.grid(sticky = "WESN",row=r)
         self.scrolledFrame.grid(sticky = "WESN",row=r)
 
+
         r += 1
         if isinstance(self.parent,Toplevel):
             self.quit.grid(sticky="WE",row=r,column=0)
-        self.grid()
+            self.grid()
+            self.parent.grid()
+        else:
+            self.grid()
 
     def synchronize(self,container = None):
         if container:
@@ -573,9 +588,9 @@ class ItemList(LabelFrame):
 
         for item in self.container.__dict__[self.show]:
             if not item in [frame.data for frame in self.frames]:
-                self.frames.append(\
-                    ItemFrame(self.scrolledFrame.interior(),item))
-                self.scrolledFrame.grid()
-                self.grid()
+                frame = ItemFrame(self.scrolledFrame.interior(),item)
+                self.frames.append(frame)
+        self.scrolledFrame.grid()
+        self.grid()
         chimera.triggers.activateTrigger('configUpdated', None)
         #TODO: Measure Textinput
