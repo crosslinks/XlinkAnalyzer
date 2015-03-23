@@ -113,6 +113,8 @@ class MapFrame(Frame):
         for i,_from in enumerate(self.mapFrom):
             Label(self.listFrame,text=_from)\
                  .grid(row=i+c,column=0,pady=1,padx=3)
+            Frame(self.listFrame)\
+                 .grid(row=i+c,column=1,pady=1,padx=50)
             var = StringVar(self)
             self.vars.append(var)
             if _from in self.mapDict:
@@ -550,7 +552,6 @@ class ItemList(LabelFrame):
             options = {"usehullsize":1,\
                        "hull_width":460,\
                        "hull_height":320}
-        print options
         self.scrolledFrame = ScrolledFrame(self,**options)
 
         for item in self.items:
