@@ -165,7 +165,6 @@ class Component(Item):
         ret = [s for s in chainIdsS.split(",")]
         if self.selection == ":.":
             self.selection =':'+','.join(['.'+s for s in ret])
-        print self.selection
         return ret
 
 class Domain(object):
@@ -377,7 +376,7 @@ class File(object):
 
     def serialize(self):
         self.locate()
-        return self.resourcePath()
+        return self.getResourcePath()
 
     def validate(self):
         return os.path.exists(join(self.root,self.path))
@@ -406,7 +405,12 @@ class FileGroup(object):
         return reduce(lambda x,y:x and y,bools,True)
 
     def serialize(self):
-        pass
+        self.locate()
+        return [f.serialize() for f in self.files]
+
+    def deserialize(self,fileList):
+        for f in fileList:
+            self.addFile(f)
 
     def addFile(self,_file,root=None):
         if not isinstance(_file,File):
@@ -470,6 +474,8 @@ class DataItem(Item):
     def serialize(self):
         self.locate()
         _dict = super(DataItem,self).serialize()
+        _dict["fileGroup"] = self.fileGroup.serialize()
+        _dict.pop("fileGroup")
         if "data" in _dict:
             _dict.pop("data")
         return _dict
@@ -630,8 +636,8 @@ class Assembly(object):
                      mapping=dataD["mapping"])
                 #TODO: What does this achieve
                 d.serialize()
-            if not d.informed:
-                self.addItem(d)
+                if not d.informed:
+                    self.addItem(d)
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
