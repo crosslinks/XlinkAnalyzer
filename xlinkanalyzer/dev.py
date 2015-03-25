@@ -1,3 +1,4 @@
+
 import re
 import inspect
 
@@ -82,7 +83,6 @@ class MapFrame(Frame):
             message = "Please add some elements before mapping."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
-
 
         self.mapButton = Button(self,text="Map",command=self.popUp)
         self.mapButton.grid()
