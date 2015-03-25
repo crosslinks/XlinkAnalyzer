@@ -16,7 +16,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import Item, Assembly, Component, Domain, FileGroup
+from data import Item, Assembly, Component, Domain, FileGroup, DataItem
 
 class FileFrame(Frame):
     def __init__(self,parent,active=False,fileGroup=FileGroup(),\
@@ -65,8 +65,8 @@ class FileFrame(Frame):
         return self.fileGroup.getResourcePaths()
 
 class MapFrame(Frame):
-    def __init__(self,parent,mapDict,\
-                 getElements=None,active=False,*args,**kwargs):
+    def __init__(self,parent,mapDict,getElements=None,\
+                 mappings={},active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         if not (mapDict.keys() and mapDict.values()) and getElements:
             self.mapFrom,self.mapTo = getElements()
@@ -76,6 +76,9 @@ class MapFrame(Frame):
         self.mapTo = [self.parse(v) for v in self.mapTo]
         self.mapDict = mapDict
         self.active = active
+        self.mappings = mappings
+        self.mapVar = StringVar(self)
+        self.mapVar.trace("w",lambda a,b,c:self.copyMapping())
         self.vars = []
 
         if not (self.mapFrom or self.mapTo or active):
@@ -99,17 +102,25 @@ class MapFrame(Frame):
         Label(self.frame,text="To: ").grid(row=row,column=2,sticky="W")
 
 
-        self.updateList()
+        self.buildList()
         self.listFrame.grid(sticky='W', row=1,column=0,columnspan=4)
 
         Button(self.frame,text="Save",command=self.onSave)\
                .grid(sticky='W',row=2,column=0)
+
+        if self.mappings:
+            Label(self.frame,text="Copy Mapping From: ")\
+                  .grid(sticky='W',row=2,column=1)
+            OptionMenu(self.frame,self.mapVar,*self.mappings.keys())\
+                       .grid(sticky='W',row=2,column=2)
+
         self.frame.grid()
         self.grid()
         self.frame.update()
 
-    def updateList(self):
+    def buildList(self):
         c = 1
+        self.vars = []
         for i,_from in enumerate(self.mapFrom):
             Label(self.listFrame,text=_from)\
                  .grid(row=i+c,column=0,pady=1,padx=3)
@@ -137,6 +148,14 @@ class MapFrame(Frame):
     def onSave(self):
         self.pop.destroy()
 
+    def copyMapping(self):
+        key = self.mapVar.get()
+        mapping = self.mappings[key]
+        for name in self.mapFrom:
+            if name in mapping:
+                self.mapDict[name] = mapping[name]
+        self.buildList()
+
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
@@ -151,6 +170,7 @@ class ItemFrame(LabelFrame):
         self.parent = parent
         self.listFrame = listFrame
         self.active = active
+        self.mappings = {}
         self.add = None
         self.apply = None
         self.delete = None
@@ -192,12 +212,11 @@ class ItemFrame(LabelFrame):
             data = _dict[fK]
             if type(data) in self.classDict:
                 self.fields[fK] = (data,self.classDict[type(data)],None,None)
-            #TODO: Recall how this worked
             else:
-                if hasattr(data,"__dict__"):
-                    for v in data.__dict__.values():
-                        if hasattr(v,"__dict__"):
-                            for v1 in v.__dict__.values():
+                if hasattr(data,"__dict__"): #is it an object?
+                    for v in data.__dict__.values(): #loop through fields
+                        if hasattr(v,"__dict__"): #is it an object?
+                            for v1 in v.__dict__.values(): #loop through fields
                                 if type(v1) == list and v1:
                                     classL = [item for item in v1\
                                             if isinstance(item,data.__class__)]
@@ -205,6 +224,15 @@ class ItemFrame(LabelFrame):
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
 
+        if hasattr(self.data,"__dict__"):
+            mapable = "mapping" in self.data.__dict__.keys()
+            for k,v in self.data.__dict__.items():
+                if hasattr(v,"__dict__"):
+                    for v1 in v.__dict__.values():
+                        if type(v1) == list:
+                            if self.data in v1 and mapable:
+                                self.mappings = dict([(dI.name,dI.mapping)\
+                                                       for dI in v1])
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()
@@ -216,6 +244,7 @@ class ItemFrame(LabelFrame):
             _toString = lambda x: x
             methods = [m for m in dir(self.data) \
                        if m.lower() == k.lower()+"tostring"]
+
             if methods:
                 _toString = self.data.__getattribute__(methods[0])
 
@@ -250,7 +279,7 @@ class ItemFrame(LabelFrame):
                 _getMapping = None
                 if "getMappingElements" in dir(self.data):
                     _getMapping = self.data.getMappingElements
-                _mapFrame = MapFrame(self,_data,_getMapping,True)
+                _mapFrame = MapFrame(self,_data,_getMapping,self.mappings,True)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
         if not self.active:
@@ -595,12 +624,4 @@ class ItemList(LabelFrame):
         self.grid()
         chimera.triggers.activateTrigger('configUpdated', None)
         #TODO: Measure Textinput
-    # def copyMapping(self,name):
-    #     #there is an ambiguity here, items need an unique identifier
-    #     firstHit = [item for item in self.config.items \
-    #              if (type(item)==type(self.item) and name==item.name)][0]
-    #     mapping = firstHit.mapping
-    #     for i,name in enumerate(self.fromNames):
-    #         if mapping.has_key(name):
-    #             self.userNames[i].set(self.item.commaList(mapping[name]))
-    #             self.item.mapping[name] = mapping[name]
+

@@ -188,10 +188,13 @@ class Domain(object):
                       chains=self._chainIds)
 
     def __eq__(self,other):
-        if other.name == self.name and other.subunit == self.subunit\
-        and other.ranges == self.ranges and other.color == self.color\
-        and other.chainIds == self._chainIds:
-            return True
+        if isinstance(other,self.__class__):
+            if other.name == self.name and other.subunit == self.subunit\
+            and other.ranges == self.ranges and other.color == self.color\
+            and other.chainIds == self._chainIds:
+                return True
+            else:
+                return False
         else:
             return False
 
