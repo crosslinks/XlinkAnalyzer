@@ -1,0 +1,356 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "noscore",
+            "resource": [
+                "xlinks/Pol1_4_XlinkAnalyzer_format_without_score.csv"
+            ],
+            "type": "xquest",
+            "xQuestNames": [
+                "sp|P32529|RPA12_YEAST",
+                "sp|P20434|RPAB1_YEAST",
+                "sp|P22139|RPAB5_YEAST",
+                "sp|P46669|RPA43_YEAST",
+                "sp|P22138|RPA2_YEAST",
+                "sp|P20436|RPAB3_YEAST",
+                "sp|P07703|RPAC1_YEAST",
+                "sp|P40422|RPAB4_YEAST",
+                "sp|P47006|RPA34_YEAST",
+                "sp|P50106|RPA14_YEAST",
+                "sp|P10964|RPA1_YEAST",
+                "sp|P28000|RPAC2_YEAST",
+                "sp|P20435|RPAB2_YEAST",
+                "sp|Q01080|RPA49_YEAST"
+            ]
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "chainToComponent": {
+                "A": "A190"
+            },
+            "color": [
+                0.745,
+                0.745,
+                0.745,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A190",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "chainToComponent": {
+                "B": "A135"
+            },
+            "color": [
+                0.99,
+                0.82,
+                0.65,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A135",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "chainToComponent": {
+                "C": "AC40"
+            },
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "AC40",
+            "selection": ":.C",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "D"
+            ],
+            "chainToComponent": {
+                "D": "A14"
+            },
+            "color": [
+                1.0,
+                0.0,
+                0.5,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A14",
+            "selection": ":.D",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "E"
+            ],
+            "chainToComponent": {
+                "E": "ABC27"
+            },
+            "color": [
+                0.8156862745098039,
+                0.12549019607843137,
+                0.5647058823529412,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "ABC27",
+            "selection": ":.E",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "F"
+            ],
+            "chainToComponent": {
+                "F": "ABC23"
+            },
+            "color": [
+                0.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "ABC23",
+            "selection": ":.F",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "chainToComponent": {
+                "G": "A43"
+            },
+            "color": [
+                0.0,
+                0.5,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A43",
+            "selection": ":.G",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "H"
+            ],
+            "chainToComponent": {
+                "H": "ABC14.5"
+            },
+            "color": [
+                0.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "ABC14.5",
+            "selection": ":.H",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "I"
+            ],
+            "chainToComponent": {
+                "I": "A12"
+            },
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A12",
+            "selection": ":.I",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "chainToComponent": {
+                "J": "ABC10beta"
+            },
+            "color": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "ABC10beta",
+            "selection": ":.J",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "K"
+            ],
+            "chainToComponent": {
+                "K": "AC19"
+            },
+            "color": [
+                1.0,
+                0.6470588235294118,
+                0.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "AC19",
+            "selection": ":.K",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "L"
+            ],
+            "chainToComponent": {
+                "L": "ABC10alpha"
+            },
+            "color": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "ABC10alpha",
+            "selection": ":.L",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "M"
+            ],
+            "chainToComponent": {
+                "M": "A49"
+            },
+            "color": [
+                0.6,
+                0.1,
+                0.6,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A49",
+            "selection": ":.M",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "N"
+            ],
+            "chainToComponent": {
+                "N": "A34.5"
+            },
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": [],
+            "name": "A34.5",
+            "selection": ":.N",
+            "sequence": "",
+            "type": "component"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.0"
+}
