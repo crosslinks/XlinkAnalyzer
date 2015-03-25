@@ -595,3 +595,12 @@ class ItemList(LabelFrame):
         self.grid()
         chimera.triggers.activateTrigger('configUpdated', None)
         #TODO: Measure Textinput
+    # def copyMapping(self,name):
+    #     #there is an ambiguity here, items need an unique identifier
+    #     firstHit = [item for item in self.config.items \
+    #              if (type(item)==type(self.item) and name==item.name)][0]
+    #     mapping = firstHit.mapping
+    #     for i,name in enumerate(self.fromNames):
+    #         if mapping.has_key(name):
+    #             self.userNames[i].set(self.item.commaList(mapping[name]))
+    #             self.item.mapping[name] = mapping[name]
