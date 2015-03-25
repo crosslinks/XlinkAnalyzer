@@ -80,7 +80,9 @@ class Component(Item):
     def createChainToComponentFromChainIds(self, chainIds):
         return dict([(chain, self.name) for chain in chainIds])
 
-    def createComponentSelectionFromChains(self, chainIds):
+    def createComponentSelectionFromChains(self, chainIds = None):
+        if chainIds is None:
+            chainIds = self.chainIds
         return ':'+','.join(['.'+s for s in chainIds])
 
     def setComponentToChain(self,mapping):
@@ -153,7 +155,10 @@ class Component(Item):
         componentCopy =Component(name=self.name,config=self.config)
         componentCopy.setColor(self.color)
         componentCopy.setChainIds(self.chainIds)
-        componentCopy.setSelection(self.selection)
+        genSelection = self.createComponentSelectionFromChains()
+        print "genSelection",genSelection
+        componentCopy.setSelection(genSelection)
+        print "componentCopy.selection",componentCopy.selection
         return componentCopy
 
     def chainIdsToString(self,chainIds=None):
