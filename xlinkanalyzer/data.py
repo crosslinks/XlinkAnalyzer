@@ -23,12 +23,6 @@ class Item(object):
         self.name = name
         self.config = config
 
-    def commaList(self,l):
-        return reduce(lambda x,y: x+","+str(y),l,"")[1:]
-
-    def getList(self,commaString):
-        return [s.strip() for s in commaString.split(",")]
-
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
@@ -74,12 +68,6 @@ class Component(Item):
     def setSelection(self,sel):
         self.selection = sel
 
-    def setChainToComponent(self,mapping):
-        self.chainToComponent = mapping
-
-    def createChainToComponentFromChainIds(self, chainIds):
-        return dict([(chain, self.name) for chain in chainIds])
-
     def createComponentSelectionFromChains(self, chainIds = None):
         if chainIds is None:
             chainIds = self.chainIds
@@ -87,21 +75,6 @@ class Component(Item):
 
     def setComponentToChain(self,mapping):
         self.componentToChain = mapping
-
-    def setDomains(self,domains):
-        self.domains = domains
-
-    def setSequence(self,seq):
-        self.sequence = seq
-
-    def readJson(self,filename):
-        """
-        Reads JsonFile to JsonObject (Dict/Lists)
-        """
-
-        with open(filename) as f:
-            data = self.convert(json.loads(minify_json.json_minify(f.read())))
-        return data
 
     def convert(self,_input):
         """
@@ -156,9 +129,7 @@ class Component(Item):
         componentCopy.setColor(self.color)
         componentCopy.setChainIds(self.chainIds)
         genSelection = self.createComponentSelectionFromChains()
-        print "genSelection",genSelection
         componentCopy.setSelection(genSelection)
-        print "componentCopy.selection",componentCopy.selection
         return componentCopy
 
     def chainIdsToString(self,chainIds=None):
@@ -309,11 +280,6 @@ class Subcomplex(object):
         self.config = config
         self.domains = []
 
-    def addDomain(self,_struc):
-        if isinstance(_struc,Domain):
-            self.domains.append(struc)
-
-
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
         super(SimpleDataItem,self).__init__(name,config)
@@ -359,20 +325,16 @@ class File(object):
 
     def locate(self):
         path = self.path
-        locatedRes = []
-        missing = []
         root = self.root
         #check for windows paths in unix systems
         if '\\' in path and _platform == "linux" or _platform == "linux2":
             path = path.replace('\\','/')
-
         if exists(path):
             path = relpath(path,root)
         elif exists(join(root,path)):
             path = path
         else:
-            missing = path
-
+            print "%s is missing!"%(path)
         self.path = path
 
     def getResourcePath(self):
@@ -577,7 +539,6 @@ class Assembly(object):
         self.subunits = []
         self.dataItems = []
         self.domains = []
-        self.subcomplexes = []
         self.root = ""
         self.file = ""
         self.state = "unsaved"
@@ -736,16 +697,6 @@ class Assembly(object):
         else:
             return dict([(i.name,i.color) for i in self.subunits])
 
-    def getComponentChains(self,name=None):
-        if name:
-            compL = [i for i in self.subunits if i.name == name]
-            if compL:
-                return compL[0].chainIds
-            else:
-                return None
-        else:
-            return dict([(i.name,i.chainIds) for i in self.subunits])
-
     def getComponentSelections(self,name = None):
         if name:
             compL = [i for i in self.subunits if i.name == name]
@@ -755,11 +706,6 @@ class Assembly(object):
                 return None
         else:
             return dict([(i.name,i.selection) for i in self.subunits])
-
-    def getComponentWithDomains(self):
-        ret = self.getComponents()
-        ret = [c for c in ret if len(c.domains)>0]
-        return ret
 
     def getSequences(self,key=None):
         sequence = {}
@@ -810,12 +756,6 @@ class Assembly(object):
         ret = sum([c.domains for c in self.getComponents()],[])
         return ret
 
-    def getChains(self):
-        chains = [c.chainIds for c in self.getComponents()\
-                  if c.chainIds is not None]
-        ret = reduce(lambda x,y:x+y,chains,[])
-        return ret
-
     def getChainIdsByComponentName(self,name=None):
         if name:
             if name in self.componentToChain:
@@ -831,44 +771,6 @@ class Assembly(object):
                     raise KeyError
         else:
             return self.componentToChain
-
-    def getProteinByChain(self,chain):
-        if chain in self.chainToProtein:
-            return self.chainToProtein[chain]
-        else:
-            comps = self.getComponentNames()
-            dataItems = self.getDataItems()
-            candidates = [c for c in comps \
-                          if chain in self.getChainIdsByComponentName(c)]
-            dCandidates =[d for d in dataItems \
-                          if (set(candidates)&set(d.mapping.keys()))]
-            proteins = [d[candidates[0]] for d in dCandidates]
-            if proteins:
-                protein = proteins[0]
-                self.chainToProtein[chain] = protein
-                return protein
-            else:
-                return None
-
-    def getProteinByComponent(self,name=None):
-        if name in self.componentToProtein:
-            return self.componentToProtein[name]
-        else:
-            dataItems = self.getDataItems()
-            dataItems = [d for d in dataItems \
-                        if not d.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]
-            candidates = []
-            for d in dataItems:
-                for k,v in d.mapping.items():
-                    if name in v:
-                        candidates.append(k)
-            candidates = unique(candidates)
-            if candidates:
-                componentName = candidates[0]
-                self.componentToProtein[name] = componentName
-                return componentName
-            else:
-                return None
 
     def getComponentByChain(self,chain=None):
         #returns a Component NAME
@@ -887,21 +789,6 @@ class Assembly(object):
         else:
             #this might return an empty dict
             return self.chainToComponent
-
-    def getChainsByProtein(self,protein):
-        #this
-        if protein in self.proteinToChains:
-            return self.proteinToChains[protein]
-        dataItems = self.getDataItems()
-        kVPairs = reduce(lambda x,y:x+y,\
-                         [d.mapping.items() for d in dataItems],[])
-        chains = [v for (k,v) in kVPairs if k in protein]
-        chains = list(unique(reduce(lambda x,y: x+y, chains,[])))
-        if chains:
-            self.proteinToChains[protein] = chains
-            return chains
-        else:
-            raise KeyError
 
     def serialize(self):
         _dict = {}
@@ -923,13 +810,8 @@ class Assembly(object):
         '''
 
         cfg = pyxlinks.Config()
-        cfg.components = self.getComponentNames()
-        cfg.chain_to_comp = self.getComponentByChain()
-        cfg.component_chains = self.getChainIdsByComponentName()
         cfg.data = self.getDataItems()
-        cfg.cfg_filename = self.file
         cfg.sequences = self.getSequences()
-
         return cfg
 
     def locate(self):

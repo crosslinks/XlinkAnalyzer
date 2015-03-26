@@ -511,7 +511,6 @@ class ToolTip(object):
         self.widget = widget
         self.tipwindow = None
         self.id = None
-        self.x = self.y = 0
 
     def showtip(self, text):
         self.text = text
@@ -551,7 +550,6 @@ class ItemList(LabelFrame):
         self.frames = []
         self.show = show
         self.container = container
-        self.maxSize = 0
 
         self.analyzeData()
         self.initUIElements()
@@ -561,9 +559,6 @@ class ItemList(LabelFrame):
     def analyzeData(self):
         if not self.items:
             pass
-
-    def classFilter(self,item):
-        return item.__class__.__name__ == self._class
 
     def initUIElements(self):
 
