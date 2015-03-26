@@ -530,7 +530,7 @@ class XlinkDataMgr(DataMgr):
 
     def reload(self, config):
         data = []
-        for item in config.items:
+        for item in config.dataItems:
             if self.isXquestItem(item):
                 if item.data.active:
                     data.append(item.data)
