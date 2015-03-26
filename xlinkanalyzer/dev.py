@@ -69,6 +69,7 @@ class MapFrame(Frame):
                  mappings={},active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         if not (mapDict.keys() and mapDict.values()) and getElements:
+            self.getElements = getElements
             self.mapFrom,self.mapTo = getElements()
         else:
             self.mapFrom = mapDict.keys()
@@ -93,6 +94,10 @@ class MapFrame(Frame):
 
 
     def popUp(self):
+        if not (self.mapDict.keys() and self.mapDict.values())\
+        and self.getElements:
+            self.mapFrom,self.mapTo = self.getElements()
+
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = LabelFrame(self.frame,padx=5,pady=5)
@@ -171,6 +176,7 @@ class ItemFrame(LabelFrame):
         self.listFrame = listFrame
         self.active = active
         self.mappings = {}
+        self.typeDict = {}
         self.add = None
         self.apply = None
         self.delete = None
@@ -293,11 +299,13 @@ class ItemFrame(LabelFrame):
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
             if type(self.data) == dict:
                 _data = self.data
+                self.typeDict = dict([(dI.type,dI.__class__.__name__) \
+                                       for dI in _data.values()])
                 _var = StringVar("")
-                _var.set(_data.keys()[0])
+                _var.set(self.typeDict.keys()[0])
                 _var.trace("w",_onType)
                 _label = Label(self,text="Type: ")
-                _menu = OptionMenu(self,_var,*_data.keys())
+                _menu = OptionMenu(self,_var,*self.typeDict.keys())
                 _menu.configure(width=12)
                 self.fields["type"] = (_data,_menu,_label,_var)
 
@@ -353,6 +361,7 @@ class ItemFrame(LabelFrame):
         if data is None:
             if type(self.data) == dict:
                 _type = self.fields["type"][3].get()
+                _type = self.typeDict[_type]
                 _dict = self.data[_type].__dict__
             else:
                 _dict = self.data.__dict__
@@ -408,6 +417,7 @@ class ItemFrame(LabelFrame):
             if self.listFrame:
                 if type(self.data) == dict:
                     _type = self.fields["type"][3].get()
+                    _type = self.typeDict[_type]
                     cp = deepcopy(self.data[_type])
                 else:
                     cp = deepcopy(self.data)

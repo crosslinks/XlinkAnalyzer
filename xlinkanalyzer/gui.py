@@ -53,7 +53,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
     name = 'Xlink Analyzer'
     help = 'blah.html'
 
-
     loadDataTabName = 'Setup'
 
     models = []
