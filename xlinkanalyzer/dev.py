@@ -69,6 +69,7 @@ class MapFrame(Frame):
                  mappings={},active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         if not (mapDict.keys() and mapDict.values()) and getElements:
+            self.getElements = getElements
             self.mapFrom,self.mapTo = getElements()
         else:
             self.mapFrom = mapDict.keys()
@@ -93,6 +94,10 @@ class MapFrame(Frame):
 
 
     def popUp(self):
+        if not (self.mapDict.keys() and self.mapDict.values())\
+        and self.getElements:
+            self.mapFrom,self.mapTo = self.getElements()
+
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = LabelFrame(self.frame,padx=5,pady=5)
