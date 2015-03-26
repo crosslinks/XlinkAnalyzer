@@ -49,7 +49,6 @@ class Component(Item):
         self.selection = ""
         self.chainToComponent = {}
         self.componentToChain = {}
-        self.sequence = ""
         self.domains = []
 
     def setColor(self,colorCfg):
@@ -72,9 +71,6 @@ class Component(Item):
         if chainIds is None:
             chainIds = self.chainIds
         return ':'+','.join(['.'+s for s in chainIds])
-
-    def setComponentToChain(self,mapping):
-        self.componentToChain = mapping
 
     def convert(self,_input):
         """
@@ -210,12 +206,6 @@ class Domain(object):
                     if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
             else:
                 return ""
-
-    def getChainIds(self):
-        if self._chainIds is None:
-            return self.comp.chainIds
-        else:
-            return self._chainIds
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
@@ -545,9 +535,7 @@ class Assembly(object):
         self.frame = frame
         self.componentToChain = {}
         self.chainToComponent = {}
-        self.proteinToChains = {}
         self.chainToProtein = {}
-        self.componentToProtein = {}
 
         self.dataMap = dict([\
             ("domains",Domain(config = self,subunit=Component(config=self))),\
@@ -730,12 +718,6 @@ class Assembly(object):
         else:
             return dict([(i.name,i.domains) for i in self.subunits])
 
-    def getDomainNames(self):
-        ret = self.getAllDomains()
-        ret = [d.name for d in ret]
-        ret = list(unique(ret))
-        return ret
-
     def getDomainByName(self):
         ret = self.getAllDomains()
         ret = [d.name for d in ret if d.name == name]
@@ -743,14 +725,6 @@ class Assembly(object):
             return ret[0]
         else:
             return []
-
-    def getComponentOrDomain(self,name):
-        #TODO: Ambiguity!
-        ret = None
-        ret = self.getComponentByName(name)
-        if ret is not None:
-            ret = self.getDomainByName(name)
-        return ret
 
     def getAllDomains(self):
         ret = sum([c.domains for c in self.getComponents()],[])

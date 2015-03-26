@@ -488,14 +488,8 @@ class ItemFrame(LabelFrame):
     def onType(self):
         pass
 
-    def commaList(self,l):
-        return reduce(lambda x,y: x+","+str(y),l,"")[1:]
-
     def parseName(self,s):
         return re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s).title()
-
-    def getList(self,commaString):
-        return [s.strip() for s in commaString.split(",")]
 
     def createToolTip(self, widget, text):
         toolTip = ToolTip(widget)
@@ -543,7 +537,6 @@ class ToolTip(object):
 class ItemList(LabelFrame):
     def __init__(self,parent,container,show,active=False,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
-        self._class = None
         self.items = container.__dict__[show]
         self.active = active
         self.parent = parent

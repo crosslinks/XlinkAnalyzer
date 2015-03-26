@@ -128,21 +128,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
             if cfg.name == name:
                 return cfg
 
-    def addComponentToCfg(self, cfgName, name, color=None, chains=None):
-        cfg = self.getAssemblyConfig(cfgName)
-
-        if cfgName is None:
-            Tkinter.tkMessageBox.showwarning(
-                'No such config', cfgName
-            )
-            return
-
-        if cfg is not None:
-            cfg.addItem(name, color=color, chains=chains)
-
-        print help(chimera.triggers.activateTrigger)
-        chimera.triggers.activateTrigger('componentAdded', [name, cfg])
-
     def addComponentToCfgCB(self):
         cfgName = self.loadDataTab_configCfgsOptionMenu.var.get()
         name = self.currAddComponentFrame.componentNameEntryField.get()
@@ -757,7 +742,6 @@ class ByPairViolatedListFrame(ViolatedListFrame):
 class XlinksHistogram(MPLDialog):
 
     help = "blah"
-    buttons = ("Close" )
 
     def __init__(self, xlinkStats, xlinkDataMgr):
         self.title = "#%s: %s - histogram of measured C-alpha distances between cross-linked residues" \
@@ -920,6 +904,7 @@ class ModelSelect(object):
                 self.models.remove(self.models[chimeraModels.index(mdl)])
 
 class CustomMoleculeScrolledListBox(ModelScrolledListBoxBase, CustomModelItems):
+    autoselectDefault = None
     """Modified to remove itself from ModelSelect.children list"""
     autoSelectDefault=True
     def __init__(self, master, listbox_height=4, **kw):
@@ -1066,13 +1051,6 @@ class SetupFrame(TabFrame):
         self.subUnitFrame.synchronize(self.config)
         self.dataFrame.synchronize(self.config)
         chimera.triggers.activateTrigger('configUpdated', None)
-
-
-    def checkName(self,item):
-        if item.name in [item.name for item in self.config]:
-            return False
-        else:
-            return True
 
     def reload(self, name, userData, o):
         print "reloading"
@@ -1889,7 +1867,6 @@ class ToolTip(object):
         self.widget = widget
         self.tipwindow = None
         self.id = None
-        self.x = self.y = 0
 
     def showtip(self, text):
         self.text = text
