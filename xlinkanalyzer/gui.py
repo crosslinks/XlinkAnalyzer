@@ -1082,8 +1082,6 @@ class DataMgrTabFrame(TabFrame):
                 text='This panel allows selecting which data sets should be used for displaying cross-links and statistics.').grid(row=curRow, columnspan=2)
         curRow += 1
         if len(self.config.getDataItems()) > 0:
-
-
             for item in self.config.getDataItems():
                 Label(self, text=item.name).grid(row=curRow, column=0)
 

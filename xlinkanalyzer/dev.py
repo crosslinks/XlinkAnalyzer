@@ -443,6 +443,7 @@ class ItemFrame(LabelFrame):
 
     def empty(self):
          for k,v in self.fields.items():
+            _data = v[0]
             _ui= v[1]
             _var = v[3]
             if isinstance(_ui,Entry):
@@ -454,6 +455,9 @@ class ItemFrame(LabelFrame):
             elif isinstance(_ui,OptionMenu):
                 _var.set("")
 
+            elif isinstance(_ui,FileFrame):
+                _ui.resetFileMenu([""],0)
+                _data.empty()
 
     def onDelete(self):
         if self.listFrame:

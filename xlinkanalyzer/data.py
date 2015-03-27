@@ -381,7 +381,12 @@ class FileGroup(object):
         self.locate()
         return [f.getResourcePath() for f in self.files]
 
+    def empty(self):
+        self.root = ""
+        self.files = []
+
 class DataItem(Item):
+    SHOW = ["name","fileGroup","mapping"]
     def __init__(self,name,config,fileGroup,mapping=None):
         super(DataItem,self).__init__(name,config)
         self.type = "data"
