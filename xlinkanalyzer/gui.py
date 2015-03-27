@@ -307,7 +307,7 @@ class ShowModifiedFrame(Tkinter.Frame):
         btn.pack(anchor='e')
 
     def _isSequenceMappingComplete(self):
-        config = xlinkanalyzer.get_gui().configFrame.config
+        config = getConfig()
         compMapped = [True if c in config.getSequences() else False \
                       for c in config.getComponentNames()]
         return reduce(mul,compMapped,1)
@@ -1545,10 +1545,10 @@ class XlinkMgrTabFrame(TabFrame):
         self.restyleXlinks()
 
     def getActiveData(self):
-        dataType = xlinkanalyzer.XQUEST_DATA_TYPE
+        dataTypes = [xlinkanalyzer.XQUEST_DATA_TYPE, xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE]
         data = []
         for item in self.config.getDataItems():
-            if item.active and item.type == dataType:
+            if item.active and item.type in dataTypes and item.hasMapping():
                 data.append(item)
         return data
 
@@ -1573,7 +1573,6 @@ class XlinkMgrTabFrame(TabFrame):
             child.destroy()
 
     def reload(self, name, userData, o):
-
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
 

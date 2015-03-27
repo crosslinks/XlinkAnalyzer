@@ -536,7 +536,7 @@ class SequenceItem(DataItem):
         return itemCopy
 
     def getMappingElements(self):
-        _from = [e.split(" ")[0] for e in self.sequences.keys()]\
+        _from = [e for e in self.sequences.keys()]\
                  if self.sequences.keys() else [""]
         _to = [s.name for s in self.config.subunits] if self.config.subunits\
             else [""]
@@ -804,8 +804,13 @@ class Assembly(object):
         '''
 
         cfg = pyxlinks.Config()
+        cfg.components = self.getComponentNames()
+        cfg.chain_to_comp = self.getComponentByChain()
+        cfg.component_chains = self.getChainIdsByComponentName()
         cfg.data = self.getDataItems()
+        cfg.cfg_filename = self.file
         cfg.sequences = self.getSequences()
+
         return cfg
 
     def locate(self):

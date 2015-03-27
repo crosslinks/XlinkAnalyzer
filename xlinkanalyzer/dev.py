@@ -149,10 +149,11 @@ class MapFrame(Frame):
             return value
 
     def updateMap(self,index,key):
-        self.mapDict[key]= self.vars[index].get()
+        self.mapDict[key]= [self.vars[index].get()]
 
     def onSave(self):
         self.pop.destroy()
+        chimera.triggers.activateTrigger('configUpdated', None)
 
     def copyMapping(self):
         key = self.mapVar.get()
