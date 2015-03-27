@@ -429,6 +429,9 @@ class DataItem(Item):
                             fileGroup=self.fileGroup,mapping=self.mapping)
         return itemCopy
 
+    def hasMapping(self):
+        return bool(len(self.mapping))
+
     def updateData(self):
         pass
 
