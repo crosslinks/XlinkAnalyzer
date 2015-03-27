@@ -387,7 +387,7 @@ class FileGroup(object):
 
 class DataItem(Item):
     SHOW = ["name","fileGroup","mapping"]
-    def __init__(self,name,config,fileGroup,mapping=None):
+    def __init__(self,config,name="",fileGroup=FileGroup(),mapping=None):
         super(DataItem,self).__init__(name,config)
         self.type = "data"
         self.mapping = mapping or {}
@@ -424,6 +424,11 @@ class DataItem(Item):
     def __contains__(self,key):
         return key in self.mapping
 
+    def __deepcopy__(self,x):
+        itemCopy = DataItem(config=self.config,name=self.name,\
+                            fileGroup=self.fileGroup,mapping=self.mapping)
+        return itemCopy
+
     def updateData(self):
         pass
 
@@ -454,12 +459,12 @@ class DataItem(Item):
         return [k for k,v in self.mapping.items() if name in v]
 
     def getMappingElements(self):
-        return []
+        return [[],[]]
 
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,config,name="",fileGroup=FileGroup(),mapping=None):
-        super(XQuestItem,self).__init__(name,config,fileGroup,mapping)
+        super(XQuestItem,self).__init__(config,name,fileGroup,mapping)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
@@ -471,6 +476,7 @@ class XQuestItem(DataItem):
     def __deepcopy__(self,x):
         itemCopy = XQuestItem(config=self.config,name=self.name,\
                               fileGroup=self.fileGroup,mapping=self.mapping)
+        itemCopy.type = self.type
         return itemCopy
 
     def updateData(self):
@@ -497,10 +503,15 @@ class XQuestItem(DataItem):
               else [""]
         return [_from,_to]
 
+class XlinkAnalyzerItem(XQuestItem):
+    def __init__(self,*args,**kwargs):
+        super(XQuestItem,self).__init__(*args,**kwargs)
+        self.type = xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE
+
 class SequenceItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,config,name="",fileGroup=FileGroup(),mapping={}):
-        super(SequenceItem,self).__init__(name,config,fileGroup,mapping)
+        super(SequenceItem,self).__init__(config,name,fileGroup,mapping)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.fileGroup = fileGroup
         self.sequences = {}
@@ -545,7 +556,8 @@ class Assembly(object):
         self.dataMap = dict([\
             ("domains",Domain(config = self,subunit=Component(config=self))),\
             ("subunits",Component(config=self)),\
-            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self)])])
+            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self),\
+                          XlinkAnalyzerItem(config=self)])])
 
     def __str__(self):
         s = ""

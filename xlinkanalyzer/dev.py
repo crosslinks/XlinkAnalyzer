@@ -68,6 +68,7 @@ class MapFrame(Frame):
     def __init__(self,parent,mapDict,getElements=None,\
                  mappings={},active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
+        print "type(getElements)",type(getElements)
         if not (mapDict.keys() and mapDict.values()) and getElements:
             self.getElements = getElements
             self.mapFrom,self.mapTo = getElements()
@@ -171,6 +172,7 @@ class ItemFrame(LabelFrame):
                                   for d in self.data])
             else:
                 self.data = deepcopy(data)
+        print self.data
         self.fields = OrderedDict()
         self.parent = parent
         self.listFrame = listFrame

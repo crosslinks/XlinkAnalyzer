@@ -145,7 +145,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         return out
 
-
     def addTab(self, name, cls):
         tab = self.notebook.add(name)
         tabCls = cls(tab)
@@ -156,7 +155,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         ########################################
 
 chimera.dialogs.register(XlinkAnalyzer_Dialog.name, XlinkAnalyzer_Dialog)
-
 
 def show_dialog():
     from chimera import dialogs

@@ -1,7 +1,7 @@
 import chimera
 from data import *
 
-XLINK_ANALYZER_DATA_TYPE = 'XlinkAnalyzer'
+XLINK_ANALYZER_DATA_TYPE = 'Xlink Analyzer'
 XQUEST_DATA_TYPE = 'xquest'
 EM_DATA_TYPE = 'em_map'
 SEQUENCES_DATA_TYPE = 'sequences'
