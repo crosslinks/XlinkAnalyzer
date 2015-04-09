@@ -1050,7 +1050,6 @@ class SetupFrame(TabFrame):
         chimera.triggers.activateTrigger('configUpdated', None)
 
     def reload(self, name, userData, o):
-        print "reloading"
         self.mainWindow.setTitle(self.config.file+"*")
         self.config.state = "changed"
 

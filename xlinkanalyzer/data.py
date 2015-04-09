@@ -3,6 +3,7 @@ import sys
 import os
 from numpy import unique
 from sys import platform as _platform
+from copy import deepcopy
 
 import chimera
 import tkMessageBox
@@ -357,6 +358,9 @@ class FileGroup(object):
     def __repr__(self):
         return self.__str__()
 
+    def __deepcopy__(self,x):
+        return FileGroup(self.files,self.root)
+
     def locate(self):
         [f.locate() for f in self.files]
 
@@ -425,8 +429,10 @@ class DataItem(Item):
         return key in self.mapping
 
     def __deepcopy__(self,x):
-        itemCopy = DataItem(config=self.config,name=self.name,\
-                            fileGroup=self.fileGroup,mapping=self.mapping)
+        fileGroupCopy = deepcopy(self.fileGroup)
+        itemCopy = type(self)(config=self.config,name=self.name,\
+                            fileGroup=fileGroupCopy,mapping=self.mapping)
+        itemCopy.type = self.type
         return itemCopy
 
     def hasMapping(self):
@@ -444,11 +450,17 @@ class DataItem(Item):
     def resourcePaths(self):
         return [f.getResourcePath() for f in self.fileGroup]
 
+    def deserialize(self,_dict):
+        super(DataItem,self).deserialize(_dict)
+        if "fileGroup" in _dict:
+            fileGroup = FileGroup()
+            fileGroup.deserialize(_dict["fileGroup"])
+            self.__dict__["fileGroup"] = fileGroup
+
     def serialize(self):
         self.locate()
         _dict = super(DataItem,self).serialize()
         _dict["fileGroup"] = self.fileGroup.serialize()
-        _dict.pop("fileGroup")
         if "data" in _dict:
             _dict.pop("data")
         return _dict
@@ -476,11 +488,8 @@ class XQuestItem(DataItem):
         self.locate()
         self.updateData()
 
-    def __deepcopy__(self,x):
-        itemCopy = XQuestItem(config=self.config,name=self.name,\
-                              fileGroup=self.fileGroup,mapping=self.mapping)
-        itemCopy.type = self.type
-        return itemCopy
+    def __deepycopy__(self,x):
+        super(XQuestItem).__deepcopy__(self)
 
     def updateData(self):
         if self.resourcePaths():
@@ -498,6 +507,7 @@ class XQuestItem(DataItem):
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
         _dict.pop("xlinksSets")
+        _dict.pop("xQuestNames")
         return _dict
 
     def getMappingElements(self):
@@ -529,11 +539,6 @@ class SequenceItem(DataItem):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
         return _dict
-
-    def __deepcopy__(self,x):
-        itemCopy = SequenceItem(config=self.config,name=self.name,\
-                                fileGroup=self.fileGroup,mapping=self.mapping)
-        return itemCopy
 
     def getMappingElements(self):
         _from = [e for e in self.sequences.keys()]\
@@ -611,10 +616,12 @@ class Assembly(object):
                      config=self,\
                      fileGroup=fileGroup,\
                      mapping=dataD["mapping"])
+            elif "fileGroup" in dataD:
+                d = classDir[dataD["type"]](config=self)
+                d.deserialize(dataD)
                 #TODO: What does this achieve
-                d.serialize()
-                if not d.informed:
-                    self.addItem(d)
+            if not d.informed:
+                self.addItem(d)
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
