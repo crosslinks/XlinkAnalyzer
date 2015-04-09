@@ -136,8 +136,7 @@ class Component(Item):
 
     def parseChainIds(self,chainIdsS):
         ret = [s for s in chainIdsS.split(",")]
-        if self.selection == ":.":
-            self.selection =':'+','.join(['.'+s for s in ret])
+        self.selection =':'+','.join(['.'+s for s in ret])
         return ret
 
 class Domain(object):
