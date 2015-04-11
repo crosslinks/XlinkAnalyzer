@@ -278,7 +278,6 @@ class SimpleDataItem(Item):
     def __init__(self,name,config,data):
         super(SimpleDataItem,self).__init__(name,config)
         self.type = "simpleData"
-        self.informed = False
         self.data = data
 
     def __str__(self):
@@ -407,7 +406,6 @@ class DataItem(Item):
         self.mapping = mapping or {}
         self.fileGroup = fileGroup
         self.active = True
-        self.informed = False
 
     def __str__(self):
         s = "DataItem: \n \
@@ -631,7 +629,6 @@ class Assembly(object):
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
                 #TODO: What does this achieve
-            if not d.informed:
                 self.addItem(d)
         self.domains = self.getAllDomains()
 
