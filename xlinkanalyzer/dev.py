@@ -363,7 +363,6 @@ class ItemFrame(LabelFrame):
             if type(self.data) == dict:
                 _type = self.fields["type"][3].get()
                 _type = self.typeDict[_type]
-                print self.data, _type
                 _dict = self.data[_type].__dict__
             else:
                 _dict = self.data.__dict__
@@ -378,6 +377,11 @@ class ItemFrame(LabelFrame):
 
                 if isinstance(_ui,Entry):
                     _dict[k] = _parse(_var.get())
+                    #Make this clean!
+                    vL = list(v)
+                    vL[0] = _parse(_var.get())
+                    v = tuple(vL)
+                    self.fields[k] = v
 
                 elif isinstance(_ui,ColorOption):
                     _dict[k] = _parse(_ui.get())
@@ -477,6 +481,7 @@ class ItemFrame(LabelFrame):
             for k,v in self.fields.items():
                 _ui = v[1]
                 _data = v[0]
+                print _data
                 _var = v[3]
                 #TODO move this to analysis
                 _toString = lambda x: x

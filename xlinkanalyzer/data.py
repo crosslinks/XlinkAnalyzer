@@ -163,7 +163,7 @@ class Domain(object):
         if isinstance(other,self.__class__):
             if other.name == self.name and other.subunit == self.subunit\
             and other.ranges == self.ranges and other.color == self.color\
-            and other.chainIds == self._chainIds:
+            and other._chainIds == self._chainIds:
                 return True
             else:
                 return False
@@ -499,10 +499,7 @@ class XQuestItem(DataItem):
         super(XQuestItem).__deepcopy__(self)
 
     def updateData(self):
-        print "updateData!"
-        print "self.fileGroup",self.fileGroup
         if self.resourcePaths():
-            print self.resourcePaths()
             xlinksSets = []
             for f in self.resourcePaths():
                 xlinksSets.append(XlinksSet(f,description=self.name))
@@ -627,7 +624,6 @@ class Assembly(object):
                      fileGroup=fileGroup,\
                      mapping=dataD["mapping"])
             elif "fileGroup" in dataD:
-                print "yay", dataD
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
                 #TODO: What does this achieve
