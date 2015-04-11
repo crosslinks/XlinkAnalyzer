@@ -336,7 +336,7 @@ class File(object):
 
     def serialize(self):
         self.locate()
-        return self.getResourcePath()
+        return self.path
 
     def validate(self):
         return os.path.exists(join(self.root,self.path))
@@ -369,15 +369,22 @@ class FileGroup(object):
 
     def serialize(self):
         self.locate()
-        return [f.serialize() for f in self.files]
+        _dict = {}
+        _dict["root"] = self.root
+        _dict["files"] = [f.serialize() for f in self.files]
+        return _dict
 
-    def deserialize(self,fileList):
-        for f in fileList:
-            self.addFile(f)
+    def deserialize(self,_dict):
+        if "root" in _dict and "files" in _dict:
+            for f in _dict["files"]:
+                self.addFile(f,_dict["root"])
+        self.locate()
 
     def addFile(self,_file,root=None):
+        if root is None:
+            root = self.root
         if not isinstance(_file,File):
-            _file = File(_file,self.root)
+            _file = File(_file,root)
         self.files.append(_file)
 
     def getResourcePaths(self):
@@ -455,6 +462,7 @@ class DataItem(Item):
             fileGroup = FileGroup()
             fileGroup.deserialize(_dict["fileGroup"])
             self.__dict__["fileGroup"] = fileGroup
+        self.updateData()
 
     def serialize(self):
         self.locate()
@@ -491,7 +499,10 @@ class XQuestItem(DataItem):
         super(XQuestItem).__deepcopy__(self)
 
     def updateData(self):
+        print "updateData!"
+        print "self.fileGroup",self.fileGroup
         if self.resourcePaths():
+            print self.resourcePaths()
             xlinksSets = []
             for f in self.resourcePaths():
                 xlinksSets.append(XlinksSet(f,description=self.name))
@@ -616,6 +627,7 @@ class Assembly(object):
                      fileGroup=fileGroup,\
                      mapping=dataD["mapping"])
             elif "fileGroup" in dataD:
+                print "yay", dataD
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
                 #TODO: What does this achieve
