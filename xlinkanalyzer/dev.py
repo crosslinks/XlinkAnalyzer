@@ -481,7 +481,6 @@ class ItemFrame(LabelFrame):
             for k,v in self.fields.items():
                 _ui = v[1]
                 _data = v[0]
-                print _data
                 _var = v[3]
                 #TODO move this to analysis
                 _toString = lambda x: x

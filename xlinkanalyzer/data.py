@@ -91,6 +91,10 @@ class Component(Item):
         _dict = super(Component,self).serialize()
         _dict["color"] = self.color.rgba()
         _dict["domains"] = [d.serialize() for d in self.domains]
+        if "chainToComponent" in _dict:
+            _dict.pop("chainToComponent")
+        if "componentToChain" in _dict:
+            _dict.pop("componentToChain")
         return _dict
 
     def deserialize(self,_dict):
@@ -800,7 +804,7 @@ class Assembly(object):
 
     def serialize(self):
         _dict = {}
-        _dict["xlinkanalyzerVersion"] = "1.0"
+        _dict["xlinkanalyzerVersion"] = "1.1"
         _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
         _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
         return _dict
