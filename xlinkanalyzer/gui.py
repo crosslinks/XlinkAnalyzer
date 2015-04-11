@@ -42,7 +42,7 @@ from xlinkanalyzer import getConfig
 # TEMPORARY
 ###########
 
-from dev import ItemList
+from item import ItemList
 
 DEBUG_MODE = False
 DEV = True
