@@ -767,18 +767,17 @@ class Assembly(object):
 
     def getChainIdsByComponentName(self,name=None):
         if name:
-            if name in self.componentToChain:
-                return self.componentToChain[name]
+            comps = self.getComponents()
+            chainsList = [c.chainIds for c in comps if c.name == name]
+            if chainsList:
+                chains = reduce(lambda x,y: x+y,chainsList,[])
+                self.componentToChain[name] = chains
+                return chains
             else:
-                comps = self.getComponents()
-                chainsList = [c.chainIds for c in comps if c.name == name]
-                if chainsList:
-                    chains = reduce(lambda x,y: x+y,chainsList,[])
-                    self.componentToChain[name] = chains
-                    return chains
-                else:
-                    raise KeyError
+                raise KeyError
         else:
+            for name in self.getComponentNames():
+                self.getChainIdsByComponentName(name)
             return self.componentToChain
 
     def getComponentByChain(self,chain=None):
