@@ -628,8 +628,8 @@ class Assembly(object):
             elif "fileGroup" in dataD:
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
-                #TODO: What does this achieve
-                self.addItem(d)
+
+            self.addItem(d)
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
