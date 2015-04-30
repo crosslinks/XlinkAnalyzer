@@ -197,16 +197,33 @@ class ItemFrame(LabelFrame):
         self.analyzeData()
         self.initUIElements()
         self.gridUIElelemts()
-        self.grid(pady=2)
+
+    def grid(self,*args,**kwargs):
+        LabelFrame.grid(self,*args,pady=2,**kwargs)
 
     def analyzeData(self):
+        #sort method used later on
+        def sortKeys(shows):
+            common = list(set.intersection(*[set(s) for s in shows]))
+            diff = list(set.difference(*[set(s) for s in shows]))
+            common.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
+            ret = deepcopy(common)
+            for key in diff:
+                i = None
+                _show = None
+                for s in shows:
+                    if key in s:
+                        i=s.index(key)
+                        _show = s
+                for j,cKey in enumerate(common):
+                    if not i>=_show.index(cKey):
+                        ret.insert(j,key)
+            return ret
+
+        # check for multiple data types to add
         if type(self.data) == dict and self.active:
             shows = [data.SHOW for data in self.data.values()]
-            common = list(set.intersection(*[set(s) for s in shows]))
-            #TODO: Enter some checks for consistency of dataItems
-            allFields = sum([d.__dict__.keys() for d in self.data.values()],[])
-            fields = list(set.intersection(set(common),set(allFields)))
-            fields.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
+            fields = sortKeys(shows)
             _dict = self.data.values()[0].__dict__
         else:
             show = self.data.SHOW
@@ -215,6 +232,7 @@ class ItemFrame(LabelFrame):
             fields = [f for f in fields if f in show]
             fields.sort(lambda x,y: show.index(x)-show.index(y))
 
+        #populate simple data fields with gui classes
         for fK in fields:
             data = _dict[fK]
             if type(data) in self.classDict:
@@ -230,6 +248,13 @@ class ItemFrame(LabelFrame):
                                     if classL:
                                         self.fields[fK] = (data,OptionMenu,\
                                                            classL)
+        #look for complex data types
+        if hasattr(self.data,"dataMap"):
+            for k,v in self.data.dataMap.items():
+                #erase already set primitive data type
+                if k in self.fields: self.fields.pop(k)
+                #container,ItemList,show
+                self.fields[k] = (self.data,ItemList,k,None)
 
         if hasattr(self.data,"__dict__"):
             mapable = "mapping" in self.data.__dict__.keys()
@@ -256,7 +281,7 @@ class ItemFrame(LabelFrame):
                 _toString = self.data.__getattribute__(methods[0])
 
             if _UIClass == Entry:
-                _var = StringVar("")
+                _var = StringVar(self.parent)
                 _var.set(_toString(_data))
                 _var.trace("w",_onEdit)
                 _label = Label(self,text=self.parseName(k)+":")
@@ -264,11 +289,12 @@ class ItemFrame(LabelFrame):
                 _entry.config(width=10)
                 self.fields[k] = (_data,_entry,_label,_var)
 
+
             elif _UIClass == ColorOption:
                 self.fields[k] = (_data,_UIClass,None,None)
 
             elif _UIClass == OptionMenu:
-                _var = StringVar("")
+                _var = StringVar(self.parent)
                 _names = [c.name for c in _context]
                 _var.set(_data.name)
                 _var.trace("w",_onEdit)
@@ -289,6 +315,10 @@ class ItemFrame(LabelFrame):
                 _mapFrame = MapFrame(self,_data,_getMapping,self.mappings,True)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
+            elif _UIClass == ItemList and not self.active:
+                _itemList = ItemList(self,_data,_context,True)
+                self.fields[k] = (_data,_itemList,None,None)
+
         if not self.active:
             self.apply = Button(self,text=unichr(10004),command=self.onApply)
             self.createToolTip(self.apply,"Apply")
@@ -300,9 +330,14 @@ class ItemFrame(LabelFrame):
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
             if type(self.data) == dict:
                 _data = self.data
-                self.typeDict = dict([(dI.type,dI.__class__.__name__) \
-                                       for dI in _data.values()])
-                _var = StringVar("")
+                self.typeDict = {}
+                for dI in _data.values():
+                    if "type" in dir(dI):
+                        _type = dI.type
+                    else:
+                        _type = dI.__class__.__name__
+                    self.typeDict[_type] = dI.__class__.__name__
+                _var = StringVar(self.parent)
                 _var.set(self.typeDict.keys()[0])
                 _var.trace("w",_onType)
                 _label = Label(self,text="Type: ")
@@ -345,6 +380,9 @@ class ItemFrame(LabelFrame):
             elif isinstance(_ui,MapFrame):
                 _ui.grid(column=c,row=0,pady=5,padx=3)
                 c+=1
+
+            elif isinstance(_ui,ItemList):
+                _ui.grid(column=0,row=1,padx=3)
 
         if not self.active:
             self.apply.grid(column=c,row=0,pady=5,padx=3)
@@ -414,8 +452,10 @@ class ItemFrame(LabelFrame):
                 elif isinstance(_ui,OptionMenu):
                     _var.set(_toString(_dict[k]))
             self.apply.config(bg="light grey")
-
+    try:
         chimera.triggers.activateTrigger('configUpdated', None)
+    except:
+        print "No chimera config update!"
 
     def onAdd(self):
         if self.validate():
@@ -436,16 +476,8 @@ class ItemFrame(LabelFrame):
             tkMessageBox.showinfo(title,message,parent=self)
 
     def validate(self):
-        ret = True
-        for k,v in self.fields.items():
-            _ui= v[1]
-            _var = v[3]
-            if isinstance(_ui,Entry):
-                ret = len(_var.get())>0
-
-            elif isinstance(_ui,OptionMenu):
-                ret = len(_var.get())>0
-        return ret
+        #no real use for now. maybe rework later
+        return True
 
     def empty(self):
          for k,v in self.fields.items():
@@ -567,14 +599,12 @@ class ItemList(LabelFrame):
         self.analyzeData()
         self.initUIElements()
         self.gridUIElements()
-        self.grid(pady=2)
 
     def analyzeData(self):
         if not self.items:
             pass
 
     def initUIElements(self):
-
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
 
         dummy = self.container.dataMap[self.show]
@@ -585,10 +615,15 @@ class ItemList(LabelFrame):
             options = {"usehullsize":1,\
                        "hull_width":560,\
                        "hull_height":400}
+        elif isinstance(self.parent,ItemFrame):
+            options = {"usehullsize":1,\
+                       "hull_width":200,\
+                       "hull_height":100}
         else:
             options = {"usehullsize":1,\
                        "hull_width":460,\
                        "hull_height":320}
+
         self.scrolledFrame = ScrolledFrame(self,**options)
 
         for item in self.items:
@@ -618,18 +653,58 @@ class ItemList(LabelFrame):
             self.grid()
             self.parent.grid()
         else:
-            self.grid()
+            pass
+            #self.grid()
+
+    def grid(self,*args,**kwargs):
+        LabelFrame.grid(self,*args,pady=2,**kwargs)
 
     def synchronize(self,container = None):
         if container:
             self.container = container
-
-        for item in self.container.__dict__[self.show]:
+        for i,item in enumerate(self.container.__dict__[self.show]):
             if not item in [frame.data for frame in self.frames]:
                 frame = ItemFrame(self.scrolledFrame.interior(),item)
+                frame.grid()
                 self.frames.append(frame)
         self.scrolledFrame.grid()
         self.grid()
-        chimera.triggers.activateTrigger('configUpdated', None)
-        #TODO: Measure Textinput
+        try:
+            chimera.triggers.activateTrigger('configUpdated', None)
+        except:
+            print "No chimera config update!"
 
+if __name__ == "__main__":
+    class A(object):
+        SHOW = ["list","string"]
+        def __init__(self):
+            self.list = [1,2,3]
+            self.string = "String"
+
+    class B(object):
+        SHOW = ["oL"]
+        def __init__(self):
+            self.oL = []
+            self.dataMap = dict([("oL",A())])
+
+        def addItem(self,item):
+            if isinstance(item,A):
+               self.oL.append(item)
+
+    class C(object):
+        def __init__(self):
+            self.oLL = []
+            self.string = ""
+            self.numbers = []
+            self.dataMap = dict([("oLL",B())])
+
+        def addItem(self,item):
+            if isinstance(item,B):
+               self.oLL.append(item)
+
+    from Tkinter import Tk
+    root = Tk()
+    b = B()
+    c = C()
+    iL = ItemList(root,c,"oLL")
+    iL.grid()

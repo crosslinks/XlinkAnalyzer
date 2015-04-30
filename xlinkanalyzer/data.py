@@ -23,6 +23,7 @@ class Item(object):
         self.type = "item"
         self.name = name
         self.config = config
+        self.explored = False
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
@@ -39,6 +40,38 @@ class Item(object):
 
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
+
+    def explore(self, done, res, _class):
+        def flatten(items,obj):
+            if type(obj) == dict:
+                for v in obj.values():
+                    if type(v) in [list,dict]:
+                        flatten(items,v)
+                    else:
+                        items.append(v)
+            elif type(obj) == list:
+                for v in obj:
+                    if type(v) in [list,dict]:
+                        flatten(items,v)
+                    else:
+                        items.append(v)
+            else:
+                items.append(obj)
+        done.append(self)
+        if not self.explored:
+            if isinstance(self,_class):
+                res.append(self)
+                self.explored = True
+            for key in self.__dict__.keys():
+                field = self.__dict__[key]
+                flat = []
+                flatten(flat,field)
+                for el in flat:
+                    if isinstance(el,_class):
+                        res.append(el)
+                    if "explore" in dir(el):
+                        self.explored = True
+                        el.explore(done,res,_class)
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
@@ -143,7 +176,7 @@ class Component(Item):
         self.selection =':'+','.join(['.'+s for s in ret])
         return ret
 
-class Domain(object):
+class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
     def __init__(self,name="",\
                       config=None,\
@@ -151,6 +184,7 @@ class Domain(object):
                       ranges=[[]],\
                       color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
                       chains=[]):
+        super(Domain,self).__init__()
         self.name = name
         self._config = config
         self.subunit = subunit
@@ -268,11 +302,34 @@ class Domain(object):
         return ret
 
 class Subcomplex(object):
-    def __init__(self,name,config,color=None):
-        self.name = name
-        self.color = color
+    SHOW = ["name","color","substructures"]
+    def __init__(self,config):
+        self.name = ""
+        self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.config = config
-        self.domains = []
+        self.substructures = []
+        self.dataMap = dict([("substructures",[Domain(config=self.config),\
+                                            Component(config=self.config)])])
+    def setColor(self,colorCfg):
+        color = chimera.MaterialColor(*[0.0]*4)
+        if isinstance(colorCfg, basestring):
+            color = chimera.colorTable.getColorByName(colorCfg)
+        elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
+            color = chimera.MaterialColor(*[x for x in colorCfg])
+        else:
+            color = colorCfg
+        self.color = color
+
+    def __deepcopy__(self,x):
+        copy = Subcomplex(self.config)
+        copy.setColor(self.color)
+        copy.name = self.name
+        [copy.append(ss) for ss in self.substructures]
+        return copy
+
+    def addItem(self,item):
+        if isinstance(item,Domain) or isinstance(item,Component):
+            self.substructures.append(item)
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -556,10 +613,12 @@ class SequenceItem(DataItem):
             else [""]
         return [_from,_to]
 
-class Assembly(object):
+class Assembly(Item):
     def __init__(self,frame=None):
+        super(Assembly,self).__init__()
         self.items = []
         self.subunits = []
+        self.subcomplexes = []
         self.dataItems = []
         self.domains = []
         self.root = ""
@@ -573,6 +632,7 @@ class Assembly(object):
         self.dataMap = dict([\
             ("domains",Domain(config = self,subunit=Component(config=self))),\
             ("subunits",Component(config=self)),\
+            ("subcomplexes",Subcomplex(config=self)),\
             ("dataItems",[SequenceItem(config=self),XQuestItem(config=self),\
                           XlinkAnalyzerItem(config=self)])])
 
@@ -609,7 +669,6 @@ class Assembly(object):
         components = _dict["subunits"]
         dataItems = _dict["data"]
         #TODO: this is a temporary solution
-
         for compD in components:
             c = Component(compD["name"],self)
             c.deserialize(compD)
@@ -629,7 +688,7 @@ class Assembly(object):
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
                 #TODO: What does this achieve
-                self.addItem(d)
+            self.addItem(d)
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
@@ -665,9 +724,11 @@ class Assembly(object):
             self.subunits.append(item)
         elif isinstance(item,DataItem):
             self.dataItems.append(item)
-        elif issubclass(item.__class__,Domain):
+        elif isinstance(item,Domain):
             self.domains.append(item)
             item.subunit.domains.append(item)
+        elif isinstance(item,Subcomplex):
+            self.subcomplexes.append(item)
         self.state = "changed"
 
     def deleteItem(self,item):
@@ -875,3 +936,15 @@ class ResourceManager(object):
                     indent=4,\
                     separators=(',', ': ')))
             f.close()
+
+if __name__ == "__main__":
+    config = Assembly()
+    resMngr = ResourceManager(config)
+    resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
+    dI = config.getDataItems()[0]
+    l = []
+    done = []
+    dI.explore(done,l,Domain)
+    print [d.explored for d in done]
+    print l
+

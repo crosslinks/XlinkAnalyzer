@@ -986,6 +986,10 @@ class SetupFrame(TabFrame):
         self.domainsButton = Button(self,text="Domains", command=self.onDomain)
         self.domainsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
 
+        self.subCompButton = Button(self,text="Subcomplexes", \
+                                         command=self.onSubcomplexes)
+        self.subCompButton.grid(row = curRow,column = 1, sticky = "W",**layout)
+
         curRow = curRow + 1
         self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
         self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
@@ -1014,6 +1018,16 @@ class SetupFrame(TabFrame):
     def clear(self):
         self.config.items = []
         self.update()
+
+    def onSubcomplexes(self):
+        subunitNames = self.config.getComponentNames()
+        domains = self.config.getDomains()
+        if not (subunitNames and domains):
+            title = "No Subunits or Domains yet"
+            message = "Please add some subunits or domains before configuring."
+            tkMessageBox.showinfo(title,message,parent=self.master)
+            return
+        ItemList(Toplevel(),self.config,"subcomplexes",True)
 
     def onDomain(self):
         subunitNames = self.config.getComponentNames()
