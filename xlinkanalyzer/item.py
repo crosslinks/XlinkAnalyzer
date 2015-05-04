@@ -166,10 +166,12 @@ class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
+        self.multiple = False
         if active:
             if type(self.data) == list:
                 self.data = dict([(d.__class__.__name__,deepcopy(d)) \
                                   for d in self.data])
+                self.multiple = True
             else:
                 self.data = deepcopy(data)
         self.fields = OrderedDict()
@@ -178,6 +180,7 @@ class ItemFrame(LabelFrame):
         self.active = active
         self.mappings = {}
         self.typeDict = {}
+        self.differs = False
         self.add = None
         self.apply = None
         self.delete = None
@@ -201,9 +204,32 @@ class ItemFrame(LabelFrame):
     def grid(self,*args,**kwargs):
         LabelFrame.grid(self,*args,pady=2,**kwargs)
 
+    def isSimple(self,data):
+        return type(data) in [list,unicode,MaterialColor,list,FileGroup]
+
+    def flatten(self,obj,items=[]):
+        #get rid of complex data mappings, just get elements
+        if type(obj) == dict:
+            for v in obj.values():
+                if type(v) in [list,dict]:
+                    flatten(items,v)
+                else:
+                    items.append(v)
+        elif type(obj) == list:
+            for v in obj:
+                if type(v) in [list,dict]:
+                    flatten(items,v)
+                else:
+                    items.append(v)
+        else:
+            items.append(obj)
+        return items
+
     def analyzeData(self):
+
         #sort method used later on
         def sortKeys(shows):
+            print "shows",shows
             common = list(set.intersection(*[set(s) for s in shows]))
             diff = list(set.difference(*[set(s) for s in shows]))
             common.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
@@ -218,13 +244,21 @@ class ItemFrame(LabelFrame):
                 for j,cKey in enumerate(common):
                     if not i>=_show.index(cKey):
                         ret.insert(j,key)
-            return ret
+            boolret = False
+            print "diff",diff
+            if len(shows) > 1:
+                if diff:
+                    boolret = True
+            print "HERE",boolret
+            return ret, boolret
 
         # check for multiple data types to add
-        if type(self.data) == dict and self.active:
-            shows = [data.SHOW for data in self.data.values()]
-            fields = sortKeys(shows)
-            _dict = self.data.values()[0].__dict__
+        if not self.isSimple(self.data) and self.active:
+            print self.data
+            objects = self.data
+            shows = [o.SHOW for o in objects if "SHOW" in dir(o)]
+            fields,self.differs = sortKeys(shows)
+            _dict = objects[0].__dict__
         else:
             show = self.data.SHOW
             _dict = self.data.__dict__
@@ -238,8 +272,9 @@ class ItemFrame(LabelFrame):
             if type(data) in self.classDict:
                 self.fields[fK] = (data,self.classDict[type(data)],None,None)
             else:
-                classL = self.data.explore(data.__class__)
-                self.fields[fK] = (data,OptionMenu,classL)
+                if "explore" in dir(self.data):
+                    classL = self.data.explore(data.__class__)
+                    self.fields[fK] = (data,OptionMenu,classL)
 
         #look for complex data types
         if hasattr(self.data,"dataMap"):
@@ -260,7 +295,7 @@ class ItemFrame(LabelFrame):
                                                        for dI in v1])
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
-        _onType = lambda i,j,k: self.onType()
+        _onType = lambda i,j,k: (i,j,k)
 
         for k,v in self.fields.items():
             _data = self.fields[k][0]
@@ -281,7 +316,6 @@ class ItemFrame(LabelFrame):
                 _entry = Entry(self,textvariable=_var)
                 _entry.config(width=10)
                 self.fields[k] = (_data,_entry,_label,_var)
-
 
             elif _UIClass == ColorOption:
                 self.fields[k] = (_data,_UIClass,None,None)
@@ -321,7 +355,7 @@ class ItemFrame(LabelFrame):
         else:
             self.add = Button(self,text="Add",command=self.onAdd)
             self.createToolTip(self.add,"Add "+self.data.__class__.__name__)
-            if type(self.data) == dict:
+            if self.multiple and not self.differs:
                 _data = self.data
                 self.typeDict = {}
                 for dI in _data.values():
@@ -337,6 +371,26 @@ class ItemFrame(LabelFrame):
                 _menu = OptionMenu(self,_var,*self.typeDict.keys())
                 _menu.configure(width=12)
                 self.fields["type"] = (_data,_menu,_label,_var)
+            elif self.multiple and self.differs:
+                _dict = {}
+                objects = self.flatten(_data)
+                for o in objects:
+                    key = o.__class__.__name__
+                    if hasattr(o,"type"):
+                        key = o.type
+                    _dict[key] = o
+                    _var = StringVar(self.parent)
+                    _var.set(_dict.keys()[0])
+                    _var.trace("w",self.onType)
+                    _label = Label(self,text="Choose: ")
+                    _menu = OptionMenu(self,_var,_dict.keys())
+                    _menu.configure(width=12)
+                    self.fields["type"] = (_data,_menu,_label,_var)
+            else:
+                pass
+
+    def onType(self,i,j,k):
+        pass
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
@@ -530,8 +584,11 @@ class ItemFrame(LabelFrame):
             else:
                 self.apply.configure(bg="light grey")
 
-    def onType(self):
-        pass
+    def gcs(self,*instances):
+        classes = [type(x).mro() for x in instances]
+        for x in classes[0]:
+            if all(x in mro for mro in classes):
+                return x
 
     def parseName(self,s):
         return re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s).title()
@@ -594,7 +651,7 @@ class ItemList(LabelFrame):
         self.gridUIElements()
 
     def analyzeData(self):
-        print self.items
+        pass
 
     def initUIElements(self):
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)

@@ -78,7 +78,7 @@ class Item(object):
             for key in self.__dict__.keys():
                 field = self.__dict__[key]
                 flat = []
-                flatten(flat,field)
+                flatten(field,flat)
                 for el in flat:
                     if isinstance(el,_class):
                         res.append(el)
