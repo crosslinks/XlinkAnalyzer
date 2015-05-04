@@ -238,16 +238,9 @@ class ItemFrame(LabelFrame):
             if type(data) in self.classDict:
                 self.fields[fK] = (data,self.classDict[type(data)],None,None)
             else:
-                if hasattr(data,"__dict__"): #is it an object?
-                    for v in data.__dict__.values(): #loop through fields
-                        if hasattr(v,"__dict__"): #is it an object?
-                            for v1 in v.__dict__.values(): #loop through fields
-                                if type(v1) == list and v1:
-                                    classL = [item for item in v1\
-                                            if isinstance(item,data.__class__)]
-                                    if classL:
-                                        self.fields[fK] = (data,OptionMenu,\
-                                                           classL)
+                classL = self.data.explore(data.__class__)
+                self.fields[fK] = (data,OptionMenu,classL)
+
         #look for complex data types
         if hasattr(self.data,"dataMap"):
             for k,v in self.data.dataMap.items():
@@ -601,12 +594,10 @@ class ItemList(LabelFrame):
         self.gridUIElements()
 
     def analyzeData(self):
-        if not self.items:
-            pass
+        print self.items
 
     def initUIElements(self):
         self.activeFrame = Frame(self,padx=5,pady=5,borderwidth=1)
-
         dummy = self.container.dataMap[self.show]
         self.activeItemFrame = ItemFrame(self.activeFrame,dummy,True,\
                                          self,borderwidth=1)

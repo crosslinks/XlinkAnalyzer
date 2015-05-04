@@ -19,15 +19,18 @@ from xlinkanalyzer import minify_json
 
 class Item(object):
     SHOW = ["name"]
-    def __init__(self,name="",config=None):
+    def __init__(self,name="",config=None,fake=False):
         self.type = "item"
         self.name = name
         self.config = config
         self.explored = False
+        self.fake = fake
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
+        _dict.pop("fake")
+        _dict.pop("explored")
         return _dict
 
     def deserialize(self,_dict):
@@ -41,7 +44,16 @@ class Item(object):
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-    def explore(self, done, res, _class):
+    def explore(self,_class):
+        done = []
+        res = []
+        self._explore(done,res,_class)
+        for d in done:
+            d.explored = False
+        res = [r for r in res if not r.fake]
+        return unique(res)
+
+    def _explore(self, done, res, _class):
         def flatten(items,obj):
             if type(obj) == dict:
                 for v in obj.values():
@@ -58,6 +70,7 @@ class Item(object):
             else:
                 items.append(obj)
         done.append(self)
+
         if not self.explored:
             if isinstance(self,_class):
                 res.append(self)
@@ -71,12 +84,12 @@ class Item(object):
                         res.append(el)
                     if "explore" in dir(el):
                         self.explored = True
-                        el.explore(done,res,_class)
+                        el._explore(done,res,_class)
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
-    def __init__(self,name="",config=None):
-        Item.__init__(self,name,config)
+    def __init__(self,*args,**kwargs):
+        Item.__init__(self,*args,**kwargs)
         self.type = "component"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
@@ -178,22 +191,16 @@ class Component(Item):
 
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
-    def __init__(self,name="",\
-                      config=None,\
-                      subunit=None,\
-                      ranges=[[]],\
-                      color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
-                      chains=[]):
-        super(Domain,self).__init__()
-        self.name = name
-        self._config = config
+    def __init__(self,subunit=None,ranges=[[]],\
+                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),chains=[],**kwargs):
+        super(Domain,self).__init__(**kwargs)
         self.subunit = subunit
         self.ranges = self.parseRanges(ranges)
         self.color = color
         self._chainIds = chains
 
     def __deepcopy__(self,x):
-        return Domain(name=self.name,config=self._config,subunit=self.subunit,\
+        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
                       chains=self._chainIds)
 
@@ -221,7 +228,7 @@ class Domain(Item):
         return ret
 
     def parseSubunit(self,name):
-        comp = self._config.getComponentByName(name)
+        comp = self.config.getComponentByName(name)
         self.moveDomain(comp)
         return comp
 
@@ -246,9 +253,8 @@ class Domain(Item):
                 return ""
 
     def serialize(self):
-        _dict = dict([(k,v) for k,v in self.__dict__.items()])
+        _dict = super(Domain,self).serialize()
         _dict["color"] = self.color.rgba()
-        _dict.pop("_config")
         _dict.pop("subunit")
         return _dict
 
@@ -303,13 +309,14 @@ class Domain(Item):
 
 class Subcomplex(object):
     SHOW = ["name","color","substructures"]
-    def __init__(self,config):
+    def __init__(self,config,fake=False):
         self.name = ""
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.config = config
         self.substructures = []
-        self.dataMap = dict([("substructures",[Domain(config=self.config),\
-                                            Component(config=self.config)])])
+        self.dataMap = dict([("substructures",\
+            [Domain(config=self.config,fake=True),\
+             Component(config=self.config,fake=True)])])
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
         if isinstance(colorCfg, basestring):
@@ -457,8 +464,8 @@ class FileGroup(object):
 
 class DataItem(Item):
     SHOW = ["name","fileGroup","mapping"]
-    def __init__(self,config,name="",fileGroup=FileGroup(),mapping=None):
-        super(DataItem,self).__init__(name,config)
+    def __init__(self,fileGroup=FileGroup(),mapping=None,**kwargs):
+        super(DataItem,self).__init__(**kwargs)
         self.type = "data"
         self.mapping = mapping or {}
         self.fileGroup = fileGroup
@@ -544,13 +551,12 @@ class DataItem(Item):
 
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
-    def __init__(self,config,name="",fileGroup=FileGroup(),mapping=None):
-        super(XQuestItem,self).__init__(config,name,fileGroup,mapping)
+    def __init__(self,**kwargs):
+        super(XQuestItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
-        self.fileGroup = fileGroup
         self.locate()
         self.updateData()
 
@@ -589,10 +595,9 @@ class XlinkAnalyzerItem(XQuestItem):
 
 class SequenceItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
-    def __init__(self,config,name="",fileGroup=FileGroup(),mapping={}):
-        super(SequenceItem,self).__init__(config,name,fileGroup,mapping)
+    def __init__(self,**kwargs):
+        super(SequenceItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
-        self.fileGroup = fileGroup
         self.sequences = {}
         self.data = {}
         for i,fileName in enumerate(self.resourcePaths()):
@@ -630,11 +635,12 @@ class Assembly(Item):
         self.chainToProtein = {}
 
         self.dataMap = dict([\
-            ("domains",Domain(config = self,subunit=Component(config=self))),\
-            ("subunits",Component(config=self)),\
-            ("subcomplexes",Subcomplex(config=self)),\
-            ("dataItems",[SequenceItem(config=self),XQuestItem(config=self),\
-                          XlinkAnalyzerItem(config=self)])])
+            ("domains",Domain(config = self,subunit=Component(config=self,fake=True),fake=True)),\
+            ("subunits",Component(config=self,fake=True)),\
+            ("subcomplexes",Subcomplex(config=self,fake=True)),\
+            ("dataItems",[SequenceItem(config=self,fake=True),\
+                          XQuestItem(config=self,fake=True),\
+                          XlinkAnalyzerItem(config=self,fake=True)])])
 
     def __str__(self):
         s = ""
@@ -688,6 +694,7 @@ class Assembly(Item):
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
             self.addItem(d)
+        print self.getAllDomains()
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
@@ -725,7 +732,6 @@ class Assembly(Item):
             self.dataItems.append(item)
         elif isinstance(item,Domain):
             self.domains.append(item)
-            item.subunit.domains.append(item)
         elif isinstance(item,Subcomplex):
             self.subcomplexes.append(item)
         self.state = "changed"
@@ -937,13 +943,11 @@ class ResourceManager(object):
             f.close()
 
 if __name__ == "__main__":
-    config = Assembly()
-    resMngr = ResourceManager(config)
-    resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
-    dI = config.getDataItems()[0]
-    l = []
-    done = []
-    dI.explore(done,l,Domain)
-    print [d.explored for d in done]
-    print l
-
+    if False:
+        import numpy
+        config = Assembly()
+        resMngr = ResourceManager(config)
+        resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
+        dI = config.getDataItems()[0]
+        l = dI.explore(Component)
+        print [d.fake for d in l]
