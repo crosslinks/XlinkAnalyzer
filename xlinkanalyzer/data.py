@@ -51,6 +51,7 @@ class Item(object):
         for d in done:
             d.explored = False
         res = [r for r in res if not r.fake]
+        print [id(r) for r in res]
         return unique(res)
 
     def _explore(self, done, res, _class):
@@ -69,21 +70,21 @@ class Item(object):
                         items.append(v)
             else:
                 items.append(obj)
+
         done.append(self)
 
+        if isinstance(self,_class):
+            res.append(self)
         if not self.explored:
-            if isinstance(self,_class):
-                res.append(self)
-                self.explored = True
+            self.explored  = True
             for key in self.__dict__.keys():
                 field = self.__dict__[key]
                 flat = []
-                flatten(field,flat)
+                flatten(flat,field)
                 for el in flat:
-                    if isinstance(el,_class):
+                    if isinstance(el,_class) and not el.explored:
                         res.append(el)
                     if "explore" in dir(el):
-                        self.explored = True
                         el._explore(done,res,_class)
 
 class Component(Item):
@@ -317,6 +318,7 @@ class Subcomplex(object):
         self.dataMap = dict([("substructures",\
             [Domain(config=self.config,fake=True),\
              Component(config=self.config,fake=True)])])
+
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
         if isinstance(colorCfg, basestring):
@@ -694,7 +696,6 @@ class Assembly(Item):
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
             self.addItem(d)
-        print self.getAllDomains()
         self.domains = self.getAllDomains()
 
     def convert(self,_input):
@@ -943,11 +944,11 @@ class ResourceManager(object):
             f.close()
 
 if __name__ == "__main__":
-    if False:
+    if True:
         import numpy
         config = Assembly()
         resMngr = ResourceManager(config)
         resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
         dI = config.getDataItems()[0]
         l = dI.explore(Component)
-        print [d.fake for d in l]
+        print l

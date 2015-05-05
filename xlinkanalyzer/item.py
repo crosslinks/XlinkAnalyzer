@@ -171,6 +171,9 @@ class ItemFrame(LabelFrame):
             if type(self.data) == list:
                 self.data = dict([(d.__class__.__name__,deepcopy(d)) \
                                   for d in self.data])
+                for d in self.data.values():
+                    if hasattr(d,"fake"):
+                        d.fake = True
                 self.multiple = True
             else:
                 self.data = deepcopy(data)
@@ -229,7 +232,6 @@ class ItemFrame(LabelFrame):
 
         #sort method used later on
         def sortKeys(shows):
-            print "shows",shows
             common = list(set.intersection(*[set(s) for s in shows]))
             diff = list(set.difference(*[set(s) for s in shows]))
             common.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
@@ -245,20 +247,16 @@ class ItemFrame(LabelFrame):
                     if not i>=_show.index(cKey):
                         ret.insert(j,key)
             boolret = False
-            print "diff",diff
             if len(shows) > 1:
                 if diff:
                     boolret = True
-            print "HERE",boolret
             return ret, boolret
 
         # check for multiple data types to add
-        if not self.isSimple(self.data) and self.active:
-            print self.data
-            objects = self.data
-            shows = [o.SHOW for o in objects if "SHOW" in dir(o)]
+        if type(self.data) == dict and self.active:
+            shows = [o.SHOW for o in self.data.values()]
             fields,self.differs = sortKeys(shows)
-            _dict = objects[0].__dict__
+            _dict = self.data.values()[0].__dict__
         else:
             show = self.data.SHOW
             _dict = self.data.__dict__
@@ -274,7 +272,21 @@ class ItemFrame(LabelFrame):
             else:
                 if "explore" in dir(self.data):
                     classL = self.data.explore(data.__class__)
-                    self.fields[fK] = (data,OptionMenu,classL)
+                    self.fields[fK] = (data,OptionMenu,classL,None)
+
+        #redo keys for different types
+        if self.differs:
+            [self.fields.pop(k) for k in self.fields.keys()]
+            itemNames = self.data.keys()
+            itemDict = {}
+            for name in itemNames:
+                item=self.data[name]
+                _class = item.__class__
+                allItems = item.explore(_class)
+                print name,[i.fake for i in allItems]
+                itemDict[name] = allItems
+            self.fields["Type"] = (itemNames,OptionMenu,None,None)
+            self.fields["Choose"] = (itemDict,OptionMenu,None,None)
 
         #look for complex data types
         if hasattr(self.data,"dataMap"):
@@ -294,8 +306,9 @@ class ItemFrame(LabelFrame):
                                 self.mappings = dict([(dI.name,dI.mapping)\
                                                        for dI in v1])
     def initUIElements(self):
+        print self.differs
         _onEdit = lambda i,j,k: self.onEdit()
-        _onType = lambda i,j,k: (i,j,k)
+        _onType = lambda i,j,k: self.onType()
 
         for k,v in self.fields.items():
             _data = self.fields[k][0]
@@ -320,7 +333,7 @@ class ItemFrame(LabelFrame):
             elif _UIClass == ColorOption:
                 self.fields[k] = (_data,_UIClass,None,None)
 
-            elif _UIClass == OptionMenu:
+            elif _UIClass == OptionMenu and not self.differs:
                 _var = StringVar(self.parent)
                 _names = [c.name for c in _context]
                 _var.set(_data.name)
@@ -329,6 +342,25 @@ class ItemFrame(LabelFrame):
                 _menu = OptionMenu(self,_var,*_names)
                 _menu.configure(width=5)
                 self.fields[k] = (_data,_menu,_label,_var)
+
+            elif _UIClass == OptionMenu and self.differs:
+                if k == "Type":
+                    _var = StringVar(self.parent)
+                    _names = _data
+                    _var.set(_names[0])
+                    _var.trace("w",_onType)
+                    _label = Label(self,text=self.parseName(k)+":")
+                    _menu = OptionMenu(self,_var,*_names)
+                    _menu.configure(width=5)
+                    self.fields[k] = (_data,_menu,_label,_var)
+                elif k == "Choose":
+                    _var = StringVar(self.parent)
+                    _names = [dI.name for dI in _data.values()[0]]
+                    _var.set(_names[0])
+                    _label = Label(self,text=self.parseName(k)+":")
+                    _menu = OptionMenu(self,_var,*_names)
+                    _menu.configure(width=5)
+                    self.fields[k] = (_data,_menu,_label,_var)
 
             elif _UIClass == FileFrame:
                 _menu = FileFrame(self,self.active,_data)
@@ -372,25 +404,24 @@ class ItemFrame(LabelFrame):
                 _menu.configure(width=12)
                 self.fields["type"] = (_data,_menu,_label,_var)
             elif self.multiple and self.differs:
-                _dict = {}
-                objects = self.flatten(_data)
-                for o in objects:
-                    key = o.__class__.__name__
-                    if hasattr(o,"type"):
-                        key = o.type
-                    _dict[key] = o
-                    _var = StringVar(self.parent)
-                    _var.set(_dict.keys()[0])
-                    _var.trace("w",self.onType)
-                    _label = Label(self,text="Choose: ")
-                    _menu = OptionMenu(self,_var,_dict.keys())
-                    _menu.configure(width=12)
-                    self.fields["type"] = (_data,_menu,_label,_var)
+                pass
             else:
                 pass
 
-    def onType(self,i,j,k):
-        pass
+    def onType(self):
+        if "Type" in self.fields:
+            if "Choose" in self.fields:
+                _type = self.fields["Type"][3].get()
+                _dict = self.fields["Choose"][0]
+                _omenu = self.fields["Choose"][1]
+                _ovar = self.fields["Choose"][3]
+                if _type:
+                    items = _dict[_type]
+                    menu = _omenu["menu"]
+                    menu.delete(0, "end")
+                    for i in items:
+                        command=Tkinter._setit(_ovar, i.name, None)
+                        menu.add_command(label=i.name,command=command)
 
     def gridUIElelemts(self):
         _onEditColor = lambda i: self.onEdit()
@@ -445,10 +476,12 @@ class ItemFrame(LabelFrame):
 
     def synchronize(self,data = None):
         if data is None:
-            if type(self.data) == dict:
+            if type(self.data) == dict and not self.differs:
                 _type = self.fields["type"][3].get()
                 _type = self.typeDict[_type]
                 _dict = self.data[_type].__dict__
+            elif type(self.data) == dict and self.differs:
+                print "okay"
             else:
                 _dict = self.data.__dict__
             for k,v in self.fields.items():
@@ -507,15 +540,18 @@ class ItemFrame(LabelFrame):
     def onAdd(self):
         if self.validate():
             self.synchronize()
-            if self.listFrame:
-                if type(self.data) == dict:
-                    _type = self.fields["type"][3].get()
-                    _type = self.typeDict[_type]
-                    cp = deepcopy(self.data[_type])
-                else:
-                    cp = deepcopy(self.data)
-                self.listFrame.container.addItem(cp)
-                self.listFrame.synchronize()
+            if not self.differs:
+                if self.listFrame:
+                    if type(self.data) == dict:
+                        _type = self.fields["type"][3].get()
+                        _type = self.typeDict[_type]
+                        cp = deepcopy(self.data[_type])
+                    else:
+                        cp = deepcopy(self.data)
+                    self.listFrame.container.addItem(cp)
+                    self.listFrame.synchronize()
+            elif self.differs:
+                pass
             self.empty()
         else:
             title = "Empty Fields"
