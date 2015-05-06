@@ -4,6 +4,7 @@ import os
 from numpy import unique
 from sys import platform as _platform
 from copy import deepcopy
+from collections import deque
 
 import chimera
 import tkMessageBox
@@ -23,14 +24,12 @@ class Item(object):
         self.type = "item"
         self.name = name
         self.config = config
-        self.explored = False
         self.fake = fake
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
         _dict.pop("fake")
-        _dict.pop("explored")
         return _dict
 
     def deserialize(self,_dict):
@@ -44,48 +43,37 @@ class Item(object):
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-    def explore(self,_class):
-        done = []
-        res = []
-        self._explore(done,res,_class)
-        for d in done:
-            d.explored = False
-        res = [r for r in res if not r.fake]
-        print [id(r) for r in res]
-        return unique(res)
+    def explore(self,_class,item=None):
+        if item is None:
+            item = self
+        "returns a list of every child"
+        visited = set()
+        to_crawl = deque([item])
+        while to_crawl:
+            current = to_crawl.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+            node_children = set(current.flatten())
+            to_crawl.extend(node_children - visited)
+        visited = [v for v in visited if (isinstance(v,_class) and not v.fake)]
+        return list(visited)
 
-    def _explore(self, done, res, _class):
-        def flatten(items,obj):
+    def flatten(self,items = []):
+        for obj in self.__dict__.values():
             if type(obj) == dict:
                 for v in obj.values():
-                    if type(v) in [list,dict]:
-                        flatten(items,v)
-                    else:
+                    if isinstance(v,Item):
                         items.append(v)
             elif type(obj) == list:
                 for v in obj:
-                    if type(v) in [list,dict]:
-                        flatten(items,v)
-                    else:
+                    if isinstance(v,Item):
                         items.append(v)
             else:
-                items.append(obj)
+                if isinstance(obj,Item):
+                    items.append(obj)
+        return items
 
-        done.append(self)
-
-        if isinstance(self,_class):
-            res.append(self)
-        if not self.explored:
-            self.explored  = True
-            for key in self.__dict__.keys():
-                field = self.__dict__[key]
-                flat = []
-                flatten(flat,field)
-                for el in flat:
-                    if isinstance(el,_class) and not el.explored:
-                        res.append(el)
-                    if "explore" in dir(el):
-                        el._explore(done,res,_class)
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
@@ -201,6 +189,7 @@ class Domain(Item):
         self._chainIds = chains
 
     def __deepcopy__(self,x):
+        print "call"
         return Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
                       chains=self._chainIds)
@@ -830,6 +819,8 @@ class Assembly(Item):
 
     def getAllDomains(self):
         ret = sum([c.domains for c in self.getComponents()],[])
+        for d in ret:
+            d.config = self
         return ret
 
     def getChainIdsByComponentName(self,name=None):
@@ -949,6 +940,5 @@ if __name__ == "__main__":
         config = Assembly()
         resMngr = ResourceManager(config)
         resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
-        dI = config.getDataItems()[0]
-        l = dI.explore(Component)
-        print l
+        d=config.getAllDomains()[0]
+        print d.explore(Domain)

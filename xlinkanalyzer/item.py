@@ -272,6 +272,7 @@ class ItemFrame(LabelFrame):
             else:
                 if "explore" in dir(self.data):
                     classL = self.data.explore(data.__class__)
+                    print classL, type(self.data),data.__class__
                     self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
@@ -417,6 +418,7 @@ class ItemFrame(LabelFrame):
                 _ovar = self.fields["Choose"][3]
                 if _type:
                     items = _dict[_type]
+                    print [id(i) for i in items]
                     menu = _omenu["menu"]
                     menu.delete(0, "end")
                     for i in items:
