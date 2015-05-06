@@ -177,6 +177,8 @@ class ItemFrame(LabelFrame):
                 self.multiple = True
             else:
                 self.data = deepcopy(data)
+                if hasattr(self.data,"fake"):
+                    self.data.fake = True
         self.fields = OrderedDict()
         self.parent = parent
         self.listFrame = listFrame
@@ -272,7 +274,6 @@ class ItemFrame(LabelFrame):
             else:
                 if "explore" in dir(self.data):
                     classL = self.data.explore(data.__class__)
-                    print classL, type(self.data),data.__class__
                     self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
@@ -284,7 +285,6 @@ class ItemFrame(LabelFrame):
                 item=self.data[name]
                 _class = item.__class__
                 allItems = item.explore(_class)
-                print name,[i.fake for i in allItems]
                 itemDict[name] = allItems
             self.fields["Type"] = (itemNames,OptionMenu,None,None)
             self.fields["Choose"] = (itemDict,OptionMenu,None,None)
@@ -307,7 +307,6 @@ class ItemFrame(LabelFrame):
                                 self.mappings = dict([(dI.name,dI.mapping)\
                                                        for dI in v1])
     def initUIElements(self):
-        print self.differs
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()
 

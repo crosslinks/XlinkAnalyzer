@@ -189,10 +189,11 @@ class Domain(Item):
         self._chainIds = chains
 
     def __deepcopy__(self,x):
-        print "call"
-        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
+        r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
                       chains=self._chainIds)
+        print "call deepcopy,copied: ", id(r)
+        return r
 
     def __eq__(self,other):
         if isinstance(other,self.__class__):
