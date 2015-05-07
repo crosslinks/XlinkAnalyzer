@@ -461,7 +461,7 @@ class ItemFrame(LabelFrame):
                 c+=1
 
             elif isinstance(_ui,ItemList):
-                _ui.grid(column=0,row=1,padx=3)
+                _ui.grid(column=0,row=1,padx=3,columnspan=5)
 
         if not self.active:
             self.apply.grid(column=c,row=0,pady=5,padx=3)
@@ -477,39 +477,38 @@ class ItemFrame(LabelFrame):
 
     def synchronize(self,data = None):
         if data is None:
-            if type(self.data) == dict and not self.differs:
-                _type = self.fields["type"][3].get()
-                _type = self.typeDict[_type]
-                _dict = self.data[_type].__dict__
-            elif type(self.data) == dict and self.differs:
-                print "okay"
-            else:
-                _dict = self.data.__dict__
-            for k,v in self.fields.items():
-                _ui = v[1]
-                _var = v[3]
-                _parse = lambda x: x
-                methods = [m for m in dir(self.data) if m.lower()\
-                           == "parse"+k.lower()]
-                if methods:
-                    _parse = self.data.__getattribute__(methods[0])
+            if not self.differs:
+                if type(self.data) == dict:
+                    _type = self.fields["type"][3].get()
+                    _type = self.typeDict[_type]
+                    _dict = self.data[_type].__dict__
+                else:
+                    _dict = self.data.__dict__
+                for k,v in self.fields.items():
+                    _ui = v[1]
+                    _var = v[3]
+                    _parse = lambda x: x
+                    methods = [m for m in dir(self.data) if m.lower()\
+                               == "parse"+k.lower()]
+                    if methods:
+                        _parse = self.data.__getattribute__(methods[0])
 
-                if isinstance(_ui,Entry):
-                    _dict[k] = _parse(_var.get())
-                    #Make this clean!
-                    vL = list(v)
-                    vL[0] = _parse(_var.get())
-                    v = tuple(vL)
-                    self.fields[k] = v
+                    if isinstance(_ui,Entry):
+                        _dict[k] = _parse(_var.get())
+                        #Make this clean!
+                        vL = list(v)
+                        vL[0] = _parse(_var.get())
+                        v = tuple(vL)
+                        self.fields[k] = v
 
-                elif isinstance(_ui,ColorOption):
-                    _dict[k] = _parse(_ui.get())
+                    elif isinstance(_ui,ColorOption):
+                        _dict[k] = _parse(_ui.get())
 
-                elif isinstance(_ui,OptionMenu):
-                    _dict[k] = _parse(_var.get())
+                    elif isinstance(_ui,OptionMenu):
+                        _dict[k] = _parse(_var.get())
 
-                elif isinstance(_ui,FileFrame):
-                    _dict[k] = _ui.fileGroup
+                    elif isinstance(_ui,FileFrame):
+                        _dict[k] = _ui.fileGroup
 
         else:
             self.data = data
@@ -552,7 +551,13 @@ class ItemFrame(LabelFrame):
                     self.listFrame.container.addItem(cp)
                     self.listFrame.synchronize()
             elif self.differs:
-                pass
+                _type = self.fields["Type"][3].get()
+                name = self.fields["Choose"][3].get()
+                pool = self.fields["Choose"][0][_type]
+                choice = [p for p in pool if p.name == name][0]
+                if self.listFrame:
+                    self.listFrame.container.addItem(choice)
+                    self.listFrame.synchronize()
             self.empty()
         else:
             title = "Empty Fields"
