@@ -1022,7 +1022,7 @@ class SetupFrame(TabFrame):
     def onSubcomplexes(self):
         subunitNames = self.config.getComponentNames()
         domains = self.config.getDomains()
-        if not (subunitNames and domains):
+        if not (subunitNames or domains):
             title = "No Subunits or Domains yet"
             message = "Please add some subunits or domains before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)

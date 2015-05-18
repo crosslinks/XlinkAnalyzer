@@ -29,7 +29,8 @@ class Item(object):
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
-        _dict.pop("fake")
+        if "fake" in _dict:
+            _dict.pop("fake")
         return _dict
 
     def deserialize(self,_dict):
@@ -192,7 +193,6 @@ class Domain(Item):
         r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
                       chains=self._chainIds)
-        print "call deepcopy,copied: ", id(r)
         return r
 
     def __eq__(self,other):
@@ -298,14 +298,14 @@ class Domain(Item):
             ret = False
         return ret
 
-class Subcomplex(object):
-    SHOW = ["name","color","substructures"]
+class Subcomplex(Item):
+    SHOW = ["name","color","items"]
     def __init__(self,config,fake=False):
         self.name = ""
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.config = config
-        self.substructures = []
-        self.dataMap = dict([("substructures",\
+        self.items = []
+        self.dataMap = dict([("items",\
             [Domain(config=self.config,fake=True),\
              Component(config=self.config,fake=True)])])
 
@@ -323,12 +323,36 @@ class Subcomplex(object):
         copy = Subcomplex(self.config)
         copy.setColor(self.color)
         copy.name = self.name
-        [copy.append(ss) for ss in self.substructures]
+        [copy.append(ss) for ss in self.items]
         return copy
 
     def addItem(self,item):
         if isinstance(item,Domain) or isinstance(item,Component):
-            self.substructures.append(item)
+            self.items.append(item)
+
+    def serialize(self):
+        _dict = super(Subcomplex,self).serialize()
+        _dict.pop("dataMap")
+        _dict["items"] = [item.name for item in self.items]
+        _dict["color"] = self.color.rgba()
+        return _dict
+
+    def deserialize(self,_dict):
+        #CAVEAT: The other items have to been loaded before this
+        super(Subcomplex,self).deserialize(_dict)
+        if type(_dict["color"]) == list:
+            self.color = chimera.MaterialColor(*_dict["color"])
+            _dict.pop("color")
+        for name in _dict["items"]:
+            domain = self.config.getDomains(name)
+            if domain:
+                self.items.append(domain)
+                continue
+            subunit = self.config.getComponentByName(name)
+            if subunit:
+                self.items.append(subunit)
+                self.items.remove(name)
+
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -666,6 +690,7 @@ class Assembly(Item):
                           InteractingResidueItem)])
         components = _dict["subunits"]
         dataItems = _dict["data"]
+        subcomplexes = _dict["items"]
         #TODO: this is a temporary solution
         for compD in components:
             c = Component(compD["name"],self)
@@ -686,7 +711,11 @@ class Assembly(Item):
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
             self.addItem(d)
-        self.domains = self.getAllDomains()
+        self.domains = self.getDomains()
+        for subD in subcomplexes:
+            s = Subcomplex(config=self)
+            s.deserialize(subD)
+            self.addItem(s)
 
     def convert(self,_input):
         """
@@ -735,10 +764,13 @@ class Assembly(Item):
             if item in self.dataItems:
                 self.dataItems.remove(item)
         elif isinstance(item,Domain):
-            if [item==d for d in self.getAllDomains()]:
+            if [item==d for d in self.getDomains()]:
                 self.domains.remove(item)
             if item in item.subunit.domains:
                 item.subunit.domains.remove(item)
+        elif isinstance(item,Subcomplex):
+            if item in self.items:
+                self.items.remove(item)
         self.state = "changed"
 
     def clear(self):
@@ -808,21 +840,10 @@ class Assembly(Item):
             else:
                 return None
         else:
-            return dict([(i.name,i.domains) for i in self.subunits])
-
-    def getDomainByName(self):
-        ret = self.getAllDomains()
-        ret = [d.name for d in ret if d.name == name]
-        if ret:
-            return ret[0]
-        else:
-            return []
-
-    def getAllDomains(self):
-        ret = sum([c.domains for c in self.getComponents()],[])
-        for d in ret:
-            d.config = self
-        return ret
+            ret = sum([c.domains for c in self.getComponents()],[])
+            for d in ret:
+                d.config = self
+            return ret
 
     def getChainIdsByComponentName(self,name=None):
         if name:
@@ -862,6 +883,7 @@ class Assembly(Item):
         _dict["xlinkanalyzerVersion"] = "1.1"
         _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
         _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
+        _dict["items"] = [sub.serialize() for sub in self.subcomplexes]
         return _dict
 
     def dataItems(self):
@@ -941,5 +963,5 @@ if __name__ == "__main__":
         config = Assembly()
         resMngr = ResourceManager(config)
         resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
-        d=config.getAllDomains()[0]
+        d=config.getDomains()[0]
         print d.explore(Domain)

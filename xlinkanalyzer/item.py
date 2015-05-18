@@ -356,6 +356,8 @@ class ItemFrame(LabelFrame):
                 elif k == "Choose":
                     _var = StringVar(self.parent)
                     _names = [dI.name for dI in _data.values()[0]]
+                    if not _names:
+                        _names.append("")
                     _var.set(_names[0])
                     _label = Label(self,text=self.parseName(k)+":")
                     _menu = OptionMenu(self,_var,*_names)
@@ -375,6 +377,7 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_mapFrame,None,None)
 
             elif _UIClass == ItemList and not self.active:
+                print "HERE",_data,_context
                 _itemList = ItemList(self,_data,_context,True)
                 self.fields[k] = (_data,_itemList,None,None)
 
@@ -417,7 +420,6 @@ class ItemFrame(LabelFrame):
                 _ovar = self.fields["Choose"][3]
                 if _type:
                     items = _dict[_type]
-                    print [id(i) for i in items]
                     menu = _omenu["menu"]
                     menu.delete(0, "end")
                     for i in items:
