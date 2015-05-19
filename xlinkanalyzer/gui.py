@@ -189,12 +189,10 @@ class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
             options.append(comp.name)
             self.objectsToOptions.append((comp, comp.name))
 
-        for comp, compDomains in self.xlaConfig.getDomains().iteritems():
-            if len(compDomains) > 0:
-                for dom in compDomains:
-                    domOpt = "{0}, {1}".format(comp, dom.name)
-                    options.append(domOpt)
-                    self.objectsToOptions.append((dom, domOpt))
+        for dom in self.xlaConfig.getDomains():
+            domOpt = "{0}, {1}".format(dom.subunit.name, dom.name)
+            options.append(domOpt)
+            self.objectsToOptions.append((dom, domOpt))
 
         Pmw.OptionMenu.__init__(self, master, menubutton_textvariable=self.var, items=options)
         # self.config(font=('calibri',(10)),bg='white',width=20)
