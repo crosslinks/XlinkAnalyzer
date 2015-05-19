@@ -688,9 +688,9 @@ class Assembly(Item):
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
                           InteractingResidueItem)])
-        components = _dict["subunits"]
-        dataItems = _dict["data"]
-        subcomplexes = _dict["items"]
+        components = _dict.get("subunits")
+        dataItems = _dict.get("data")
+        subcomplexes = _dict.get("items")
         #TODO: this is a temporary solution
         for compD in components:
             c = Component(compD["name"],self)
@@ -712,10 +712,11 @@ class Assembly(Item):
                 d.deserialize(dataD)
             self.addItem(d)
         self.domains = self.getDomains()
-        for subD in subcomplexes:
-            s = Subcomplex(config=self)
-            s.deserialize(subD)
-            self.addItem(s)
+        if subcomplexes:
+            for subD in subcomplexes:
+                s = Subcomplex(config=self)
+                s.deserialize(subD)
+                self.addItem(s)
 
     def convert(self,_input):
         """
