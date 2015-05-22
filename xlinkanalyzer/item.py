@@ -377,7 +377,6 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_mapFrame,None,None)
 
             elif _UIClass == ItemList and not self.active:
-                print "HERE",_data,_context
                 _itemList = ItemList(self,_data,_context,True)
                 self.fields[k] = (_data,_itemList,None,None)
 

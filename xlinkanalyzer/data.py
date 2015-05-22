@@ -343,16 +343,20 @@ class Subcomplex(Item):
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
             _dict.pop("color")
-        for name in _dict["items"]:
-            domain = self.config.getDomains(name)
+        _iter =  [item for item in _dict["items"]]
+        _dict["items"] = []
+        for name in _iter:
+            print "name",name,len(name)
+            domain = self.config.getDomainByName(name)
+            print domain
             if domain:
                 self.items.append(domain)
+                self.items.remove(name)
                 continue
             subunit = self.config.getComponentByName(name)
             if subunit:
                 self.items.append(subunit)
                 self.items.remove(name)
-
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -690,7 +694,7 @@ class Assembly(Item):
                           InteractingResidueItem)])
         components = _dict.get("subunits")
         dataItems = _dict.get("data")
-        subcomplexes = _dict.get("items")
+        subcomplexes = _dict.get("subcomplexes")
         #TODO: this is a temporary solution
         for compD in components:
             c = Component(compD["name"],self)
@@ -846,6 +850,17 @@ class Assembly(Item):
                 d.config = self
             return ret
 
+    def getDomainByName(self,name):
+        allDomains = self.getDomains()
+        if allDomains:
+            candidates = [d for d in allDomains if d.name == name]
+            if candidates:
+                return candidates[0]
+            else:
+                return None
+        else:
+            return None
+
     def getChainIdsByComponentName(self,name=None):
         if name:
             comps = self.getComponents()
@@ -884,7 +899,7 @@ class Assembly(Item):
         _dict["xlinkanalyzerVersion"] = "1.1"
         _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
         _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
-        _dict["items"] = [sub.serialize() for sub in self.subcomplexes]
+        _dict["subcomplexes"] = [sub.serialize() for sub in self.subcomplexes]
         return _dict
 
     def dataItems(self):
