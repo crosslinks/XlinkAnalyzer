@@ -463,9 +463,9 @@ class FileGroup(object):
                 self.addFile(f,_dict["root"])
         self.locate()
 
-    def addFile(self,_file,root=None):
-        if root is None:
-            root = self.root
+    def addFile(self,_file,root):
+        if not self.root:
+            self.root = root
         if not isinstance(_file,File):
             _file = File(_file,root)
         self.files.append(_file)
