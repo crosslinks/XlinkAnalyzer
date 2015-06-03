@@ -10,13 +10,14 @@ import chimera
 import tkMessageBox
 import tkFileDialog
 import pyxlinks
-from os.path import relpath, exists, join, normpath, dirname
+from os.path import relpath, exists, join, normpath, dirname, commonprefix, samefile
 from chimera import MaterialColor
 from MultAlignViewer.parsers import readFASTA
 from pyxlinks import XlinksSet
 
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
+from xlinkanalyzer import getConfig
 
 class Item(object):
     SHOW = ["name"]
@@ -390,48 +391,36 @@ class InteractingResidueItem(SimpleDataItem):
         self.active = True
 
 class File(object):
-    def __init__(self,path="",root=""):
+    def __init__(self,path=""):
         self.path = path
-        self.root = root
 
     def __str__(self):
-        return join(self.root,self.path)
+        return self.path
 
     def __repr__(self):
         return self.__str__()
 
-    def locate(self):
-        path = self.path
-        root = self.root
-        #check for windows paths in unix systems
-        if '\\' in path and _platform == "linux" or _platform == "linux2":
-            path = path.replace('\\','/')
-        if exists(path):
-            path = relpath(path,root)
-        elif exists(join(root,path)):
-            path = path
-        else:
-            print "%s is missing!"%(path)
-        self.path = path
-
     def getResourcePath(self):
-        self.locate()
-        path = normpath(join(self.root,self.path))
+        path = self.path
         if not os.path.exists(path):
             path = ""
         return path
 
     def serialize(self):
-        self.locate()
-        return self.path
+        #Normalize just in case:
+        path = normpath(self.path)
+        root = normpath(getConfig().root)
+        if samefile(commonprefix([root, path]), root): #i.e. if is contained in the project dir
+            return relpath(path, root)
+        else:
+            return self.path
 
     def validate(self):
-        return os.path.exists(join(self.root,self.path))
+        return os.path.exists(self.path)
 
 class FileGroup(object):
-    def __init__(self,files=[],root=""):
+    def __init__(self,files=[]):
         self.files=[]
-        self.root = root
         map(self.addFile,files)
 
     def __iter__(self):
@@ -445,10 +434,10 @@ class FileGroup(object):
         return self.__str__()
 
     def __deepcopy__(self,x):
-        return FileGroup(self.files,self.root)
+        return FileGroup(self.files)
 
     def locate(self):
-        [f.locate() for f in self.files]
+        [f.path for f in self.files]
 
     def validate(self):
         bools = [f.validate() for f in self.files]
@@ -457,21 +446,18 @@ class FileGroup(object):
     def serialize(self):
         self.locate()
         _dict = {}
-        _dict["root"] = self.root
         _dict["files"] = [f.serialize() for f in self.files]
         return _dict
 
     def deserialize(self,_dict):
-        if "root" in _dict and "files" in _dict:
+        if "files" in _dict:
             for f in _dict["files"]:
-                self.addFile(f,_dict["root"])
+                self.addFile(os.path.join(getConfig().root, f))
         self.locate()
 
-    def addFile(self,_file,root):
-        if not self.root:
-            self.root = root
+    def addFile(self,_file):
         if not isinstance(_file,File):
-            _file = File(_file,root)
+            _file = File(_file)
         self.files.append(_file)
 
     def getResourcePaths(self):
@@ -479,7 +465,6 @@ class FileGroup(object):
         return [f.getResourcePath() for f in self.files]
 
     def empty(self):
-        self.root = ""
         self.files = []
 
 class DataItem(Item):
@@ -705,7 +690,7 @@ class Assembly(Item):
                 d = classDir[dataD["type"]]\
                     (dataD["name"],self,dataD["data"])
             elif "resource" in dataD:
-                fileGroup = FileGroup(dataD["resource"],self.root)
+                fileGroup = FileGroup(dataD["resource"])
                 d = classDir[dataD["type"]]\
                     (name=dataD["name"],\
                      config=self,\
