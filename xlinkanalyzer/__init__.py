@@ -1,5 +1,5 @@
 import chimera
-from data import *
+# from data import *
 
 XLINK_ANALYZER_DATA_TYPE = 'Xlink Analyzer'
 XQUEST_DATA_TYPE = 'xquest'
