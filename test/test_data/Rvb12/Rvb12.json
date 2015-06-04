@@ -2,97 +2,42 @@
     "data": [
         {
             "active": true,
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
             "mapping": {
-                "Act": [
-                    ""
-                ],
-                "Arp4": [
-                    ""
-                ],
-                "Arp5": [
-                    ""
-                ],
-                "Arp8": [
-                    ""
-                ],
-                "Ies1": [
-                    ""
-                ],
-                "Ies2": [
-                    ""
-                ],
-                "Ies3": [
-                    ""
-                ],
-                "Ies4": [
-                    ""
-                ],
-                "Ies5": [
-                    ""
-                ],
-                "Ies6": [
-                    ""
-                ],
-                "Ino80": [
-                    ""
-                ],
-                "Nhp10": [
-                    ""
-                ],
                 "Rvb1": [
                     "Rvb1"
                 ],
                 "Rvb2": [
                     "Rvb2"
-                ],
-                "Taf14": [
-                    ""
                 ]
             },
-            "name": "xlinks",
-            "resource": [
-                "xlinks/inter.csv",
-                "xlinks/intra.csv",
-                "xlinks/monolinks.csv"
-            ],
-            "type": "xquest",
-            "xQuestNames": [
-                "Ies6",
-                "Ies5",
-                "Ies4",
-                "Ies3",
-                "Ino80",
-                "Ies1",
-                "Ies2",
-                "Rvb2",
-                "Nhp10",
-                "Rvb1",
-                "Arp8",
-                "Act",
-                "Taf14",
-                "Arp5",
-                "Arp4"
-            ]
+            "name": "x",
+            "type": "xquest"
         },
         {
             "active": true,
-            "informed": false,
-            "mapping": {
-                "sp|Q03940|RUVB1_YEAST RuvB-like protein 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB1 PE=1 SV=1": [
-                    "Rvb1"
-                ],
-                "sp|Q12464|RUVB2_YEAST RuvB-like protein 2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB2 PE=1 SV=1": [
-                    "Rvb2"
+            "fileGroup": {
+                "files": [
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_aamp.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_adp.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex_ZL.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp_violated.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp.csv"
                 ]
             },
-            "name": "sequences",
-            "resource": [
-                "sequences.yeast.fasta"
-            ],
-            "type": "sequences"
+            "mapping": {},
+            "name": "xout",
+            "type": "xquest"
         }
     ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -100,22 +45,15 @@
                 "C",
                 "E"
             ],
-            "chainToComponent": {
-                "A": "Rvb1",
-                "C": "Rvb1",
-                "E": "Rvb1"
-            },
             "color": [
-                0.19607843137254902,
-                0.803921568627451,
-                0.19607843137254902,
+                0.0,
+                1.0,
+                0.0,
                 1.0
             ],
-            "componentToChain": {},
-            "domains": null,
+            "domains": [],
             "name": "Rvb1",
             "selection": ":.A,.C,.E",
-            "sequence": "",
             "type": "component"
         },
         {
@@ -124,24 +62,17 @@
                 "D",
                 "F"
             ],
-            "chainToComponent": {
-                "B": "Rvb2",
-                "D": "Rvb2",
-                "F": "Rvb2"
-            },
             "color": [
-                0.39215686274509803,
-                0.5843137254901961,
-                0.9294117647058824,
+                1.0,
+                0.0,
+                0.0,
                 1.0
             ],
-            "componentToChain": {},
-            "domains": null,
+            "domains": [],
             "name": "Rvb2",
             "selection": ":.B,.D,.F",
-            "sequence": "",
             "type": "component"
         }
     ],
-    "xlinkanalyzerVersion": "0.1"
+    "xlinkanalyzerVersion": "1.1"
 }
