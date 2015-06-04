@@ -1,7 +1,7 @@
 import chimera
 
 import xlinkanalyzer
-from xlinkanalyzer import Assembly, ResourceManager
+from xlinkanalyzer.data import Assembly, ResourceManager
 from xlinkanalyzer.manager import Model
 
 import pyt_TestUtil as util
