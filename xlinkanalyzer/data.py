@@ -402,8 +402,8 @@ class File(object):
 
     def getResourcePath(self):
         path = self.path
-        if not os.path.exists(path):
-            path = ""
+        # if not os.path.exists(path):
+        #     path = ""
         return path
 
     def serialize(self):
@@ -449,10 +449,10 @@ class FileGroup(object):
         _dict["files"] = [f.serialize() for f in self.files]
         return _dict
 
-    def deserialize(self,_dict):
+    def deserialize(self,_dict, root):
         if "files" in _dict:
             for f in _dict["files"]:
-                self.addFile(os.path.join(getConfig().root, f))
+                self.addFile(os.path.join(root, f))
         self.locate()
 
     def addFile(self,_file):
@@ -531,7 +531,7 @@ class DataItem(Item):
         super(DataItem,self).deserialize(_dict)
         if "fileGroup" in _dict:
             fileGroup = FileGroup()
-            fileGroup.deserialize(_dict["fileGroup"])
+            fileGroup.deserialize(_dict["fileGroup"], self.config.root)
             self.__dict__["fileGroup"] = fileGroup
         self.updateData()
 
@@ -690,7 +690,8 @@ class Assembly(Item):
                 d = classDir[dataD["type"]]\
                     (dataD["name"],self,dataD["data"])
             elif "resource" in dataD:
-                fileGroup = FileGroup(dataD["resource"])
+                paths = [os.path.join(self.root, r) for r in dataD["resource"]]
+                fileGroup = FileGroup(paths)
                 d = classDir[dataD["type"]]\
                     (name=dataD["name"],\
                      config=self,\
