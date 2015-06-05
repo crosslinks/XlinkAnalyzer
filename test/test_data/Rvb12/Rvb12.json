@@ -24,17 +24,19 @@
             "active": true,
             "fileGroup": {
                 "files": [
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_aamp.csv",
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_adp.csv",
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex_ZL.csv",
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex.csv",
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp_violated.csv",
-                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp.csv"
+                    "sequences.yeast.fasta"
                 ]
             },
-            "mapping": {},
-            "name": "xout",
-            "type": "xquest"
+            "mapping": {
+                "sp|Q03940|RUVB1_YEAST RuvB-like protein 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB1 PE=1 SV=1": [
+                    "Rvb1"
+                ],
+                "sp|Q12464|RUVB2_YEAST RuvB-like protein 2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB2 PE=1 SV=1": [
+                    "Rvb2"
+                ]
+            },
+            "name": "sequences",
+            "type": "sequences"
         }
     ],
     "subcomplexes": [],
