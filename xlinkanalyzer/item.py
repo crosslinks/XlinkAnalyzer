@@ -167,6 +167,7 @@ class ItemFrame(LabelFrame):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
         self.multiple = False
+        print "lf",type(listFrame)
         if active:
             if type(self.data) == list:
                 self.data = dict([(d.__class__.__name__,deepcopy(d)) \
@@ -755,7 +756,8 @@ class ItemList(LabelFrame):
             self.container = container
         for i,item in enumerate(self.container.__dict__[self.show]):
             if not item in [frame.data for frame in self.frames]:
-                frame = ItemFrame(self.scrolledFrame.interior(),item)
+                frame = ItemFrame(self.scrolledFrame.interior(),\
+                                  item,False,self)
                 frame.grid()
                 self.frames.append(frame)
         self.scrolledFrame.grid()
