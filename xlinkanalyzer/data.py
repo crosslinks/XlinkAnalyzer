@@ -605,12 +605,17 @@ class SequenceItem(DataItem):
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.sequences = {}
         self.data = {}
-        for i,fileName in enumerate(self.resourcePaths()):
-            sequences = readFASTA.parse(fileName)[0]
-            for sequence in sequences:
-                self.sequences[sequence.name] = sequence
-        # self.locate()
 
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                sequences = readFASTA.parse(fileName)[0]
+                for sequence in sequences:
+                    self.sequences[sequence.name] = sequence
+        
     def serialize(self):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
