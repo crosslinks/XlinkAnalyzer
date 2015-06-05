@@ -2,13 +2,14 @@
     "data": [
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_1_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_1_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_1_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_1_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_1_Inter.xls",
+                    "xlinks/Pol1_1_Intra.xls",
+                    "xlinks/Pol1_1_Loop.xls",
+                    "xlinks/Pol1_1_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -43,13 +44,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_2_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_2_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_2_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_2_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_2_Inter.xls",
+                    "xlinks/Pol1_2_Intra.xls",
+                    "xlinks/Pol1_2_Loop.xls",
+                    "xlinks/Pol1_2_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -96,13 +98,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_3_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_3_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_3_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_3_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_3_Inter.xls",
+                    "xlinks/Pol1_3_Intra.xls",
+                    "xlinks/Pol1_3_Loop.xls",
+                    "xlinks/Pol1_3_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -149,13 +152,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_4_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_4_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_4_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_4_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_4_Inter.xls",
+                    "xlinks/Pol1_4_Intra.xls",
+                    "xlinks/Pol1_4_Loop.xls",
+                    "xlinks/Pol1_4_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -205,13 +209,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_5_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_5_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_5_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_5_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_5_Inter.xls",
+                    "xlinks/Pol1_5_Intra.xls",
+                    "xlinks/Pol1_5_Loop.xls",
+                    "xlinks/Pol1_5_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -261,13 +266,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_6_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_6_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_6_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_6_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_6_Inter.xls",
+                    "xlinks/Pol1_6_Intra.xls",
+                    "xlinks/Pol1_6_Loop.xls",
+                    "xlinks/Pol1_6_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -317,13 +323,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_a_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_a_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_a_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_a_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_a_Inter.xls",
+                    "xlinks/Pol1_a_Intra.xls",
+                    "xlinks/Pol1_a_Loop.xls",
+                    "xlinks/Pol1_a_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -370,13 +377,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_b_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_b_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_b_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_b_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_b_Inter.xls",
+                    "xlinks/Pol1_b_Intra.xls",
+                    "xlinks/Pol1_b_Loop.xls",
+                    "xlinks/Pol1_b_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -426,13 +434,14 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_c_Inter.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_c_Intra.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_c_Loop.xls",
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/xlinks/Pol1_c_Mono.xls"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_c_Inter.xls",
+                    "xlinks/Pol1_c_Intra.xls",
+                    "xlinks/Pol1_c_Loop.xls",
+                    "xlinks/Pol1_c_Mono.xls"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
@@ -479,10 +488,11 @@
         },
         {
             "active": true,
-            "fileGroup": [
-                "/struct/cmueller/kosinski/devel/XlinkAnalyzer/test/test_data/PolI/PolI_sequences.fasta"
-            ],
-            "informed": false,
+            "fileGroup": {
+                "files": [
+                    "PolI_sequences.fasta"
+                ]
+            },
             "mapping": {
                 "sp|P07703|RPAC1_YEAST DNA-directed RNA polymerases I and III subunit RPAC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC40 PE=1 SV=1": [
                     "AC40"
@@ -531,21 +541,18 @@
             "type": "sequences"
         }
     ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
                 "A"
             ],
-            "chainToComponent": {
-                "A": "A190"
-            },
             "color": [
                 0.745,
                 0.745,
                 0.745,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A190",
             "selection": ":.A",
@@ -556,16 +563,12 @@
             "chainIds": [
                 "B"
             ],
-            "chainToComponent": {
-                "B": "A135"
-            },
             "color": [
                 0.99,
                 0.82,
                 0.65,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A135",
             "selection": ":.B",
@@ -576,16 +579,12 @@
             "chainIds": [
                 "C"
             ],
-            "chainToComponent": {
-                "C": "AC40"
-            },
             "color": [
                 1.0,
                 0.0,
                 0.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "AC40",
             "selection": ":.C",
@@ -596,16 +595,12 @@
             "chainIds": [
                 "D"
             ],
-            "chainToComponent": {
-                "D": "A14"
-            },
             "color": [
                 1.0,
                 0.0,
                 0.5,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A14",
             "selection": ":.D",
@@ -616,16 +611,12 @@
             "chainIds": [
                 "E"
             ],
-            "chainToComponent": {
-                "E": "ABC27"
-            },
             "color": [
                 0.8156862745098039,
                 0.12549019607843137,
                 0.5647058823529412,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "ABC27",
             "selection": ":.E",
@@ -636,16 +627,12 @@
             "chainIds": [
                 "F"
             ],
-            "chainToComponent": {
-                "F": "ABC23"
-            },
             "color": [
                 0.0,
                 1.0,
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "ABC23",
             "selection": ":.F",
@@ -656,16 +643,12 @@
             "chainIds": [
                 "G"
             ],
-            "chainToComponent": {
-                "G": "A43"
-            },
             "color": [
                 0.0,
                 0.5,
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A43",
             "selection": ":.G",
@@ -676,16 +659,12 @@
             "chainIds": [
                 "H"
             ],
-            "chainToComponent": {
-                "H": "ABC14.5"
-            },
             "color": [
                 0.0,
                 1.0,
                 0.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "ABC14.5",
             "selection": ":.H",
@@ -696,16 +675,12 @@
             "chainIds": [
                 "I"
             ],
-            "chainToComponent": {
-                "I": "A12"
-            },
             "color": [
                 1.0,
                 1.0,
                 0.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A12",
             "selection": ":.I",
@@ -716,16 +691,12 @@
             "chainIds": [
                 "J"
             ],
-            "chainToComponent": {
-                "J": "ABC10beta"
-            },
             "color": [
                 0.5,
                 1.0,
                 0.5,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "ABC10beta",
             "selection": ":.J",
@@ -736,16 +707,12 @@
             "chainIds": [
                 "K"
             ],
-            "chainToComponent": {
-                "K": "AC19"
-            },
             "color": [
                 1.0,
                 0.6470588235294118,
                 0.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "AC19",
             "selection": ":.K",
@@ -756,16 +723,12 @@
             "chainIds": [
                 "L"
             ],
-            "chainToComponent": {
-                "L": "ABC10alpha"
-            },
             "color": [
                 0.0,
                 0.0,
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "ABC10alpha",
             "selection": ":.L",
@@ -776,34 +739,13 @@
             "chainIds": [
                 "M"
             ],
-            "chainToComponent": {
-                "M": "A49"
-            },
             "color": [
                 0.6,
                 0.1,
                 0.6,
                 1.0
             ],
-            "componentToChain": {},
-            "domains": [
-                {
-                    "_chainIds": "",
-                    "color": [
-                        0.5450980392156862,
-                        0.0,
-                        0.0,
-                        1.0
-                    ],
-                    "name": "A49-tWH",
-                    "ranges": [
-                        [
-                            172,
-                            401
-                        ]
-                    ]
-                }
-            ],
+            "domains": [],
             "name": "A49",
             "selection": ":.M",
             "sequence": "",
@@ -813,16 +755,12 @@
             "chainIds": [
                 "N"
             ],
-            "chainToComponent": {
-                "N": "A34.5"
-            },
             "color": [
                 0.439215686,
                 0.831372549,
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": [],
             "name": "A34.5",
             "selection": ":.N",
@@ -830,5 +768,5 @@
             "type": "component"
         }
     ],
-    "xlinkanalyzerVersion": "1.0"
+    "xlinkanalyzerVersion": "1.1"
 }
