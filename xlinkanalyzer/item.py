@@ -167,7 +167,6 @@ class ItemFrame(LabelFrame):
         LabelFrame.__init__(self,parent,*args,**kwargs)
         self.data = data
         self.multiple = False
-        print "lf",type(listFrame)
         if active:
             if type(self.data) == list:
                 self.data = dict([(d.__class__.__name__,deepcopy(d)) \
@@ -435,7 +434,7 @@ class ItemFrame(LabelFrame):
             _label = self.fields[k][2]
 
             if isinstance(_ui,Entry):
-                _label.grid(column=c,row=0)
+                _label.grid(column=c,row=0,sticky="E")
                 c+=1
                 _ui.grid(column=c,row=0,pady=5,padx=3)
                 c+=1
@@ -449,7 +448,7 @@ class ItemFrame(LabelFrame):
                     c+=1
 
             elif isinstance(_ui,OptionMenu):
-                _label.grid(column=c,row=0)
+                _label.grid(column=c,row=0,sticky="E")
                 c+=1
                 _ui.grid(column=c,row=0,pady=5,padx=3)
                 c+=1
@@ -709,8 +708,8 @@ class ItemList(LabelFrame):
                        "hull_height":400}
         elif isinstance(self.parent,ItemFrame):
             options = {"usehullsize":1,\
-                       "hull_width":200,\
-                       "hull_height":100}
+                       "hull_width":540,\
+                       "hull_height":150}
         else:
             options = {"usehullsize":1,\
                        "hull_width":460,\
@@ -733,20 +732,15 @@ class ItemList(LabelFrame):
         r += 1
 
         for i,frame in enumerate(self.frames):
-            frame.grid(sticky="WE",row=i,column=0)
+            frame.grid(row=i,column=0,sticky="W",columnspan=2)
 
-        #self.scrolledFrame.grid(sticky = "WESN",row=r)
         self.scrolledFrame.grid(sticky = "WESN",row=r)
-
 
         r += 1
         if isinstance(self.parent,Toplevel):
             self.quit.grid(sticky="WE",row=r,column=0)
             self.grid()
             self.parent.grid()
-        else:
-            pass
-            #self.grid()
 
     def grid(self,*args,**kwargs):
         LabelFrame.grid(self,*args,pady=2,**kwargs)
@@ -758,7 +752,7 @@ class ItemList(LabelFrame):
             if not item in [frame.data for frame in self.frames]:
                 frame = ItemFrame(self.scrolledFrame.interior(),\
                                   item,False,self)
-                frame.grid()
+                frame.grid(sticky="W")
                 self.frames.append(frame)
         self.scrolledFrame.grid()
         self.grid()
