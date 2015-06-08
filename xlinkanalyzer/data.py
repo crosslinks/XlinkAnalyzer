@@ -436,15 +436,15 @@ class FileGroup(object):
     def __deepcopy__(self,x):
         return FileGroup(self.files)
 
-    def locate(self):
-        [f.path for f in self.files]
+    # def locate(self):
+    #     [f.path for f in self.files]
 
     def validate(self):
         bools = [f.validate() for f in self.files]
         return reduce(lambda x,y:x and y,bools,True)
 
     def serialize(self):
-        self.locate()
+        # self.locate()
         _dict = {}
         _dict["files"] = [f.serialize() for f in self.files]
         return _dict
@@ -453,7 +453,7 @@ class FileGroup(object):
         if "files" in _dict:
             for f in _dict["files"]:
                 self.addFile(os.path.join(root, f))
-        self.locate()
+        # self.locate()
 
     def addFile(self,_file):
         if not isinstance(_file,File):
@@ -461,7 +461,7 @@ class FileGroup(object):
         self.files.append(_file)
 
     def getResourcePaths(self):
-        self.locate()
+        # self.locate()
         return [f.getResourcePath() for f in self.files]
 
     def empty(self):
@@ -521,8 +521,8 @@ class DataItem(Item):
     def parseFiles(self,filePaths):
         map(self.fileGroup.addFile,filePaths)
 
-    def locate(self):
-        self.fileGroup.locate()
+    # def locate(self):
+    #     self.fileGroup.locate()
 
     def resourcePaths(self):
         return [f.getResourcePath() for f in self.fileGroup]
@@ -536,7 +536,7 @@ class DataItem(Item):
         self.updateData()
 
     def serialize(self):
-        self.locate()
+        # self.locate()
         _dict = super(DataItem,self).serialize()
         _dict["fileGroup"] = self.fileGroup.serialize()
         if "data" in _dict:
@@ -562,7 +562,7 @@ class XQuestItem(DataItem):
         self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
-        self.locate()
+        # self.locate()
         self.updateData()
 
     def __deepycopy__(self,x):
@@ -605,12 +605,17 @@ class SequenceItem(DataItem):
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.sequences = {}
         self.data = {}
-        for i,fileName in enumerate(self.resourcePaths()):
-            sequences = readFASTA.parse(fileName)[0]
-            for sequence in sequences:
-                self.sequences[sequence.name] = sequence
-        self.locate()
 
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                sequences = readFASTA.parse(fileName)[0]
+                for sequence in sequences:
+                    self.sequences[sequence.name] = sequence
+        
     def serialize(self):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
@@ -910,9 +915,9 @@ class Assembly(Item):
 
         return cfg
 
-    def locate(self):
-        for item in self.dataItems:
-            item.locate()
+    # def locate(self):
+    #     for item in self.dataItems:
+    #         item.locate()
 
 class ResourceManager(object):
     def __init__(self,config):
@@ -929,7 +934,7 @@ class ResourceManager(object):
         else:
             _file = self.config.file
         if _file:
-            self.config.locate()
+            # self.config.locate()
             self.dumpJson(_file)
             self.config.file = _file
             self.state = "unchanged"
