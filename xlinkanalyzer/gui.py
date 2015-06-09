@@ -3,6 +3,7 @@ import string
 import csv
 from sys import platform as _platform
 from functools import partial
+from sys import __stdout__
 
 import chimera
 from chimera import selection

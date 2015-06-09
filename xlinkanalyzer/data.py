@@ -5,6 +5,7 @@ from numpy import unique
 from sys import platform as _platform
 from copy import deepcopy
 from collections import deque
+from sys import __stdout__
 
 import chimera
 import tkMessageBox

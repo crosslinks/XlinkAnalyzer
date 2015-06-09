@@ -8,6 +8,7 @@ import csv
 import copy
 from itertools import product, groupby, tee, izip, izip_longest, combinations_with_replacement
 from collections import defaultdict
+from sys import __stdout__
 
 from chimera import runCommand, Bond, selection
 from chimera.misc import getPseudoBondGroup

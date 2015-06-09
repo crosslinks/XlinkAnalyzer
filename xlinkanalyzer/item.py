@@ -1,6 +1,7 @@
 
 import re
 import inspect
+from sys import __stdout__
 
 from collections import OrderedDict
 from copy import deepcopy
