@@ -831,7 +831,7 @@ class ModelSelect(object):
         box = CustomMoleculeScrolledListBox(master,
             listbox_selectmode="extended",
             labelpos="nw",
-            label_text="Choose models(s) to act on:"
+            label_text="Choose models to act on:"
             )
 
         if len(self.children) > 0:
