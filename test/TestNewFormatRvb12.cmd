@@ -1,1 +1,0 @@
-testsuite run TestNewFormatRvb12
