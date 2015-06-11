@@ -286,7 +286,7 @@ class Domain(Item):
              Name:\t%s\n\
              Color:\t%s\n\
              Ranges:\t%s\n\
-             Subununit:\t%s\n"%(self.name,self.color.rgba(),\
+             Subunit:\t%s\n"%(self.name,self.color.rgba(),\
                                 self.rangesToString(),subName)
         return str(s)
 
