@@ -39,6 +39,7 @@ from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
 from xlinkanalyzer import getConfig
+from xlinkanalyzer import move as xmove
 ###########
 # TEMPORARY
 ###########
@@ -75,8 +76,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         ModelessDialog.__init__(self, **kw)
 
-
         self.configCfgs = []
+        self.mover = xmove.ComponentMover()
 
     def destroy(self):
         self.modelSelect.destroy()
