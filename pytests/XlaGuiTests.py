@@ -22,7 +22,6 @@ class XlaBaseTest(unittest.TestCase):
         [chimera.openModels.open(_path) for _path in self.xlaTestMPaths]
         self.models = chimera.openModels.list()
 
-    def testGui(self):
         gui.show_dialog()
         guiWin = xlinkanalyzer.get_gui()
         guiWin.configFrame.resMngr.loadAssembly(guiWin, self.xlaTestCPath)
