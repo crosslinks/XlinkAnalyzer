@@ -30,5 +30,5 @@ class TestMover(XlaGuiTests.XlaBaseTest):
         name = 'Rvb1'
         # xla.activateByName(name)
         # xla.activateByName(name, 'A')
-        xla.activateByName(name, 'A', 'C')
+        xla.activateByName(name, ['A', 'B'])
         #move around, should move

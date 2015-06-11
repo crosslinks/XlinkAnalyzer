@@ -1121,7 +1121,7 @@ class ComponentsTabFrame(TabFrame):
 
         self.mover = xmove.ComponentMover()
         self.mover.mode = xmove.COMPONENT_MOVEMENT
-        self.activeComponents = []
+        self.activeComponents = []  # For testing purposes, to be substituted by getActiveComponents()
 
     def getActiveComponents(self):
         #TODO: collect subunits, domains and subcomplexes marked as active,
@@ -1130,9 +1130,10 @@ class ComponentsTabFrame(TabFrame):
 
     def getCurrentSelections(self):
         sels = []
-        print self.activeComponents
         for comp, chainId in self.activeComponents:
-            sels.append(comp.getSelectionsByChain()[chainId])
+            selsForComp = comp.getSelectionsByChain()
+            if selsForComp.get(chainId):
+                sels.append(selsForComp[chainId])
 
         return sels
 
