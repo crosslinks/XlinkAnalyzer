@@ -110,6 +110,14 @@ class Component(Item):
     def getSelection(self):
         return self.selection
 
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        out = {}
+        for chainId in self.chainIds:
+            out[chainId] = ':.{0}'.format(chainId)
+
+        return out
+
     def createComponentSelectionFromChains(self, chainIds = None):
         if chainIds is None:
             chainIds = self.chainIds
@@ -213,6 +221,7 @@ class Domain(Item):
             return False
 
     def getSelection(self):
+        '''Get selection that acts on all chains of the corresponding subunit'''
         rStrings = []
         for oneRange in self.ranges:
             if len(oneRange) == 1:
@@ -225,6 +234,21 @@ class Domain(Item):
             forString.append('{0}.{1}'.format(oneRange, chainId))
 
         return ':' + ','.join(forString)
+
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        out = {}
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            out[chainId] = ':{0}.{1}'.format(oneRange,chainId)
+
+        return out
 
     def subunitToString(self,subunit):
         return subunit.name

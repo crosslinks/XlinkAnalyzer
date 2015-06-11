@@ -15,8 +15,8 @@ description = "Tests gui class"
 class TestMover(XlaGuiTests.XlaBaseTest):
 
     def setUp(self):
-        mPaths = ['PolI/4C3H.pdb']
-        cPath = 'PolI/PolI_components.json'
+        mPaths = ['Rvb12/yRvb12.hexamer.pdb']
+        cPath = 'Rvb12/Rvb12.json'
         super(TestMover, self).setUp(mPaths, cPath)
 
     def testMover(self):
@@ -27,7 +27,7 @@ class TestMover(XlaGuiTests.XlaBaseTest):
 
         # xla.get_gui().Components.modelSelect.selection_set(0)
         # xla.get_gui().Components.modelSelect.setvalue(chimera.openModels.list())
-        # name = 'A190'
-        # name = 'testdom'
-        xla.activateByName(name)
+        name = 'Rvb1'
+        # xla.activateByName(name)
+        xla.activateByName(name, 'A')
         #move around, should move

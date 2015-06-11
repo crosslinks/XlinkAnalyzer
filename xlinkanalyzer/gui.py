@@ -1128,6 +1128,14 @@ class ComponentsTabFrame(TabFrame):
         #and return as list
         return self.activeComponents
 
+    def getCurrentSelections(self):
+        sels = []
+        print self.activeComponents
+        for comp, chainId in self.activeComponents:
+            sels.append(comp.getSelectionsByChain()[chainId])
+
+        return sels
+
     def getMovableAtomSpecs(self):
         activeModelIds = []
         self.getActiveModels()
@@ -1135,11 +1143,11 @@ class ComponentsTabFrame(TabFrame):
             if model.active:
                 activeModelIds.append(model.getModelId())
 
-        activeComponents = self.getActiveComponents()
+        currentSelections = self.getCurrentSelections()
 
         atomSpecs = []
-        for modelId, comp in itertools.product(activeModelIds, activeComponents):
-            atomSpecs.append('#{0}{1}'.format(modelId, comp.getSelection()))
+        for modelId, sel in itertools.product(activeModelIds, currentSelections):
+            atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
 
