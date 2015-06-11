@@ -3,6 +3,7 @@ import string
 import csv
 from sys import platform as _platform
 from functools import partial
+import itertools
 from sys import __stdout__
 
 import chimera
@@ -77,7 +78,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         ModelessDialog.__init__(self, **kw)
 
         self.configCfgs = []
-        self.mover = xmove.ComponentMover()
 
     def destroy(self):
         self.modelSelect.destroy()
@@ -106,7 +106,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
         print xlinkanalyzer.get_gui()
-        self.addTab('Subunits', ComponentsTabFrame)
+        self.addTab('Components', ComponentsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
@@ -1116,6 +1116,34 @@ class ComponentsTabFrame(TabFrame):
 
         Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
 
+
+######### TEMPORARY, TO BE MOVED TO ComponentPanel #############
+
+        self.mover = xmove.ComponentMover()
+
+    def getActiveComponents(self):
+        #TODO: collect .selection attributes of 
+        #subunits, domains and subcomplexes marked as active,
+        #and return as list
+        return [getConfig().subunits[0].selection]
+
+    def getMovableAtomSpecs(self):
+        activeModelIds = []
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:        
+                activeModelIds.append(model.getModelId())
+
+        activeComponents = self.getActiveComponents()
+
+        atomSpecs = []
+        for modelId, comp in itertools.product(activeModelIds, activeComponents):
+            atomSpecs.append('#{0}:{1}'.format(modelId, comp.selection))
+
+        return [getConfig().subunits[0].selection]
+
+######### END OF TEMPORARY                         #############
+
     def clear(self):
         for child in self.winfo_children():
             child.destroy()
@@ -1252,6 +1280,8 @@ class ComponentsTabFrame(TabFrame):
         for model in self.models:
             if model.active:
                 model.colorAll()
+
+
 
 class LdScoreFilterEntry(EntryField):
     def __init__(self, parent, var, command):
