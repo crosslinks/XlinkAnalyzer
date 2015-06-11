@@ -21,3 +21,13 @@ def getConfig():
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta.configFrame.config
 
+def activateByName(name):  # this is for testing only
+    if name is not None:
+        comp = getConfig().getComponentByName(name)
+        if not comp:
+            comp = getConfig().getDomainByName(name)
+
+        if comp:
+            get_gui().Components.activeComponents = [comp]
+    else:
+        get_gui().Components.activeComponents = []

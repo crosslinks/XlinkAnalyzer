@@ -1,3 +1,5 @@
+import chimera
+
 import XlaGuiTests
 
 import xlinkanalyzer as xla
@@ -14,21 +16,18 @@ class TestMover(XlaGuiTests.XlaBaseTest):
 
     def setUp(self):
         mPaths = ['PolI/4C3H.pdb']
-        cPath = 'PolI/PolI.json'
+        cPath = 'PolI/PolI_components.json'
         super(TestMover, self).setUp(mPaths, cPath)
 
     def testMover(self):
         m = xla.get_gui().Components.mover
-        self.assertEqual('move normal', m.mode)
-        self.assertEqual('move component', m.COMPONENT_MOVEMENT)
-
         m.mode = xmove.COMPONENT_MOVEMENT
 
         self.assertEqual('move component', m.mode)
 
-        # from MoveSelection import Selection_Mover
-        # from chimera import runCommand as rc
-        # m.mode = Selection_Mover.MOVE_SELECTION
-        # rc('select :.A')
-        m.mode = xmove.COMPONENT_MOVEMENT
-        #move around, should not move
+        # xla.get_gui().Components.modelSelect.selection_set(0)
+        # xla.get_gui().Components.modelSelect.setvalue(chimera.openModels.list())
+        # name = 'A190'
+        name = 'testdom'
+        xla.activateByName(name)
+        #move around, should move

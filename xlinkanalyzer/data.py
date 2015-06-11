@@ -5,6 +5,7 @@ from numpy import unique
 from sys import platform as _platform
 from copy import deepcopy
 from collections import deque
+import itertools
 from sys import __stdout__
 
 import chimera
@@ -105,6 +106,9 @@ class Component(Item):
 
     def setSelection(self,sel):
         self.selection = sel
+
+    def getSelection(self):
+        return self.selection
 
     def createComponentSelectionFromChains(self, chainIds = None):
         if chainIds is None:
@@ -207,6 +211,20 @@ class Domain(Item):
                 return False
         else:
             return False
+
+    def getSelection(self):
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        forString = []
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            forString.append('{0}.{1}'.format(oneRange, chainId))
+
+        return ':' + ','.join(forString)
 
     def subunitToString(self,subunit):
         return subunit.name
@@ -348,9 +366,7 @@ class Subcomplex(Item):
         _iter =  [item for item in _dict["items"]]
         _dict["items"] = []
         for name in _iter:
-            print "name",name,len(name)
             domain = self.config.getDomainByName(name)
-            print domain
             if domain:
                 self.items.append(domain)
                 self.items.remove(name)

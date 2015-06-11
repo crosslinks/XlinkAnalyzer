@@ -1120,27 +1120,28 @@ class ComponentsTabFrame(TabFrame):
 ######### TEMPORARY, TO BE MOVED TO ComponentPanel #############
 
         self.mover = xmove.ComponentMover()
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
+        self.activeComponents = []
 
     def getActiveComponents(self):
-        #TODO: collect .selection attributes of 
-        #subunits, domains and subcomplexes marked as active,
+        #TODO: collect subunits, domains and subcomplexes marked as active,
         #and return as list
-        return [getConfig().subunits[0].selection]
+        return self.activeComponents
 
     def getMovableAtomSpecs(self):
         activeModelIds = []
         self.getActiveModels()
         for model in self.models:
-            if model.active:        
+            if model.active:
                 activeModelIds.append(model.getModelId())
 
         activeComponents = self.getActiveComponents()
 
         atomSpecs = []
         for modelId, comp in itertools.product(activeModelIds, activeComponents):
-            atomSpecs.append('#{0}:{1}'.format(modelId, comp.selection))
+            atomSpecs.append('#{0}{1}'.format(modelId, comp.getSelection()))
 
-        return [getConfig().subunits[0].selection]
+        return atomSpecs
 
 ######### END OF TEMPORARY                         #############
 
@@ -1153,8 +1154,8 @@ class ComponentsTabFrame(TabFrame):
         if len(cfg.getComponentNames()) > 0:
             self.clear()
 
-            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
-            modelSelect.pack(anchor='w', fill = 'both', pady=1)
+            self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            self.modelSelect.pack(anchor='w', fill = 'both', pady=1)
 
             # curRow = 0
             f1 = Tkinter.Frame(self)
