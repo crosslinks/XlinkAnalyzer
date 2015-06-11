@@ -29,5 +29,6 @@ class TestMover(XlaGuiTests.XlaBaseTest):
         # xla.get_gui().Components.modelSelect.setvalue(chimera.openModels.list())
         name = 'Rvb1'
         # xla.activateByName(name)
-        xla.activateByName(name, 'A')
+        # xla.activateByName(name, 'A')
+        xla.activateByName(name, 'A', 'C')
         #move around, should move
