@@ -28,6 +28,8 @@ def activateByName(name, chainIds=None):  # this is for testing only
         comp = getConfig().getComponentByName(name)
         if not comp:
             comp = getConfig().getDomainByName(name)
+            if not comp:
+                comp = getConfig().getSubcomplexByName(name)
 
         if comp:
             if not chainIds:
@@ -35,7 +37,14 @@ def activateByName(name, chainIds=None):  # this is for testing only
                     chainIds = comp.chainIds
                 elif hasattr(comp, 'subunit'):
                     chainIds = comp.subunit.chainIds
-
+                else:
+                    #must be subcomplex:
+                    chainIds = []
+                    for item in comp.items:
+                        if hasattr(item, 'chainIds'):
+                            chainIds.extend(item.chainIds)
+                        elif hasattr(item, 'subunit'):
+                            chainIds.extend(item.subunit.chainIds)
             for chainId in chainIds:
                 get_gui().Components.activeComponents.append((comp, chainId))
     else:

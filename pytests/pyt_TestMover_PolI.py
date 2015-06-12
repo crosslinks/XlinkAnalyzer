@@ -28,6 +28,7 @@ class TestMover(XlaGuiTests.XlaBaseTest):
         # xla.get_gui().Components.modelSelect.selection_set(0)
         # xla.get_gui().Components.modelSelect.setvalue(chimera.openModels.list())
         # name = 'A190'
-        # name = 'testdom'
+        name = 'testdom'
+        # name = 'testsubcomplex'
         xla.activateByName(name)
         #move around, should move

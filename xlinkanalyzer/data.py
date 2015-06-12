@@ -7,6 +7,7 @@ from copy import deepcopy
 from collections import deque
 import itertools
 from sys import __stdout__
+from collections import defaultdict
 
 import chimera
 import tkMessageBox
@@ -112,9 +113,9 @@ class Component(Item):
 
     def getSelectionsByChain(self):
         '''Return {chain_id: selection} object for use in selecting subset of chains.'''
-        out = {}
+        out = defaultdict(list)
         for chainId in self.chainIds:
-            out[chainId] = ':.{0}'.format(chainId)
+            out[chainId].append([':.{0}'.format(chainId)])
 
         return out
 
@@ -244,9 +245,9 @@ class Domain(Item):
             elif len(oneRange) == 2:
                 rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
 
-        out = {}
+        out = defaultdict(list)
         for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
-            out[chainId] = ':{0}.{1}'.format(oneRange,chainId)
+            out[chainId].append([':{0}.{1}'.format(oneRange,chainId)])
 
         return out
 
@@ -399,6 +400,15 @@ class Subcomplex(Item):
             if subunit:
                 self.items.append(subunit)
                 self.items.remove(name)
+
+    def getSelectionsByChain(self):
+        out = defaultdict(list)
+
+        for item in self.items:
+            for chainId, sel in item.getSelectionsByChain().iteritems():
+                out[chainId].extend(sel)
+
+        return out
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -892,6 +902,11 @@ class Assembly(Item):
                 return None
         else:
             return None
+
+    def getSubcomplexByName(self,name):
+        for subcomp in self.subcomplexes:
+            if subcomp.name == name:
+                return subcomp
 
     def getChainIdsByComponentName(self,name=None):
         if name:

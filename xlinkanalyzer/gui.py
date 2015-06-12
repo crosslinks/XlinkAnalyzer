@@ -105,7 +105,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
-        print xlinkanalyzer.get_gui()
+
         self.addTab('Components', ComponentsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
@@ -135,7 +135,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         color = self.currAddComponentFrame.coloropt.get()
         chains = self.currAddComponentFrame.chainEntryField.get()
         chains = [x.strip() for x in chains.split(',')]
-        print 'chain', chains
 
         self.addComponentToCfg(cfgName, name, color=color, chains=chains)
 
@@ -786,7 +785,7 @@ class XlinksHistogram(MPLDialog):
                 colors.append('#CC0000')
             else:
                 colors.append('#348ABD') #blue
-            print bin, colors[-1]
+
         n, bins, patches = ax.hist(self.lengths, bins=bins, rwidth=.5)
         for c, p in zip(colors, patches):
             p.set_color(c)
@@ -1133,7 +1132,7 @@ class ComponentsTabFrame(TabFrame):
         for comp, chainId in self.activeComponents:
             selsForComp = comp.getSelectionsByChain()
             if selsForComp.get(chainId):
-                sels.append(selsForComp[chainId])
+                sels.extend(selsForComp[chainId])
 
         return sels
 
@@ -1145,10 +1144,10 @@ class ComponentsTabFrame(TabFrame):
                 activeModelIds.append(model.getModelId())
 
         currentSelections = self.getCurrentSelections()
-
         atomSpecs = []
-        for modelId, sel in itertools.product(activeModelIds, currentSelections):
-            atomSpecs.append('#{0}{1}'.format(modelId, sel))
+        for modelId, sels in itertools.product(activeModelIds, currentSelections):
+            for sel in sels:
+                atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
 
