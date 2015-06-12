@@ -21,12 +21,9 @@ class TestMover(XlaGuiTests.XlaBaseTest):
 
     def testMover(self):
         m = xla.get_gui().Components.mover
-        m.mode = xmove.COMPONENT_MOVEMENT
 
         self.assertEqual('move component', m.mode)
 
-        # xla.get_gui().Components.modelSelect.selection_set(0)
-        # xla.get_gui().Components.modelSelect.setvalue(chimera.openModels.list())
         # name = 'A190'
         name = 'testdom'
         # name = 'testsubcomplex'
