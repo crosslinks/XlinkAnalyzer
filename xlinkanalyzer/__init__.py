@@ -16,8 +16,36 @@ def get_gui():
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta
 
+
 def getConfig():
     for insta in chimera.extension.manager.instances:
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta.configFrame.config
 
+
+def activateByName(name, chainIds=None):  # this is for testing only
+    if name is not None:
+        comp = getConfig().getComponentByName(name)
+        if not comp:
+            comp = getConfig().getDomainByName(name)
+            if not comp:
+                comp = getConfig().getSubcomplexByName(name)
+
+        if comp:
+            if not chainIds:
+                if hasattr(comp, 'chainIds'):
+                    chainIds = comp.chainIds
+                elif hasattr(comp, 'subunit'):
+                    chainIds = comp.subunit.chainIds
+                else:
+                    #must be subcomplex:
+                    chainIds = []
+                    for item in comp.items:
+                        if hasattr(item, 'chainIds'):
+                            chainIds.extend(item.chainIds)
+                        elif hasattr(item, 'subunit'):
+                            chainIds.extend(item.subunit.chainIds)
+            for chainId in chainIds:
+                get_gui().Components.activeComponents.append((comp, chainId))
+    else:
+        get_gui().Components.activeComponents = []

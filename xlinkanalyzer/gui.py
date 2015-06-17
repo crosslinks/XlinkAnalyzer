@@ -3,6 +3,8 @@ import string
 import csv
 from sys import platform as _platform
 from functools import partial
+import itertools
+from sys import __stdout__
 
 import chimera
 from chimera import selection
@@ -38,6 +40,7 @@ from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
 from xlinkanalyzer import getConfig
+from xlinkanalyzer import move as xmove
 ###########
 # TEMPORARY
 ###########
@@ -74,7 +77,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         ModelessDialog.__init__(self, **kw)
 
-
         self.configCfgs = []
 
     def destroy(self):
@@ -103,8 +105,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
-        print xlinkanalyzer.get_gui()
-        self.addTab('Subunits', ComponentsTabFrame)
+
+        self.addTab('Components', ComponentsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
@@ -133,7 +135,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         color = self.currAddComponentFrame.coloropt.get()
         chains = self.currAddComponentFrame.chainEntryField.get()
         chains = [x.strip() for x in chains.split(',')]
-        print 'chain', chains
 
         self.addComponentToCfg(cfgName, name, color=color, chains=chains)
 
@@ -784,7 +785,7 @@ class XlinksHistogram(MPLDialog):
                 colors.append('#CC0000')
             else:
                 colors.append('#348ABD') #blue
-            print bin, colors[-1]
+
         n, bins, patches = ax.hist(self.lengths, bins=bins, rwidth=.5)
         for c, p in zip(colors, patches):
             p.set_color(c)
@@ -831,7 +832,7 @@ class ModelSelect(object):
         box = CustomMoleculeScrolledListBox(master,
             listbox_selectmode="extended",
             labelpos="nw",
-            label_text="Choose models(s) to act on:"
+            label_text="Choose models to act on:"
             )
 
         if len(self.children) > 0:
@@ -1115,6 +1116,44 @@ class ComponentsTabFrame(TabFrame):
         self.table = ComponentTable(self)
         self.table.grid()
 
+
+######### TEMPORARY, TO BE MOVED TO ComponentPanel #############
+
+        self.mover = xmove.ComponentMover()
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
+        self.activeComponents = []  # For testing purposes, to be substituted by getActiveComponents()
+
+    def getActiveComponents(self):
+        #TODO: collect subunits, domains and subcomplexes marked as active,
+        #and return as list
+        return self.activeComponents
+
+    def getCurrentSelections(self):
+        sels = []
+        for comp, chainId in self.activeComponents:
+            selsForComp = comp.getSelectionsByChain()
+            if selsForComp.get(chainId):
+                sels.extend(selsForComp[chainId])
+
+        return sels
+
+    def getMovableAtomSpecs(self):
+        activeModelIds = []
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                activeModelIds.append(model.getModelId())
+
+        currentSelections = self.getCurrentSelections()
+        atomSpecs = []
+        for modelId, sels in itertools.product(activeModelIds, currentSelections):
+            for sel in sels:
+                atomSpecs.append('#{0}{1}'.format(modelId, sel))
+
+        return atomSpecs
+
+######### END OF TEMPORARY                         #############
+
     def clear(self):
         for child in self.winfo_children():
             child.destroy()
@@ -1124,8 +1163,8 @@ class ComponentsTabFrame(TabFrame):
         if len(cfg.getComponentNames()) > 0:
             self.clear()
 
-            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
-            modelSelect.pack(anchor='w', fill = 'both', pady=1)
+            self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            self.modelSelect.pack(anchor='w', fill = 'both', pady=1)
 
             # curRow = 0
             f1 = Tkinter.Frame(self)
@@ -1251,6 +1290,8 @@ class ComponentsTabFrame(TabFrame):
         for model in self.models:
             if model.active:
                 model.colorAll()
+
+
 
 class LdScoreFilterEntry(EntryField):
     def __init__(self, parent, var, command):

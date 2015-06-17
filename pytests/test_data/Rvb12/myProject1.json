@@ -1,0 +1,78 @@
+{
+    "data": [
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
+            "mapping": {
+                "Rvb1": [
+                    "Rvb1"
+                ],
+                "Rvb2": [
+                    "Rvb2"
+                ]
+            },
+            "name": "x",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_aamp.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_adp.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex_ZL.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/intra_complex.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp_violated.csv",
+                    "/Users/kosinski/Desktop/ABCE1/abce1_xla_project/xlinks/open_aamp.csv"
+                ]
+            },
+            "mapping": {},
+            "name": "xout",
+            "type": "xquest"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "C",
+                "E"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "Rvb1",
+            "selection": ":.A,.C,.E",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B",
+                "D",
+                "F"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "Rvb2",
+            "selection": ":.B,.D,.F",
+            "type": "component"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

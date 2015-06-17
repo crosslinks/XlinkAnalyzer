@@ -2,7 +2,7 @@ import XlaGuiTests
 
 # for this test to run do:
 # ln -s [full path]/pyt_TestExample.py [Chimeradir]/test/pytests/pyt_[Name].py
-# /Applications/Chimera.app/Contents/MacOS/chimera --silent --pypath ~/devel/XlinkAnalyzer --pypath ~/devel/pyxlinks/ --pypath ~/devel/XlinkAnalyzer/test/ 
+# chimera --pypath ~/devel/XlinkAnalyzer --pypath ~/devel/pyxlinks/ run.py <name of this file>
 
 RUNME = True
 

@@ -5,6 +5,9 @@ from numpy import unique
 from sys import platform as _platform
 from copy import deepcopy
 from collections import deque
+import itertools
+from sys import __stdout__
+from collections import defaultdict
 
 import chimera
 import tkMessageBox
@@ -104,6 +107,17 @@ class Component(Item):
 
     def setSelection(self,sel):
         self.selection = sel
+
+    def getSelection(self):
+        return self.selection
+
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        out = defaultdict(list)
+        for chainId in self.chainIds:
+            out[chainId].append([':.{0}'.format(chainId)])
+
+        return out
 
     def createComponentSelectionFromChains(self, chainIds = None):
         if chainIds is None:
@@ -207,6 +221,36 @@ class Domain(Item):
         else:
             return False
 
+    def getSelection(self):
+        '''Get selection that acts on all chains of the corresponding subunit'''
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        forString = []
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            forString.append('{0}.{1}'.format(oneRange, chainId))
+
+        return ':' + ','.join(forString)
+
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        out = defaultdict(list)
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            out[chainId].append([':{0}.{1}'.format(oneRange,chainId)])
+
+        return out
+
     def subunitToString(self,subunit):
         return subunit.name
 
@@ -285,7 +329,7 @@ class Domain(Item):
              Name:\t%s\n\
              Color:\t%s\n\
              Ranges:\t%s\n\
-             Subununit:\t%s\n"%(self.name,self.color.rgba(),\
+             Subunit:\t%s\n"%(self.name,self.color.rgba(),\
                                 self.rangesToString(),subName)
         return str(s)
 
@@ -347,9 +391,7 @@ class Subcomplex(Item):
         _iter =  [item for item in _dict["items"]]
         _dict["items"] = []
         for name in _iter:
-            print "name",name,len(name)
             domain = self.config.getDomainByName(name)
-            print domain
             if domain:
                 self.items.append(domain)
                 self.items.remove(name)
@@ -358,6 +400,15 @@ class Subcomplex(Item):
             if subunit:
                 self.items.append(subunit)
                 self.items.remove(name)
+
+    def getSelectionsByChain(self):
+        out = defaultdict(list)
+
+        for item in self.items:
+            for chainId, sel in item.getSelectionsByChain().iteritems():
+                out[chainId].extend(sel)
+
+        return out
 
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
@@ -851,6 +902,11 @@ class Assembly(Item):
                 return None
         else:
             return None
+
+    def getSubcomplexByName(self,name):
+        for subcomp in self.subcomplexes:
+            if subcomp.name == name:
+                return subcomp
 
     def getChainIdsByComponentName(self,name=None):
         if name:
