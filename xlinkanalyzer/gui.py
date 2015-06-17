@@ -1111,8 +1111,9 @@ class DataMgrTabFrame(TabFrame):
 class ComponentsTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
-
         Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
+        self.table = ComponentTable(self)
+        self.table.grid()
 
     def clear(self):
         for child in self.winfo_children():
@@ -1999,6 +2000,16 @@ class InteractingResiMgrTabFrame(TabFrame):
         for mgr in self.dataMgrs:
             if hasattr(mgr, 'colorInteractingResi'):
                 mgr.colorInteractingResi(fromComp,to=toComp,hide_others=False)
+
+from CGLtk.Table import SortableTable
+
+class ComponentTable(Frame):
+    def __init__(self,parent,*args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
+        self.table = SortableTable(self)
+        self.table.addColumn("Serial", int, format="%d")
+        self.table.addColumn("Serial", str)
+        self.table.pack()
 
 def is_mac():
     return _platform == "darwin"
