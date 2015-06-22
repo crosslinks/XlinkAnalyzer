@@ -17,8 +17,6 @@ class SymMover(object):
 
 
         self.m = chimera.openModels.list()[0]
-        # self.old = numpyArrayFromAtoms(self.m.atoms)
-
 # Matchmaker yRvb12.hexamer.pdb, chain C (#1) with yRvb12.hexamer.pdb, chain A (#0), sequence alignment score = 1986.2
 
 # with these parameters:
@@ -64,22 +62,36 @@ class SymMover(object):
             }
         ]
 
-        # self.t3ds = []
-        # for i in range(0, len(self.sym_chains)):
-        #     self.t3ds.append([])
-        #     for j in range(0, len(self.sym_chains)):
-        #         if j > i:
-        #             for k in range(0, j):
-        #                 self.t3ds[i][j] = 
+
 
         # for a in evalSpec(':.A').atoms():
         #     a.setCoord(self.symTr3d.apply(a.coord()))
 
         for serie in self.series:
+            serie['t3ds'] = [[None for i in range(len(serie['chainIds']))] for j in range(len(serie['chainIds']))]
+            for i in range(len(serie['chainIds'])):
+                # self.t3ds.append([])
+                for j in range(len(serie['chainIds'])):
+                    count = abs(j-i)
+
+                    symTr3d = Xform.identity()
+                    for c in range(count):
+                        symTr3d.multiply(serie['tr3d'])
+
+                    newT = Xform.identity()
+                    if i < j:
+                        newT = symTr3d
+                    elif i > j:
+                        newT = symTr3d.inverse()
+
+                    serie['t3ds'][i][j] = newT
+
             for chainId in serie['chainIds']:
                 atoms = evalSpec(':.{0}'.format(chainId)).atoms()
                 serie['old'].append(numpyArrayFromAtoms(atoms))
 
+            # for a in evalSpec(':.C').atoms():
+            #     a.setCoord(serie['t3ds'][1][0].apply(a.coord()))
 
         handler = chimera.triggers.addHandler('CoordSet', self.update, None)
         self._handlers = []
@@ -101,7 +113,7 @@ class SymMover(object):
         # coordSet = list(changes.modified)[0]
         # print >> __stdout__, len(coordSet.coords())
         # print >> __stdout__, dir(coordSet)
-        print >> __stdout__, "update"
+        # print >> __stdout__, "update"
 
         # atoms = []
         # for selection in xla.get_gui().Components.getMovableAtomSpecs():
@@ -127,37 +139,19 @@ class SymMover(object):
 
                 t3d, rmsd = matchPositions(serie['new'][changed_c], serie['old'][changed_c])
                 for o in other:
-                    if o > changed_c:
-                        symTr3d = Xform.identity()
-                        for i in range(0, o-changed_c):
-                            symTr3d.multiply(serie['tr3d'])
+                    newT = Xform.identity()
+                    newT.premultiply(serie['t3ds'][o][changed_c])
 
-                        newT = symTr3d.inverse()
-                        newT.premultiply(t3d)
-                        newT.premultiply(symTr3d)
+                    newT.premultiply(t3d)
 
-                        atoms = evalSpec(':.{0}'.format(serie['chainIds'][o])).atoms()
-                        for a in atoms:
-                            a.setCoord(newT.apply(a.coord()))
+                    newT.premultiply(serie['t3ds'][changed_c][o])
 
-                    elif o < changed_c:
-                        symTr3d = Xform.identity()
-                        for i in range(0, changed_c-o):
-                            symTr3d.multiply(serie['tr3d'])
-
-                        newT = Xform.identity()
-                        newT.multiply(symTr3d)
-                        newT.premultiply(t3d)
-                        newT.premultiply(symTr3d.inverse())
-
-                        atoms = evalSpec(':.{0}'.format(serie['chainIds'][o])).atoms()
-                        for a in atoms:
-                            a.setCoord(newT.apply(a.coord()))
+                    atoms = evalSpec(':.{0}'.format(serie['chainIds'][o])).atoms()
+                    for a in atoms:
+                        a.setCoord(newT.apply(a.coord()))
 
                 serie['old'] = []
                 for chainId in serie['chainIds']:
                     atoms = evalSpec(':.{0}'.format(chainId)).atoms()
                     serie['old'].append(numpyArrayFromAtoms(atoms))
 
-                # serie['old'] = [numpyArrayFromAtoms(a) for a in serie['chains']]
-            # print >> __stdout__, changed
