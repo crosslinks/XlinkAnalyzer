@@ -53,20 +53,15 @@ class SymMover(object):
 #   Shift along axis   0.00003425
 
 
-        tr3d = [-0.50000042, 0.86602516, 0.00000116, -103.53997515,
+        self.series = [
+            {
+                'tr3d': Xform.xform(-0.50000042, 0.86602516, 0.00000116, -103.53997515,
                 -0.86602516, -0.50000042, 0.00000058, 179.33655802,
-                0.00000108, -0.00000072, 1.00000000, 0.00005125]
-
-
-
-        # trans = [, , 0.00005125]
-        # tr3d = rot+trans
-        self.symTr3d = Xform.xform(*tr3d, orthogonalize=True)
-
-        self.sym_chains = [
-            evalSpec(':.A').atoms(),
-            evalSpec(':.C').atoms(),
-            evalSpec(':.E').atoms()
+                0.00000108, -0.00000072, 1.00000000, 0.00005125, orthogonalize=True),
+                'chainIds': ['A', 'C', 'E'],
+                'old': [],
+                'new': []
+            }
         ]
 
         # self.t3ds = []
@@ -80,8 +75,10 @@ class SymMover(object):
         # for a in evalSpec(':.A').atoms():
         #     a.setCoord(self.symTr3d.apply(a.coord()))
 
-        self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
-
+        for serie in self.series:
+            for chainId in serie['chainIds']:
+                atoms = evalSpec(':.{0}'.format(chainId)).atoms()
+                serie['old'].append(numpyArrayFromAtoms(atoms))
 
 
         handler = chimera.triggers.addHandler('CoordSet', self.update, None)
@@ -105,60 +102,62 @@ class SymMover(object):
         # print >> __stdout__, len(coordSet.coords())
         # print >> __stdout__, dir(coordSet)
         print >> __stdout__, "update"
-        atoms = []
-        for selection in xla.get_gui().Components.getMovableAtomSpecs():
-            atoms.extend(evalSpec(selection).atoms())
 
-        self.sym_chains = [
-            evalSpec(':.A').atoms(),
-            evalSpec(':.C').atoms(),
-            evalSpec(':.E').atoms()
-        ]
-        self.new = [numpyArrayFromAtoms(a) for a in self.sym_chains]
-        # if self.was_changed():
-        i = 0
-        changed_c = None
-        for old_c, new_c in zip(self.old, self.new):
-            if not (old_c == new_c).all():
-                changed_c = i
-            i = i + 1
+        # atoms = []
+        # for selection in xla.get_gui().Components.getMovableAtomSpecs():
+        #     atoms.extend(evalSpec(selection).atoms())
 
-        if changed_c is not None:
-            other = set(range(len(self.sym_chains)))
-            other.remove(changed_c)
+        for serie in self.series:
 
-            t3d, rmsd = matchPositions(self.new[changed_c], self.old[changed_c])
-            for o in other:
-                if o > changed_c:
-                    symTr3d = Xform.identity()
-                    for i in range(0, o-changed_c):
-                        symTr3d.multiply(self.symTr3d)
+            serie['new'] = []
+            for chainId in serie['chainIds']:
+                atoms = evalSpec(':.{0}'.format(chainId)).atoms()
+                serie['new'].append(numpyArrayFromAtoms(atoms))
+            # if self.was_changed():
+            i = 0
+            changed_c = None
+            for old_c, new_c in zip(serie['old'], serie['new']):
+                if not (old_c == new_c).all():
+                    changed_c = i
+                i = i + 1
 
-                    newT = symTr3d.inverse()
-                    newT.premultiply(t3d)
-                    newT.premultiply(symTr3d)
+            if changed_c is not None:
+                other = set(range(len(serie['chainIds'])))
+                other.remove(changed_c)
 
-                    for a in self.sym_chains[o]:
-                        a.setCoord(newT.apply(a.coord()))
+                t3d, rmsd = matchPositions(serie['new'][changed_c], serie['old'][changed_c])
+                for o in other:
+                    if o > changed_c:
+                        symTr3d = Xform.identity()
+                        for i in range(0, o-changed_c):
+                            symTr3d.multiply(serie['tr3d'])
 
-                elif o < changed_c:
-                    symTr3d = Xform.identity()
-                    for i in range(0, changed_c-o):
-                        symTr3d.multiply(self.symTr3d)
+                        newT = symTr3d.inverse()
+                        newT.premultiply(t3d)
+                        newT.premultiply(symTr3d)
 
-                    newT = Xform.identity()
-                    newT.multiply(symTr3d)
-                    newT.premultiply(t3d)
-                    newT.premultiply(symTr3d.inverse())
+                        atoms = evalSpec(':.{0}'.format(serie['chainIds'][o])).atoms()
+                        for a in atoms:
+                            a.setCoord(newT.apply(a.coord()))
 
-                    for a in self.sym_chains[o]:
-                        a.setCoord(newT.apply(a.coord()))
+                    elif o < changed_c:
+                        symTr3d = Xform.identity()
+                        for i in range(0, changed_c-o):
+                            symTr3d.multiply(serie['tr3d'])
 
-            self.sym_chains = [
-                evalSpec(':.A').atoms(),
-                evalSpec(':.C').atoms(),
-                evalSpec(':.E').atoms()
-            ]
+                        newT = Xform.identity()
+                        newT.multiply(symTr3d)
+                        newT.premultiply(t3d)
+                        newT.premultiply(symTr3d.inverse())
 
-            self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
-        # print >> __stdout__, changed
+                        atoms = evalSpec(':.{0}'.format(serie['chainIds'][o])).atoms()
+                        for a in atoms:
+                            a.setCoord(newT.apply(a.coord()))
+
+                serie['old'] = []
+                for chainId in serie['chainIds']:
+                    atoms = evalSpec(':.{0}'.format(chainId)).atoms()
+                    serie['old'].append(numpyArrayFromAtoms(atoms))
+
+                # serie['old'] = [numpyArrayFromAtoms(a) for a in serie['chains']]
+            # print >> __stdout__, changed
