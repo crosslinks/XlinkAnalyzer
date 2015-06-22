@@ -27,9 +27,8 @@ class TestMover(XlaGuiTests.XlaBaseTest):
 
         name = 'Rvb1'
         # xla.activateByName(name)
-        # xla.activateByName(name, 'A')
-        xla.activateByName(name, ['A', 'B'])
+        xla.activateByName(name, 'C')
+        # xla.activateByName(name, ['A', 'C'])
         #move around, should move
-        
         symmover = symmove.SymMover()
         symmover.activate()

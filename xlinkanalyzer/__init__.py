@@ -1,6 +1,8 @@
 import chimera
 # from data import *
 
+from sys import __stdout__
+
 XLINK_ANALYZER_DATA_TYPE = 'Xlink Analyzer'
 XQUEST_DATA_TYPE = 'xquest'
 EM_DATA_TYPE = 'em_map'

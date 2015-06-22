@@ -69,12 +69,20 @@ class SymMover(object):
             evalSpec(':.E').atoms()
         ]
 
+        # self.t3ds = []
+        # for i in range(0, len(self.sym_chains)):
+        #     self.t3ds.append([])
+        #     for j in range(0, len(self.sym_chains)):
+        #         if j > i:
+        #             for k in range(0, j):
+        #                 self.t3ds[i][j] = 
+
         # for a in evalSpec(':.A').atoms():
         #     a.setCoord(self.symTr3d.apply(a.coord()))
 
         self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
 
-# 
+
 
         handler = chimera.triggers.addHandler('CoordSet', self.update, None)
         self._handlers = []
@@ -115,35 +123,42 @@ class SymMover(object):
                 changed_c = i
             i = i + 1
 
-        if changed_c == 0:
+        if changed_c is not None:
             other = set(range(len(self.sym_chains)))
             other.remove(changed_c)
 
             t3d, rmsd = matchPositions(self.new[changed_c], self.old[changed_c])
-            print >> __stdout__, t3d
-
             for o in other:
-                newT = self.symTr3d.inverse()
-                newT.premultiply(t3d)
-                newT.premultiply(self.symTr3d)
+                if o > changed_c:
+                    symTr3d = Xform.identity()
+                    for i in range(0, o-changed_c):
+                        symTr3d.multiply(self.symTr3d)
 
-                # for a in self.sym_chains[1]:
-                #     a.setCoord(newT.apply(a.coord()))
+                    newT = symTr3d.inverse()
+                    newT.premultiply(t3d)
+                    newT.premultiply(symTr3d)
 
-                for a in self.sym_chains[o]:
-                    a.setCoord(newT.apply(a.coord()))
+                    for a in self.sym_chains[o]:
+                        a.setCoord(newT.apply(a.coord()))
 
-                # for o in other:
-                #     t3d, rmsd = matchPositions(self.old[o], self.new[o])
-                #     print >> __stdout__, t3d
+                elif o < changed_c:
+                    symTr3d = Xform.identity()
+                    for i in range(0, changed_c-o):
+                        symTr3d.multiply(self.symTr3d)
 
-                # print >> __stdout__, other
+                    newT = Xform.identity()
+                    newT.multiply(symTr3d)
+                    newT.premultiply(t3d)
+                    newT.premultiply(symTr3d.inverse())
 
-                self.sym_chains = [
-                    evalSpec(':.A').atoms(),
-                    evalSpec(':.C').atoms(),
-                    evalSpec(':.E').atoms()
-                ]
-                
-                self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
+                    for a in self.sym_chains[o]:
+                        a.setCoord(newT.apply(a.coord()))
+
+            self.sym_chains = [
+                evalSpec(':.A').atoms(),
+                evalSpec(':.C').atoms(),
+                evalSpec(':.E').atoms()
+            ]
+
+            self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
         # print >> __stdout__, changed
