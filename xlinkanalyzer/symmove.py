@@ -11,11 +11,6 @@ from sys import __stdout__
 
 class SymMover(object):
     def __init__(self):
-        self.sym_chains = []
-
-    def activate(self):
-
-
         self.m = chimera.openModels.list()[0]
 # Matchmaker yRvb12.hexamer.pdb, chain C (#1) with yRvb12.hexamer.pdb, chain A (#0), sequence alignment score = 1986.2
 
@@ -93,6 +88,7 @@ class SymMover(object):
             # for a in evalSpec(':.C').atoms():
             #     a.setCoord(serie['t3ds'][1][0].apply(a.coord()))
 
+    def activate(self):
         handler = chimera.triggers.addHandler('CoordSet', self.update, None)
         self._handlers = []
         self._handlers.append((chimera.triggers, 'CoordSet', handler))
