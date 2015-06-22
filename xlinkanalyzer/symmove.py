@@ -116,53 +116,34 @@ class SymMover(object):
             i = i + 1
 
         if changed_c == 0:
-            # other = set(range(len(self.sym_chains)))
-            # other.remove(changed_c)
-#GOOD:
-            # t3d, rmsd = matchPositions(self.old[changed_c], self.new[changed_c])
-            # print >> __stdout__, t3d
-
-            # newT = self.symTr3d.inverse()
-            # newT.premultiply(t3d.inverse())
-            # newT.premultiply(self.symTr3d)
-#----
+            other = set(range(len(self.sym_chains)))
+            other.remove(changed_c)
 
             t3d, rmsd = matchPositions(self.new[changed_c], self.old[changed_c])
             print >> __stdout__, t3d
 
-            newT = self.symTr3d.inverse()
-            newT.premultiply(t3d)
-            newT.premultiply(self.symTr3d)
+            for o in other:
+                newT = self.symTr3d.inverse()
+                newT.premultiply(t3d)
+                newT.premultiply(self.symTr3d)
 
-            # newT = Xform.identity()
-            # newT.multiply(self.symTr3d)
-            # newT.multiply(t3d)
-            # newT.multiply(self.symTr3d.inverse())
-            # t3d1 = self.symTr3d.multiply(t3d)
+                # for a in self.sym_chains[1]:
+                #     a.setCoord(newT.apply(a.coord()))
 
-            # for a in self.sym_chains[1]:
-            #     a.setCoord(newT.apply(a.coord()))
+                for a in self.sym_chains[o]:
+                    a.setCoord(newT.apply(a.coord()))
 
-            for a in self.sym_chains[1]:
-                a.setCoord(newT.apply(a.coord()))
-                # a.setCoord(self.symTr3d.inverse().apply(a.coord()))
-                # a.setCoord(t3d.apply(a.coord()))
-                # a.setCoord(self.symTr3d.apply(a.coord()))
-            # for o in other:
-            #     t3d, rmsd = matchPositions(self.old[o], self.new[o])
-            #     print >> __stdout__, t3d
+                # for o in other:
+                #     t3d, rmsd = matchPositions(self.old[o], self.new[o])
+                #     print >> __stdout__, t3d
 
-            # print >> __stdout__, other
+                # print >> __stdout__, other
 
-            self.sym_chains = [
-                evalSpec(':.A').atoms(),
-                evalSpec(':.C').atoms(),
-                evalSpec(':.E').atoms()
-            ]
-            
-            self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
+                self.sym_chains = [
+                    evalSpec(':.A').atoms(),
+                    evalSpec(':.C').atoms(),
+                    evalSpec(':.E').atoms()
+                ]
+                
+                self.old = [numpyArrayFromAtoms(a) for a in self.sym_chains]
         # print >> __stdout__, changed
-        # xf, rmsd = match.matchAtoms(atoms, atoms, fCoordSet=self.oldCoordSet,
-        #         mCoordSet=coordSet)
-
-        # print >> __stdout__, xf, dir(xf)
