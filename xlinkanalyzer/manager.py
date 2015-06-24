@@ -1173,6 +1173,7 @@ class XlinkDataMgr(DataMgr):
                 if len(satisfied) > 1:
                     # print [(x.get_chain_pos_pair()[1][0], x.get_chain_pos_pair()[1][0]) for x in sorted(satisfied, cmp=cmp_by_chains)]
                     to_show.append(sorted(satisfied, cmp=cmp_by_chains)[0])
+                    # to_show.extend(sorted(satisfied, cmp=cmp_by_chains))
                 else:
                     to_show.append(satisfied[0])
             elif len(shortest) > 0:
