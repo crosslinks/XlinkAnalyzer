@@ -28,7 +28,7 @@ import tkMessageBox
 from Pmw import ScrolledFrame, EntryField
 
 from Tkinter import Toplevel,LabelFrame,Button,StringVar,Entry,\
-                    OptionMenu,Label,Frame, TclError
+                    OptionMenu,Label,Frame, TclError, Checkbutton, IntVar
 import ttk
 import pyxlinks
 
@@ -106,7 +106,6 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
 
-        self.addTab('Components', ComponentsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
@@ -118,7 +117,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         tab = self.notebook.add(self.loadDataTabName)
         self.configFrame = SetupFrame(tab, mainWindow=self)
-
+        tab = self.notebook.add('Components')
+        self.componentFrame = ComponentsTabFrame(tab,self.configFrame.config)
         self.modelSelect = ModelSelect()
 
     def setTitle(self,string):
@@ -1110,188 +1110,17 @@ class DataMgrTabFrame(TabFrame):
 
 
 class ComponentsTabFrame(TabFrame):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master,config, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
-        Label(self, text="Add subunits Setup tab").pack(anchor='w', pady=1)
-        self.table = ComponentTable(self)
-        self.table.grid()
-
-
-######### TEMPORARY, TO BE MOVED TO ComponentPanel #############
-
-        self.mover = xmove.ComponentMover()
-        self.mover.mode = xmove.COMPONENT_MOVEMENT
-        self.activeComponents = []  # For testing purposes, to be substituted by getActiveComponents()
-
-    def getActiveComponents(self):
-        #TODO: collect subunits, domains and subcomplexes marked as active,
-        #and return as list
-        return self.activeComponents
-
-    def getCurrentSelections(self):
-        sels = []
-        for comp, chainId in self.activeComponents:
-            selsForComp = comp.getSelectionsByChain()
-            if selsForComp.get(chainId):
-                sels.extend(selsForComp[chainId])
-
-        return sels
-
-    def getMovableAtomSpecs(self):
-        activeModelIds = []
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                activeModelIds.append(model.getModelId())
-
-        currentSelections = self.getCurrentSelections()
-        atomSpecs = []
-        for modelId, sels in itertools.product(activeModelIds, currentSelections):
-            for sel in sels:
-                atomSpecs.append('#{0}{1}'.format(modelId, sel))
-
-        return atomSpecs
-
-######### END OF TEMPORARY                         #############
+        self.table = ComponentTable(self,config)
+        self.table.grid(sticky="nesw",row=0,column=0)
+        self.grid(sticky="nesw")
 
     def clear(self):
-        for child in self.winfo_children():
-            child.destroy()
+        pass
 
     def reload(self, name, userData, o):
-        cfg = getConfig()
-        if len(cfg.getComponentNames()) > 0:
-            self.clear()
-
-            self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
-            self.modelSelect.pack(anchor='w', fill = 'both', pady=1)
-
-            # curRow = 0
-            f1 = Tkinter.Frame(self)
-            Label(f1, text="Choose action: ").pack(side='left')
-            self.componentsTabHandlerOptMenu = ComponentsHandleOptionMenu(f1)
-
-            self.componentsTabHandlerOptMenu.pack(side='left')
-
-            f1.pack(anchor='w', pady=1)
-
-            f2 = LabelFrame(self, bd=4, relief="groove", text='Apply to:', padx=4, pady=4)
-            f2.pack(anchor='w', pady=1)
-            self.addComponentButtons(f2, callback=self.handleComponent, startRow=0)
-
-            f3 = Tkinter.Frame(self)
-            f3.pack(anchor='w', pady=4)
-
-            btn = Tkinter.Button(f3,
-                text='Show all subunits',
-                command=self.showAllComponents)
-
-            btn.pack(side='left')
-
-
-            btn = Tkinter.Button(f3,
-                text='Color all subunits',
-                command=self.colorAllComponents)
-
-            btn.pack(side='left')
-
-        else:
-            self.clear()
-            Label(self, text="Add some components first").pack(anchor='w', pady=1)
-
-
-    def handleComponent(self, name):
-        handler = self.componentsTabHandlerOptMenu.var.get()
-        if handler == 'Select':
-            self.selectComponent(name)
-        elif handler == 'Show':
-            self.showComponent(name)
-        elif handler == 'Show only':
-            self.showComponentOnly(name)
-        elif handler == 'Hide':
-            self.hideComponent(name)
-
-    def addComponentButtons(self, parent, callback, startRow=0):
-        cols = 4
-        cur_row = startRow
-        cur_col = 0
-        cfg = xlinkanalyzer.get_gui().configFrame.config
-
-        for i, name in enumerate(cfg.getComponentNames()):
-            color_cfg = cfg.getComponentColors(name)
-            color = cfg.getColor(name)
-
-            if color_cfg is None:
-                color = chimera.MaterialColor(0,0,0)
-
-            rgb = [int(255*x) for x in color.rgba()[:3]]
-            color = '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
-
-            if is_mac():
-                ttk.Style().configure(str(i)+'.TButton', foreground=color)
-                btn = ttk.Button(parent,
-                    text=name,
-                    style=str(i)+'.TButton',
-                    command=lambda rebind=name: callback(rebind))
-            else:
-                btn = Tkinter.Button(parent,
-                    text=name,
-                    foreground=color,
-                    command=lambda rebind=name: callback(rebind))
-            # btn.pack(side=Tkinter.TOP)
-            btn.grid(row = cur_row, column = cur_col)
-            cur_col = cur_col + 1
-            if cur_col == cols:
-                cur_col = 0
-                cur_row = cur_row + 1
-
-        return cur_row
-
-
-    def selectComponent(self, name):
-        self.getActiveModels()
-        # selectItems = []
-        modelIds = []
-
-        for model in self.models:
-            modelIds.append(str(model.chimeraModel.id))
-            # selectItems.append(' #' + str(model.chimeraModel.id) + self.config.component_selections[name])
-
-        selectStr =  ' #' +','.join(modelIds) + \
-                              self.config.getComponentSelections(name)
-        runCommand('select ' + selectStr)
-
-    def showComponentOnly(self, name):
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                model.showOnly(name)
-
-    def showComponent(self, name):
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                model.show(name)
-
-    def hideComponent(self, name):
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                model.hide(name)
-
-    def showAllComponents(self):
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                model.showAll()
-
-    def colorAllComponents(self):
-        self.getActiveModels()
-        for model in self.models:
-            if model.active:
-                model.colorAll()
-
-
+        self.table.reload()
 
 class LdScoreFilterEntry(EntryField):
     def __init__(self, parent, var, command):
@@ -2045,12 +1874,105 @@ class InteractingResiMgrTabFrame(TabFrame):
 from CGLtk.Table import SortableTable
 
 class ComponentTable(Frame):
-    def __init__(self,parent,*args,**kwargs):
+    def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
+
+        c = Component(config)
+        c.name = "Kai"
+
+        self.config = config
+
+        self.activate = Button(self,text="Activate", command=self.onActivate)
+        self.activate.grid(row=1,column=3,sticky="W")
+        self.activateAll = Button(self,text="Activate All", \
+                                       command=self.onActivateAll)
+        self.activateAll.grid(row=2,column=3,sticky="W")
+        self.activeOnly  = Button(self,text="Activate Only", \
+                                       command=self.onActivateOnly)
+        self.activeOnly.grid(row=3,column=3,sticky="W")
+        self.deactivate = Button(self,text="Deactivate", \
+                                       command=self.onDeactivate)
+        self.deactivate .grid(row=4,column=3,sticky="W")
+        self.show = Button(self,text="Show", \
+                                       command=self.onShow)
+        self.show.grid(row=5,column=3,sticky="W")
+        self.hide  = Button(self,text="Hide", \
+                                       command=self.onHide)
+        self.hide.grid(row=6,column=3,sticky="W")
+        self.select = Button(self,text="Select", \
+                                       command=self.onSelect)
+        self.select.grid(row=7,column=3,sticky="W")
+        self.showOnly = Button(self,text="Show Only", \
+                                       command=self.onShowOnly)
+        self.showOnly.grid(row=9,column=3,sticky="W")
+        self.undo = Button(self,text="Undo Move", \
+                                       command=self.onUndo)
+        self.undo.grid(row=10,column=3,sticky="W")
+        self.redo = Button(self,text="Redo Move", \
+                                       command=self.onRedo)
+        self.redo.grid(row=11,column=3,sticky="W")
+
+        self.chainVar = IntVar(self)
+        self.chainVar.trace("w",lambda x,y,z: self.onShowChains)
+        self.showChains = Checkbutton(self, text="Show Chains", \
+                                            variable=self.chainVar)
+        self.showChains.grid(row=0,column=1)
+
+        self.chooseVar = StringVar(self)
+        self.chooseVar.set("Subunits")
+        self.chooseVar.trace("w",lambda x,y,z: self.reload())
+        self.choices = dict([("Subunits",self.config.getComponents),\
+                             ("Domains",self.config.getDomains),\
+                             ("Subcomplexes", lambda x: x)])
+        self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
+        self.choose.grid(column=0,row=0)
+
         self.table = SortableTable(self)
-        self.table.addColumn("Serial", int, format="%d")
-        self.table.addColumn("Serial", str)
-        self.table.pack()
+        self.table.addColumn("Active", "active")
+        self.table.addColumn("Show", "show")
+        self.table.addColumn("Symmetrical", "sym")
+        self.table.addColumn("Name","name")
+        self.table.setData([])
+        self.table.launch()
+        self.table.grid(sticky="wens",column=0,columnspan=2,row=1,rowspan=11)
+
+    def reload(self):
+        items = self.choices[self.chooseVar.get()]()
+        if items:
+            self.table.setData(items)
+
+    def onActivate(self):
+        print self.table.highlighted()
+
+    def onActivateAll(self):
+        pass
+
+    def onActivateOnly(self):
+        pass
+
+    def onDeactivate(self):
+        pass
+
+    def onShow(self):
+        pass
+
+    def onHide(self):
+        pass
+
+    def onSelect(self):
+        pass
+
+    def onShowOnly(self):
+        pass
+
+    def onUndo(self):
+        pass
+
+    def onRedo(self):
+        pass
+
+    def onShowChains(self):
+        print self.chainVar.getvalue()
 
 def is_mac():
     return _platform == "darwin"
