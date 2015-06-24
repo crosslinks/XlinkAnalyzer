@@ -21,6 +21,7 @@ from pyxlinks import XlinksSet
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
 from xlinkanalyzer import getConfig
+from util import addProperty
 
 class Item(object):
     SHOW = ["name"]
@@ -29,12 +30,20 @@ class Item(object):
         self.name = name
         self.config = config
         self.fake = fake
+        self.show = True
+        self.active = True
+        self.sym = True
+
+    def __getitem__(self,slice):
+        return self.__dict__
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
-        if "fake" in _dict:
-            _dict.pop("fake")
+        _dict.pop("fake")
+        _dict.pop("show")
+        _dict.pop("active")
+        _dict.pop("sym")
         return _dict
 
     def deserialize(self,_dict):
@@ -78,7 +87,6 @@ class Item(object):
                 if isinstance(obj,Item):
                     items.append(obj)
         return items
-
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
@@ -666,7 +674,7 @@ class SequenceItem(DataItem):
                 sequences = readFASTA.parse(fileName)[0]
                 for sequence in sequences:
                     self.sequences[sequence.name] = sequence
-        
+
     def serialize(self):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
