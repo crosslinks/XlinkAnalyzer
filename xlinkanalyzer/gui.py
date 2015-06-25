@@ -1881,6 +1881,7 @@ class ComponentTable(Frame):
         c.name = "Kai"
 
         self.config = config
+        self.mover = None
 
         self.activate = Button(self,text="Activate", command=self.onActivate)
         self.activate.grid(row=1,column=3,sticky="W")
@@ -1913,7 +1914,7 @@ class ComponentTable(Frame):
         self.redo.grid(row=11,column=3,sticky="W")
 
         self.chainVar = IntVar(self)
-        self.chainVar.trace("w",lambda x,y,z: self.onShowChains)
+        self.chainVar.trace("w",lambda x,y,z: self.onShowChains())
         self.showChains = Checkbutton(self, text="Show Chains", \
                                             variable=self.chainVar)
         self.showChains.grid(row=0,column=1)
@@ -1942,28 +1943,46 @@ class ComponentTable(Frame):
             self.table.setData(items)
 
     def onActivate(self):
-        print self.table.highlighted()
+        for item in self.table.selected():
+            item.active = True
+        self.table.refresh()
 
     def onActivateAll(self):
-        pass
+        for item in self.choices[self.chooseVar.get()]():
+            item.active = True
+        self.table.refresh()
 
     def onActivateOnly(self):
-        pass
+        for item in self.choices[self.chooseVar.get()]():
+            item.active = False
+        for item in self.table.selected():
+            item.active = True
+        self.table.refresh()
 
     def onDeactivate(self):
-        pass
+        for item in self.table.selected():
+            item.active = False
+        self.table.refresh()
 
     def onShow(self):
-        pass
+        for item in self.table.selected():
+            item.show = True
+        self.table.refresh()
 
     def onHide(self):
-        pass
+        for item in self.table.selected():
+            item.show = False
+        self.table.refresh()
 
     def onSelect(self):
         pass
 
     def onShowOnly(self):
-        pass
+        for item in self.choices[self.chooseVar.get()]():
+            item.show = False
+        for item in self.table.selected():
+            item.show = True
+        self.table.refresh()
 
     def onUndo(self):
         pass
@@ -1972,7 +1991,17 @@ class ComponentTable(Frame):
         pass
 
     def onShowChains(self):
-        print self.chainVar.getvalue()
+        print self.chainVar.get()
+
+    def getActiveComponents(self):
+        curr = self.choices[self.chooseVar.get()]()
+        return [item for item in curr if item.active]
+
+    def getCurrentSelections(self):
+        pass
+
+    def getMovableAtomSpecs(self):
+        pass
 
 def is_mac():
     return _platform == "darwin"

@@ -21,7 +21,6 @@ from pyxlinks import XlinksSet
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
 from xlinkanalyzer import getConfig
-from util import addProperty
 
 class Item(object):
     SHOW = ["name"]
