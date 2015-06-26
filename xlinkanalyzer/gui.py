@@ -1880,7 +1880,10 @@ class ComponentTable(Frame):
         c.name = "Kai"
 
         self.config = config
+
+        self.activeComponents = []
         self.mover = xmove.ComponentMover()
+        self.mover.ctable = self
         self.mover.mode = xmove.COMPONENT_MOVEMENT
 
         curRow = 0
@@ -2035,15 +2038,39 @@ class ComponentTable(Frame):
     def onShowChains(self):
         print self.chainVar.get()
 
+    def getComponentChoices(self, chooseVar):
+        return self.choices[self.chooseVar.get()]()
+
     def getActiveComponents(self):
-        curr = self.choices[self.chooseVar.get()]()
+        curr = self.getComponentChoices(self.chooseVar.get())
         return [item for item in curr if item.active]
 
     def getCurrentSelections(self):
-        pass
+        sels = []
+        if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())):
+            for comp in self.getActiveComponents():
+                selsForComp = comp.getSelectionsByChain()
+                # if selsForComp.get(chainId):
+                for chainId in selsForComp:
+                    sels.extend(selsForComp[chainId])
+
+        return sels
 
     def getMovableAtomSpecs(self):
-        pass
+        activeModelIds = []
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                activeModelIds.append(model.getModelId())
+
+        currentSelections = self.getCurrentSelections()
+        atomSpecs = []
+        for modelId, sels in itertools.product(activeModelIds, currentSelections):
+            for sel in sels:
+                atomSpecs.append('#{0}{1}'.format(modelId, sel))
+
+        return atomSpecs
+
 
 def is_mac():
     return _platform == "darwin"
