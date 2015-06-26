@@ -1974,7 +1974,7 @@ class ComponentTable(Frame):
         self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
 
     def reload(self):
-        items = self.choices[self.chooseVar.get()]()
+        items = self.getComponentChoices(self.chooseVar.get())
         if items:
             self.table.setData(items)
 
@@ -1987,12 +1987,12 @@ class ComponentTable(Frame):
         self.table.refresh()
 
     def onActivateAll(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.active = True
         self.table.refresh()
 
     def onActivateOnly(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.active = False
         for item in self.table.selected():
             item.active = True
@@ -2017,7 +2017,7 @@ class ComponentTable(Frame):
         pass
 
     def onShowOnly(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.show = False
         for item in self.table.selected():
             item.show = True
@@ -2039,7 +2039,7 @@ class ComponentTable(Frame):
         print self.chainVar.get()
 
     def getComponentChoices(self, chooseVar):
-        return self.choices[self.chooseVar.get()]()
+        return self.choices[chooseVar]()
 
     def getActiveComponents(self):
         curr = self.getComponentChoices(self.chooseVar.get())
