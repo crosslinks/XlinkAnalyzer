@@ -2049,10 +2049,7 @@ class ComponentTable(Frame):
         sels = []
         if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())):
             for comp in self.getActiveComponents():
-                selsForComp = comp.getSelectionsByChain()
-                # if selsForComp.get(chainId):
-                for chainId in selsForComp:
-                    sels.extend(selsForComp[chainId])
+                sels.append(comp.getSelection())
 
         return sels
 
@@ -2065,9 +2062,8 @@ class ComponentTable(Frame):
 
         currentSelections = self.getCurrentSelections()
         atomSpecs = []
-        for modelId, sels in itertools.product(activeModelIds, currentSelections):
-            for sel in sels:
-                atomSpecs.append('#{0}{1}'.format(modelId, sel))
+        for modelId, sel in itertools.product(activeModelIds, currentSelections):
+            atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
 
