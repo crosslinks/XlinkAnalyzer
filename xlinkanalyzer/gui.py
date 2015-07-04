@@ -1929,9 +1929,9 @@ class ComponentTable(Frame):
         self.choose.grid(column=0,row=0)
 
         self.table = SortableTable(self)
-        self.table.addColumn("Active", "active")
-        self.table.addColumn("Show", "show")
-        self.table.addColumn("Symmetrical", "sym")
+        self.table.addColumn("Active", "active",format=bool)
+        self.table.addColumn("Show", "show",format=bool)
+        self.table.addColumn("Symmetrical", "sym",format=bool)
         self.table.addColumn("Name","name")
         self.table.setData([])
         self.table.launch()
