@@ -1924,7 +1924,7 @@ class ComponentTable(Frame):
         self.chooseVar.trace("w",lambda x,y,z: self.reload())
         self.choices = dict([("Subunits",self.config.getComponents),\
                              ("Domains",self.config.getDomains),\
-                             ("Subcomplexes", lambda x: x)])
+                             ("Subcomplexes", self.config.getSubcomplexes)])
         self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
         self.choose.grid(column=0,row=0)
 

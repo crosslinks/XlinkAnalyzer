@@ -87,10 +87,15 @@ class Item(object):
                     items.append(obj)
         return items
 
+class Chain(Item):
+    def __init__(self,_id,*args,**kwargs):
+        super(Chain,self).__init__(self,*args,**kwargs)
+        self.id = _id
+
 class Component(Item):
     SHOW = ["name","chainIds","color"]
     def __init__(self,*args,**kwargs):
-        Item.__init__(self,*args,**kwargs)
+        super(Component,self).__init__(*args,**kwargs)
         self.type = "component"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
@@ -353,6 +358,7 @@ class Domain(Item):
 class Subcomplex(Item):
     SHOW = ["name","color","items"]
     def __init__(self,config,fake=False):
+        super(Subcomplex,self).__init__(config=config)
         self.name = ""
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.config = config
@@ -909,6 +915,9 @@ class Assembly(Item):
                 return None
         else:
             return None
+
+    def getSubcomplexes(self):
+        return self.subcomplexes
 
     def getSubcomplexByName(self,name):
         for subcomp in self.subcomplexes:
