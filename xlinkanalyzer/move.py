@@ -13,12 +13,13 @@ class ComponentMover(Selection_Mover):
 
     def __init__(self):
         Selection_Mover.__init__(self)
+        self.ctable = None
 
     def record_movable_objects(self, event):
-        if self.mode == self.COMPONENT_MOVEMENT:
+        if self.mode == self.COMPONENT_MOVEMENT and self.ctable:
 
             atoms = []
-            for selection in xla.get_gui().Components.getMovableAtomSpecs():
+            for selection in self.ctable.getMovableAtomSpecs():
                 atoms.extend(evalSpec(selection).atoms())
 
             chains = []

@@ -182,7 +182,7 @@ class RMF_Model(Model):
 
         self.removeSelHandler()
         self.set_beads(radius=None, opacity=1.0, radius_scale=0.5)
-        if moleculeModel is not None:
+        if moleculeModel is not None and beadModel is not None:
             self.show_missing_loops()
         hideGroup('missing segments')
 
@@ -232,7 +232,10 @@ class RMF_Model(Model):
             return self.beadModel.id
 
     def getModelName(self):
-        return self.beadModel.name
+        if self.moleculeModel:
+            return self.moleculeModel.name
+        else:
+            return self.beadModel.name
 
 
     def removeSelHandler(self):
@@ -369,13 +372,14 @@ class RMF_Model(Model):
                     end = b[3]
                     if chain_id in cas_for_chains:
                         for ca in cas_for_chains[chain_id]:
-                            if ca[2] == start - 1 or ca[2] == end:
-                                # at1 = get_atom_from_component(b[0])
-                                # at2 = get_atom_from_component(ca[0])
-                                at1 = b[0]
-                                at2 = ca[0]
-                                grp.newPseudoBond(at1, at2)
-                                at1.display = True
+                            if None not in (start, end):
+                                if ca[2] == start - 1 or ca[2] == end:
+                                    # at1 = get_atom_from_component(b[0])
+                                    # at2 = get_atom_from_component(ca[0])
+                                    at1 = b[0]
+                                    at2 = ca[0]
+                                    grp.newPseudoBond(at1, at2)
+                                    at1.display = True
 
 
 
@@ -1173,6 +1177,7 @@ class XlinkDataMgr(DataMgr):
                 if len(satisfied) > 1:
                     # print [(x.get_chain_pos_pair()[1][0], x.get_chain_pos_pair()[1][0]) for x in sorted(satisfied, cmp=cmp_by_chains)]
                     to_show.append(sorted(satisfied, cmp=cmp_by_chains)[0])
+                    # to_show.extend(sorted(satisfied, cmp=cmp_by_chains))
                 else:
                     to_show.append(satisfied[0])
             elif len(shortest) > 0:

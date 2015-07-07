@@ -106,6 +106,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
 
+        self.addTab('Components', ComponentsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
@@ -114,11 +115,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.notebook.setnaturalsize()
 
     def createLoadDataTab(self):
-
         tab = self.notebook.add(self.loadDataTabName)
         self.configFrame = SetupFrame(tab, mainWindow=self)
-        tab = self.notebook.add('Components')
-        self.componentFrame = ComponentsTabFrame(tab,self.configFrame.config)
         self.modelSelect = ModelSelect()
 
     def setTitle(self,string):
@@ -1110,8 +1108,9 @@ class DataMgrTabFrame(TabFrame):
 
 
 class ComponentsTabFrame(TabFrame):
-    def __init__(self, master,config, *args, **kwargs):
+    def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
+        config = getConfig()
         self.table = ComponentTable(self,config)
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
@@ -1882,43 +1881,87 @@ class ComponentTable(Frame):
         c.name = "Kai"
 
         self.config = config
-        self.mover = None
 
-        self.activate = Button(self,text="Activate", command=self.onActivate)
-        self.activate.grid(row=1,column=3,sticky="W")
-        self.activateAll = Button(self,text="Activate All", \
-                                       command=self.onActivateAll)
-        self.activateAll.grid(row=2,column=3,sticky="W")
-        self.activeOnly  = Button(self,text="Activate Only", \
-                                       command=self.onActivateOnly)
-        self.activeOnly.grid(row=3,column=3,sticky="W")
-        self.deactivate = Button(self,text="Deactivate", \
-                                       command=self.onDeactivate)
-        self.deactivate .grid(row=4,column=3,sticky="W")
-        self.show = Button(self,text="Show", \
-                                       command=self.onShow)
-        self.show.grid(row=5,column=3,sticky="W")
-        self.hide  = Button(self,text="Hide", \
-                                       command=self.onHide)
-        self.hide.grid(row=6,column=3,sticky="W")
-        self.select = Button(self,text="Select", \
-                                       command=self.onSelect)
-        self.select.grid(row=7,column=3,sticky="W")
-        self.showOnly = Button(self,text="Show Only", \
-                                       command=self.onShowOnly)
-        self.showOnly.grid(row=9,column=3,sticky="W")
-        self.undo = Button(self,text="Undo Move", \
-                                       command=self.onUndo)
-        self.undo.grid(row=10,column=3,sticky="W")
-        self.redo = Button(self,text="Redo Move", \
-                                       command=self.onRedo)
-        self.redo.grid(row=11,column=3,sticky="W")
+        self.activeComponents = []
+        self.mover = xmove.ComponentMover()
+        self.mover.ctable = self
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
 
+        curRow = 0
+        self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+        self.modelSelect.grid(sticky="wens",column=0,columnspan=3,row=curRow)
+
+
+        curRow = curRow + 1
         self.chainVar = IntVar(self)
         self.chainVar.trace("w",lambda x,y,z: self.onShowChains())
         self.showChains = Checkbutton(self, text="Show Chains", \
                                             variable=self.chainVar)
-        self.showChains.grid(row=0,column=1)
+        self.showChains.grid(row=curRow,column=1)
+
+        self.chooseVar = StringVar(self)
+        self.chooseVar.set("Subunits")
+        self.chooseVar.trace("w",lambda x,y,z: self.reload())
+        self.choices = dict([("Subunits",self.config.getComponents),\
+                             ("Domains",self.config.getDomains),\
+                             ("Subcomplexes", lambda x: x)])
+        self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
+        self.choose.grid(column=0,row=curRow)
+
+
+        curRow = curRow + 1
+        self.activate = Button(self,text="Activate", command=self.onActivate)
+        self.activate.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.activateAll = Button(self,text="Activate All", \
+                                       command=self.onActivateAll)
+        self.activateAll.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.activeOnly  = Button(self,text="Activate Only", \
+                                       command=self.onActivateOnly)
+        self.activeOnly.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.deactivate = Button(self,text="Deactivate", \
+                                       command=self.onDeactivate)
+        self.deactivate .grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.show = Button(self,text="Show", \
+                                       command=self.onShow)
+        self.show.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.hide  = Button(self,text="Hide", \
+                                       command=self.onHide)
+        self.hide.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.select = Button(self,text="Select", \
+                                       command=self.onSelect)
+        self.select.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.showOnly = Button(self,text="Show Only", \
+                                       command=self.onShowOnly)
+        self.showOnly.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.colorAll = Button(self,text="Color all", \
+                                       command=self.onColorAll)
+        self.colorAll.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.undo = Button(self,text="Undo Move", \
+                                       command=self.onUndo)
+        self.undo.grid(row=curRow,column=3,sticky="W")
+
+        curRow = curRow + 1
+        self.redo = Button(self,text="Redo Move", \
+                                       command=self.onRedo)
+        self.redo.grid(row=curRow,column=3,sticky="W")
 
         self.chooseVar = StringVar(self)
         self.chooseVar.set("Subunits")
@@ -1928,6 +1971,7 @@ class ComponentTable(Frame):
                              ("Subcomplexes", self.config.getSubcomplexes)])
         self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
         self.choose.grid(column=0,row=0)
+        curRow = curRow + 1
 
         self.table = SortableTable(self)
         self.table.addColumn("Active", "active",format=bool)
@@ -1936,12 +1980,15 @@ class ComponentTable(Frame):
         self.table.addColumn("Name","name")
         self.table.setData([])
         self.table.launch()
-        self.table.grid(sticky="wens",column=0,columnspan=2,row=1,rowspan=11)
+        self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
 
     def reload(self):
-        items = self.choices[self.chooseVar.get()]()
+        items = self.getComponentChoices(self.chooseVar.get())
         if items:
             self.table.setData(items)
+
+    def getActiveModels(self):
+        self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
 
     def onActivate(self):
         for item in self.table.selected():
@@ -1949,12 +1996,12 @@ class ComponentTable(Frame):
         self.table.refresh()
 
     def onActivateAll(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.active = True
         self.table.refresh()
 
     def onActivateOnly(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.active = False
         for item in self.table.selected():
             item.active = True
@@ -1979,17 +2026,23 @@ class ComponentTable(Frame):
         pass
 
     def onShowOnly(self):
-        for item in self.choices[self.chooseVar.get()]():
+        for item in self.getComponentChoices(self.chooseVar.get()):
             item.show = False
         for item in self.table.selected():
             item.show = True
         self.table.refresh()
 
+    def onColorAll(self):
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                model.colorAll()
+
     def onUndo(self):
-        pass
+        self.mover.undo_move()
 
     def onRedo(self):
-        pass
+        self.mover.redo_move()
 
     def onShowChains(self):
         if self.chainVar.get():
@@ -2000,15 +2053,35 @@ class ComponentTable(Frame):
             self.reload()
         self.table.refresh()
 
+    def getComponentChoices(self, chooseVar):
+        return self.choices[chooseVar]()
+
     def getActiveComponents(self):
-        curr = self.choices[self.chooseVar.get()]()
+        curr = self.getComponentChoices(self.chooseVar.get())
         return [item for item in curr if item.active]
 
     def getCurrentSelections(self):
-        pass
+        sels = []
+        if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())):
+            for comp in self.getActiveComponents():
+                sels.append(comp.getSelection())
+
+        return sels
 
     def getMovableAtomSpecs(self):
-        pass
+        activeModelIds = []
+        self.getActiveModels()
+        for model in self.models:
+            if model.active:
+                activeModelIds.append(model.getModelId())
+
+        currentSelections = self.getCurrentSelections()
+        atomSpecs = []
+        for modelId, sel in itertools.product(activeModelIds, currentSelections):
+            atomSpecs.append('#{0}{1}'.format(modelId, sel))
+
+        return atomSpecs
+
 
 def is_mac():
     return _platform == "darwin"
