@@ -1113,6 +1113,7 @@ class ComponentsTabFrame(TabFrame):
     def __init__(self, master,config, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         self.table = ComponentTable(self,config)
+        self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
 
@@ -1991,7 +1992,13 @@ class ComponentTable(Frame):
         pass
 
     def onShowChains(self):
-        print self.chainVar.get()
+        if self.chainVar.get():
+            chains = sum([subunit.getChains() \
+                          for subunit in self.config.getComponents()],[])
+            self.table.setData(chains)
+        else:
+            self.reload()
+        self.table.refresh()
 
     def getActiveComponents(self):
         curr = self.choices[self.chooseVar.get()]()

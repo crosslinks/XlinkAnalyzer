@@ -88,9 +88,11 @@ class Item(object):
         return items
 
 class Chain(Item):
-    def __init__(self,_id,*args,**kwargs):
+    def __init__(self,_id,subunit,*args,**kwargs):
         super(Chain,self).__init__(self,*args,**kwargs)
         self.id = _id
+        self.subunit = subunit
+        self.name = subunit.name + " - Chain: " + _id
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
@@ -103,6 +105,12 @@ class Component(Item):
         self.chainToComponent = {}
         self.componentToChain = {}
         self.domains = []
+        self.chains = []
+
+    def getChains(self):
+        if not self.chains:
+            self.chains = [Chain(c,self,config=self.config) for c in self.chainIds]
+        return self.chains
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
