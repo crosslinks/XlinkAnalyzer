@@ -1899,18 +1899,9 @@ class ComponentTable(Frame):
                                             variable=self.chainVar)
         self.showChains.grid(row=curRow,column=1)
 
-        self.chooseVar = StringVar(self)
-        self.chooseVar.set("Subunits")
-        self.chooseVar.trace("w",lambda x,y,z: self.reload())
-        self.choices = dict([("Subunits",self.config.getComponents),\
-                             ("Domains",self.config.getDomains),\
-                             ("Subcomplexes", lambda x: x)])
-        self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
-        self.choose.grid(column=0,row=curRow)
-
-
         curRow = curRow + 1
-        self.activate = Button(self,text="Activate", command=self.onActivate)
+        self.activate = Button(self,text="Activate", \
+                                       command=self.onActivate)
         self.activate.grid(row=curRow,column=3,sticky="W")
 
         curRow = curRow + 1
@@ -1970,7 +1961,7 @@ class ComponentTable(Frame):
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
         self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
-        self.choose.grid(column=0,row=0)
+        self.choose.grid(column=0,row=1)
         curRow = curRow + 1
 
         self.table = SortableTable(self)
@@ -1986,6 +1977,9 @@ class ComponentTable(Frame):
         items = self.getComponentChoices(self.chooseVar.get())
         if items:
             self.table.setData(items)
+        else:
+            self.table.setData([])
+        self.table.refresh()
 
     def getActiveModels(self):
         self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
@@ -1996,8 +1990,14 @@ class ComponentTable(Frame):
         self.table.refresh()
 
     def onActivateAll(self):
-        for item in self.getComponentChoices(self.chooseVar.get()):
-            item.active = True
+        if self.chainVar.get():
+            chains = sum([subunit.getChains() for subunit in \
+                          self.getComponentChoices(self.chooseVar.get())],[])
+            for c in chains:
+                c.active = True
+        else:
+            for item in self.getComponentChoices(self.chooseVar.get()):
+                item.active = True
         self.table.refresh()
 
     def onActivateOnly(self):
@@ -2046,8 +2046,8 @@ class ComponentTable(Frame):
 
     def onShowChains(self):
         if self.chainVar.get():
-            chains = sum([subunit.getChains() \
-                          for subunit in self.config.getComponents()],[])
+            chains = sum([subunit.getChains() for subunit in \
+                          self.getComponentChoices(self.chooseVar.get())],[])
             self.table.setData(chains)
         else:
             self.reload()

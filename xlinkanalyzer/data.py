@@ -59,7 +59,6 @@ class Item(object):
     def explore(self,_class,item=None):
         if item is None:
             item = self
-        "returns a list of every child"
         visited = set()
         to_crawl = deque([item])
         while to_crawl:
@@ -217,29 +216,37 @@ class Component(Item):
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
     def __init__(self,subunit=None,ranges=[[]],\
-                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),chains=[],**kwargs):
+                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),chainIds=[],**kwargs):
         super(Domain,self).__init__(**kwargs)
         self.subunit = subunit
         self.ranges = self.parseRanges(ranges)
         self.color = color
-        self._chainIds = chains
+        self.chainIds = chainIds
+        self.chains = []
 
     def __deepcopy__(self,x):
         r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
-                      chains=self._chainIds)
+                      chainIds=self.chainIds)
         return r
 
     def __eq__(self,other):
         if isinstance(other,self.__class__):
             if other.name == self.name and other.subunit == self.subunit\
             and other.ranges == self.ranges and other.color == self.color\
-            and other._chainIds == self._chainIds:
+            and other._chainIds == self.chainIds:
                 return True
             else:
                 return False
         else:
             return False
+
+    def getChains(self):
+        if not self.chains:
+            self.chains = self.subunit.getChains() +\
+                          [Chain(c,self,config=self.config) \
+                           for c in self.chainIds]
+        return self.chains
 
     def getSelection(self):
         '''Get selection that acts on all chains of the corresponding subunit'''
@@ -402,6 +409,9 @@ class Subcomplex(Item):
         _dict["items"] = [item.name for item in self.items]
         _dict["color"] = self.color.rgba()
         return _dict
+
+    def getChains(self):
+        return []
 
     def deserialize(self,_dict):
         #CAVEAT: The other items have to been loaded before this
