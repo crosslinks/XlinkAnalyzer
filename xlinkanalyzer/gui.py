@@ -2062,7 +2062,7 @@ class ComponentTable(Frame):
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())):
+        if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())) or len(self.getActiveComponents()) == 1:
             for comp in self.getActiveComponents():
                 sels.append(comp.getSelection())
 

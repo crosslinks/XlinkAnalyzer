@@ -20,7 +20,7 @@ class TestMover(XlaGuiTests.XlaBaseTest):
         super(TestMover, self).setUp(mPaths, cPath)
 
     def testMover(self):
-        m = xla.get_gui().Components.mover
+        m = xla.get_gui().Components.table.mover
 
         self.assertEqual('move component', m.mode)
 

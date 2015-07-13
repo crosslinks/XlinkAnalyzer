@@ -46,6 +46,6 @@ def activateByName(name, chainIds=None):  # this is for testing only
                         elif hasattr(item, 'subunit'):
                             chainIds.extend(item.subunit.chainIds)
             for chainId in chainIds:
-                get_gui().Components.activeComponents.append((comp, chainId))
+                get_gui().Components.table.activeComponents.append((comp, chainId))
     else:
-        get_gui().Components.activeComponents = []
+        get_gui().Components.table.activeComponents = []
