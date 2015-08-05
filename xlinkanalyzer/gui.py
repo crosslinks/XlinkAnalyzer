@@ -2023,7 +2023,18 @@ class ComponentTable(Frame):
         self.table.refresh()
 
     def onSelect(self):
-        pass
+        self.getActiveModels()
+        modelIds = []
+        for model in self.models:
+            modelIds.append(str(model.chimeraModel.id))
+
+        selections = [comp.getSelection()[1:] for comp in self.table.selected()]
+
+        if len(selections) > 0:
+            selectStr =  ' #' +','.join(modelIds) + ':' + \
+                                  ','.join(selections)
+
+            runCommand('select ' + selectStr)
 
     def onShowOnly(self):
         for item in self.getComponentChoices(self.chooseVar.get()):
