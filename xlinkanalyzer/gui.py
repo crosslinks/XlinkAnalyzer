@@ -1939,6 +1939,10 @@ class ComponentTable(Frame):
                                        command=self.onShowOnly)
         self.showOnly.grid(row=curRow,column=3,sticky="W")
 
+        curRow = curRow + 1
+        self.showOnly = Button(self,text="Show all", \
+                                       command=self.onShowAll)
+        self.showOnly.grid(row=curRow,column=3,sticky="W")
 
         curRow = curRow + 1
         self.colorAll = Button(self,text="Color", \
@@ -1995,15 +1999,20 @@ class ComponentTable(Frame):
             item.active = True
         self.table.refresh()
 
-    def onActivateAll(self):
+    def iterAllItems(self):
         if self.chainVar.get():
             chains = sum([subunit.getChains() for subunit in \
                           self.getComponentChoices(self.chooseVar.get())],[])
             for c in chains:
-                c.active = True
+                yield c
         else:
             for item in self.getComponentChoices(self.chooseVar.get()):
-                item.active = True
+                yield item     
+
+    def onActivateAll(self):
+        for item in self.iterAllItems():
+            item.active = True
+
         self.table.refresh()
 
     def onActivateOnly(self):
@@ -2023,10 +2032,45 @@ class ComponentTable(Frame):
             item.show = True
         self.table.refresh()
 
+        self.getActiveModels()
+        for model in self.models:
+            for comp in self.table.selected():
+                model.show(comp)
+
+    def onShowOnly(self):
+        for item in self.getComponentChoices(self.chooseVar.get()):
+            item.show = False
+        for item in self.table.selected():
+            item.show = True
+        self.table.refresh()
+
+        self.getActiveModels()
+        for model in self.models:
+            for comp in self.table.selected():
+                model.showOnly(comp)
+
     def onHide(self):
         for item in self.table.selected():
             item.show = False
         self.table.refresh()
+
+        self.getActiveModels()
+        for model in self.models:
+            for comp in self.table.selected():
+                model.hide(comp)
+
+    def onShowAll(self):
+        for item in self.iterAllItems():
+            item.show = True
+
+        for item in self.table.selected():
+            item.show = True
+        self.table.refresh()
+
+        self.getActiveModels()
+        for model in self.models:
+            for comp in self.table.selected():
+                model.showAll()
 
     def onSelect(self):
         self.getActiveModels()
@@ -2044,25 +2088,10 @@ class ComponentTable(Frame):
 
     def onColor(self):
         self.getActiveModels()
-        modelIds = []
+
         for model in self.models:
-            modelIds.append(str(model.chimeraModel.id))
-
-        for comp in self.table.selected():
-            selection = comp.getSelection()
-            color = ','.join(map(str,comp.color.rgba()))
-
-            selectStr =  '#' +','.join(modelIds) + \
-                                  selection
-
-            runCommand('color {0} '.format(color) + selectStr)
-
-    def onShowOnly(self):
-        for item in self.getComponentChoices(self.chooseVar.get()):
-            item.show = False
-        for item in self.table.selected():
-            item.show = True
-        self.table.refresh()
+            for comp in self.table.selected():
+                model.color(comp)
 
     def onColorAll(self):
         self.getActiveModels()

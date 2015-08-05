@@ -55,10 +55,10 @@ class Model(object):
         for resi in self.chimeraModel.residues:
             yield resi
 
-    def color(self, name, color=None):
+    def color(self, comp, color=None):
         '''Color specified component of the model by color from config or specified color.'''
         if color is None:
-            color = self.config.getComponentColors(name)
+            color = comp.color
 
         if isinstance(color, dict):
             colors_by_chain = color
@@ -70,8 +70,7 @@ class Model(object):
                 color = color.rgba()
             if isinstance(color, tuple) or isinstance(color, list):
                 color = ','.join(map(str,color))
-                self.config.getComponentSelections(name)
-            runCommand('color ' + color + ' #' + str(self.getModelId()) + self.config.getComponentSelections(name))
+            runCommand('color ' + color + ' #' + str(self.getModelId()) + comp.getSelection())
 
     def colorByDomains(self, name):
         self.color(name, color='gray')
@@ -100,33 +99,32 @@ class Model(object):
 
     def colorAll(self):
         '''Color all components of the model by colors from the config'''
-        for name in self.config.getComponentNames():
-            self.color(name)
+        for comp in self.config.getComponents():
+            self.color(comp)
 
-
-    def showOnly(self, name):
+    def showOnly(self, comp):
         '''Show only a given component of the model'''
 
         for cName in self.config.getComponentNames():
-            if cName != name:
-                runCommand('~display ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(cName))
-                runCommand('~ribbon '+ ' #' + str(self.getModelId()) + self.config.getComponentSelections(cName))
-        self.show(name)
+            if cName != comp:
+                runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
+                runCommand('~ribbon '+ ' #' + str(self.getModelId()) + comp.getSelection())
+        self.show(comp)
 
-    def show(self, name):
+    def show(self, comp):
         '''Show a component of the model'''
-        runCommand('ribbon ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(name))
+        runCommand('ribbon ' + ' #' + str(self.getModelId()) + comp.getSelection())
         # show_missing_loops_for_name(name)
 
-    def hide(self, name):
+    def hide(self, comp):
         '''Hide a component of the model'''
-        runCommand('~display ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(name))
-        runCommand('~ribbon ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(name))
+        runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
+        runCommand('~ribbon ' + ' #' + str(self.getModelId()) + comp.getSelection())
 
     def showAll(self):
         '''Show all components.'''
-        for name in self.config.getComponentSelections():
-            self.show(name)
+        for comp in self.config.getComponents():
+            self.show(comp)
 
     def get_monolinks_possible_in_structure(self, possible_fn=None):
         out = []
@@ -200,30 +198,30 @@ class RMF_Model(Model):
             triggers, trigName, handler = self._handlers.pop()
             triggers.deleteHandler(trigName, handler)
 
-    def showOnly(self, name):
+    def showOnly(self, comp):
         '''Show only a given component of the model'''
 
         for cName in self.config.getComponentNames():
-            if cName != name:
-                runCommand('~display ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(cName))
+            if cName != comp:
+                runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
                 if self.moleculeModel:
-                    runCommand('~ribbon '+ ' #' + str(self.moleculeModel.id) + self.config.getComponentSelections(cName))
-        self.show(name)
+                    runCommand('~ribbon '+ ' #' + str(self.moleculeModel.id) + comp.getSelection())
+        self.show(comp)
 
-    def show(self, name):
+    def show(self, comp):
         '''Show a component of the model'''
         if self.moleculeModel:
-            runCommand('ribbon ' + ' #' + str(self.moleculeModel.id) + self.config.getComponentSelections(name))
+            runCommand('ribbon ' + ' #' + str(self.moleculeModel.id) + comp.getSelection())
         # show_missing_loops_for_name(name)
         for bead in self.iterate_beads():
-            if bead.residue.id.chainId in self.config.getChainIdsByComponentName(name):
+            if bead.residue.id.chainId in comp.getSelection():
                 bead.display = True
 
-    def hide(self, name):
+    def hide(self, comp):
         '''Hide a component of the model'''
-        runCommand('~display ' + ' #' + str(self.getModelId()) + self.config.getComponentSelections(name))
+        runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
         if self.moleculeModel:
-            runCommand('~ribbon '+ ' #' + str(self.moleculeModel.id) + self.config.getComponentSelections(name))
+            runCommand('~ribbon '+ ' #' + str(self.moleculeModel.id) + comp.getSelection())
 
     def getModelId(self):
         if self.moleculeModel:
