@@ -1939,6 +1939,12 @@ class ComponentTable(Frame):
                                        command=self.onShowOnly)
         self.showOnly.grid(row=curRow,column=3,sticky="W")
 
+
+        curRow = curRow + 1
+        self.colorAll = Button(self,text="Color", \
+                                       command=self.onColor)
+        self.colorAll.grid(row=curRow,column=3,sticky="W")
+
         curRow = curRow + 1
         self.colorAll = Button(self,text="Color all", \
                                        command=self.onColorAll)
@@ -2035,6 +2041,21 @@ class ComponentTable(Frame):
                                   ','.join(selections)
 
             runCommand('select ' + selectStr)
+
+    def onColor(self):
+        self.getActiveModels()
+        modelIds = []
+        for model in self.models:
+            modelIds.append(str(model.chimeraModel.id))
+
+        for comp in self.table.selected():
+            selection = comp.getSelection()
+            color = ','.join(map(str,comp.color.rgba()))
+
+            selectStr =  '#' +','.join(modelIds) + \
+                                  selection
+
+            runCommand('color {0} '.format(color) + selectStr)
 
     def onShowOnly(self):
         for item in self.getComponentChoices(self.chooseVar.get()):
