@@ -105,10 +105,10 @@ class Model(object):
     def showOnly(self, comp):
         '''Show only a given component of the model'''
 
-        for cName in self.config.getComponentNames():
-            if cName != comp:
-                runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
-                runCommand('~ribbon '+ ' #' + str(self.getModelId()) + comp.getSelection())
+        for otherComp in self.config.getComponents():
+            if otherComp != comp:
+                runCommand('~display ' + ' #' + str(self.getModelId()) + otherComp.getSelection())
+                runCommand('~ribbon '+ ' #' + str(self.getModelId()) + otherComp.getSelection())
         self.show(comp)
 
     def show(self, comp):
