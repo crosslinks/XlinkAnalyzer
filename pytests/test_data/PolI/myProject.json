@@ -1,7 +1,6 @@
 {
     "data": [
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
@@ -43,7 +42,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_2_Inter.xls",
@@ -97,7 +95,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_3_Inter.xls",
@@ -151,7 +148,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_4_Inter.xls",
@@ -208,7 +204,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_5_Inter.xls",
@@ -265,7 +260,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_6_Inter.xls",
@@ -322,7 +316,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_a_Inter.xls",
@@ -376,7 +369,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_b_Inter.xls",
@@ -433,7 +425,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_c_Inter.xls",
@@ -487,7 +478,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "PolI_sequences.fasta"
@@ -541,19 +531,55 @@
             "type": "sequences"
         }
     ],
-    "subcomplexes": [],
+    "subcomplexes": [
+        {
+            "color": [
+                0.8148148148148148,
+                0.6296296296296297,
+                0.0,
+                1.0
+            ],
+            "items": [
+                "A135",
+                "testdom"
+            ],
+            "name": "testsubcomplex",
+            "type": "item"
+        }
+    ],
     "subunits": [
         {
             "chainIds": [
                 "A"
             ],
+            "chains": [],
             "color": [
                 0.745,
                 0.745,
                 0.745,
                 1.0
             ],
-            "domains": [],
+            "domains": [
+                {
+                    "_chainIds": [],
+                    "chainIds": [],
+                    "chains": [],
+                    "color": [
+                        0.0,
+                        0.6666666666666666,
+                        0.0,
+                        1.0
+                    ],
+                    "name": "testdom",
+                    "ranges": [
+                        [
+                            1,
+                            100
+                        ]
+                    ],
+                    "type": "item"
+                }
+            ],
             "name": "A190",
             "selection": ":.A",
             "sequence": "",
@@ -563,6 +589,7 @@
             "chainIds": [
                 "B"
             ],
+            "chains": [],
             "color": [
                 0.99,
                 0.82,
@@ -579,6 +606,7 @@
             "chainIds": [
                 "C"
             ],
+            "chains": [],
             "color": [
                 1.0,
                 0.0,
@@ -595,6 +623,7 @@
             "chainIds": [
                 "D"
             ],
+            "chains": [],
             "color": [
                 1.0,
                 0.0,
@@ -611,6 +640,7 @@
             "chainIds": [
                 "E"
             ],
+            "chains": [],
             "color": [
                 0.8156862745098039,
                 0.12549019607843137,
@@ -627,6 +657,7 @@
             "chainIds": [
                 "F"
             ],
+            "chains": [],
             "color": [
                 0.0,
                 1.0,
@@ -643,6 +674,7 @@
             "chainIds": [
                 "G"
             ],
+            "chains": [],
             "color": [
                 0.0,
                 0.5,
@@ -659,6 +691,7 @@
             "chainIds": [
                 "H"
             ],
+            "chains": [],
             "color": [
                 0.0,
                 1.0,
@@ -675,6 +708,7 @@
             "chainIds": [
                 "I"
             ],
+            "chains": [],
             "color": [
                 1.0,
                 1.0,
@@ -691,6 +725,7 @@
             "chainIds": [
                 "J"
             ],
+            "chains": [],
             "color": [
                 0.5,
                 1.0,
@@ -707,6 +742,7 @@
             "chainIds": [
                 "K"
             ],
+            "chains": [],
             "color": [
                 1.0,
                 0.6470588235294118,
@@ -723,6 +759,7 @@
             "chainIds": [
                 "L"
             ],
+            "chains": [],
             "color": [
                 0.0,
                 0.0,
@@ -739,6 +776,7 @@
             "chainIds": [
                 "M"
             ],
+            "chains": [],
             "color": [
                 0.6,
                 0.1,
@@ -755,6 +793,7 @@
             "chainIds": [
                 "N"
             ],
+            "chains": [],
             "color": [
                 0.439215686,
                 0.831372549,

@@ -39,6 +39,7 @@ from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
+import xlinkanalyzer
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import move as xmove
 ###########
@@ -52,7 +53,7 @@ DEV = True
 
 class XlinkAnalyzer_Dialog(ModelessDialog):
 
-    title = 'Xlink Analyzer'
+    title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
     name = 'Xlink Analyzer'
     help = 'blah.html'
 
@@ -120,7 +121,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.modelSelect = ModelSelect()
 
     def setTitle(self,string):
-        self._toplevel.title("Xlink Analyzer - " + string)
+        self._toplevel.title("Xlink Analyzer v.{0} - ".format(xlinkanalyzer.__version__) + string)
 
     def getAssemblyConfig(self, name):
         for cfg in self.configCfgs:
