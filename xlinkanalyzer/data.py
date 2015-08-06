@@ -92,6 +92,15 @@ class Chain(Item):
         self.id = _id
         self.subunit = subunit
         self.name = subunit.name + " - Chain: " + _id
+        self.color = self.subunit.color
+
+        self.setSelection(':.'+_id)
+
+    def setSelection(self,sel):
+        self.selection = sel
+
+    def getSelection(self):
+        return self.selection
 
 class Component(Item):
     SHOW = ["name","chainIds","color"]
