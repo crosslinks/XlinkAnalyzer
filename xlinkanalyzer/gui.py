@@ -1974,7 +1974,7 @@ class ComponentTable(Frame):
         self.choose.grid(column=0,row=1)
         curRow = curRow + 1
 
-        self.table = SortableTable(self)
+        self.table = SortableTable(self, allowUserSorting=False)
         self.table.addColumn("Active", "active",format=bool)
         self.table.addColumn("Show", "show",format=bool)
         self.table.addColumn("Symmetrical", "sym",format=bool)
