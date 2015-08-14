@@ -1895,11 +1895,16 @@ class ComponentTable(Frame):
 
         curRow = curRow + 1
         self.chainVar = IntVar(self)
-        self.chainVar.trace("w",lambda x,y,z: self.onShowChains())
+        self.chainVar.trace("w",lambda x,y,z: self.reload())
         self.showChains = Checkbutton(self, text="Show Chains", \
                                             variable=self.chainVar)
         self.showChains.grid(row=curRow,column=1)
 
+        self.domVar = IntVar(self)
+        self.domVar.trace("w", lambda x,y,z: self.reload())
+        self.showDoms = Checkbutton(self,text="Show Domains",variable=self.domVar)
+        self.showDoms.grid(row=curRow,column=2)
+        
         curRow = curRow + 1
         self.activate = Button(self,text="Activate", \
                                        command=self.onActivate)
@@ -1965,15 +1970,9 @@ class ComponentTable(Frame):
                                        command=self.onRedo)
         self.redo.grid(row=curRow,column=3,sticky="W")
 
-        self.chooseVar = StringVar(self)
-        self.chooseVar.set("Subunits")
-        self.chooseVar.trace("w",lambda x,y,z: self.reload())
         self.choices = dict([("Subunits",self.config.getComponents),\
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
-        self.choose = OptionMenu(self,self.chooseVar,*self.choices.keys())
-        self.choose.grid(column=0,row=1)
-        curRow = curRow + 1
 
         self.table = SortableTable(self, allowUserSorting=False)
         self.table.addColumn("Active", "active",format=bool)
@@ -1985,11 +1984,13 @@ class ComponentTable(Frame):
         self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
 
     def reload(self):
-        items = self.getComponentChoices(self.chooseVar.get())
-        if items:
-            self.table.setData(items)
-        else:
-            self.table.setData([])
+        items = self.choices["Subunits"]()
+        if self.domVar.get():
+            items = sum([[sub] + sub.domains for sub in items],[])
+        items = items + self.choices["Subcomplexes"]()
+        if self.chainVar.get():
+            items = sum([item.getChains() for item in items],[])
+        self.table.setData(items)
         self.table.refresh()
 
     def getActiveModels(self):
@@ -2080,7 +2081,7 @@ class ComponentTable(Frame):
             modelIds.append(str(model.chimeraModel.id))
 
         selections = [comp.getSelection()[1:] for comp in self.table.selected()]
-
+        #We do this here? Isn't that manager stuff?
         if len(selections) > 0:
             selectStr =  ' #' +','.join(modelIds) + ':' + \
                                   ','.join(selections)
@@ -2105,18 +2106,6 @@ class ComponentTable(Frame):
 
     def onRedo(self):
         self.mover.redo_move()
-
-    def onShowChains(self):
-        if self.chainVar.get():
-            chains = sum([subunit.getChains() for subunit in \
-                          self.getComponentChoices(self.chooseVar.get())],[])
-            self.table.setData(chains)
-        else:
-            self.reload()
-        self.table.refresh()
-
-    def getComponentChoices(self, chooseVar):
-        return self.choices[chooseVar]()
 
     def getActiveComponents(self):
         curr = self.getComponentChoices(self.chooseVar.get())

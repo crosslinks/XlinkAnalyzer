@@ -87,12 +87,12 @@ class Item(object):
         return items
 
 class Chain(Item):
-    def __init__(self,_id,subunit,*args,**kwargs):
+    def __init__(self,_id,item,*args,**kwargs):
         super(Chain,self).__init__(self,*args,**kwargs)
         self.id = _id
-        self.subunit = subunit
-        self.name = subunit.name + " - Chain: " + _id
-        self.color = self.subunit.color
+        self.item = item
+        self.name = item.name + " - Chain: " + _id
+        self.color = self.item.color
 
         self.setSelection(':.'+_id)
 
@@ -232,7 +232,7 @@ class Domain(Item):
         self.color = color
         self.chainIds = chainIds
         self.chains = []
-
+        
     def __deepcopy__(self,x):
         r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
                       ranges=self.ranges,color=self.color,\
@@ -252,9 +252,8 @@ class Domain(Item):
 
     def getChains(self):
         if not self.chains:
-            self.chains = self.subunit.getChains() +\
-                          [Chain(c,self,config=self.config) \
-                           for c in self.chainIds]
+            self.chains = [Chain(c,self,config=self.config) \
+                           for c in self.subunit.chainIds]
         return self.chains
 
     def getSelection(self):
