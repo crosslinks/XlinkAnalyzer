@@ -2001,24 +2001,14 @@ class ComponentTable(Frame):
             item.active = True
         self.table.refresh()
 
-    def iterAllItems(self):
-        if self.chainVar.get():
-            chains = sum([subunit.getChains() for subunit in \
-                          self.getComponentChoices(self.chooseVar.get())],[])
-            for c in chains:
-                yield c
-        else:
-            for item in self.getComponentChoices(self.chooseVar.get()):
-                yield item     
-
     def onActivateAll(self):
-        for item in self.iterAllItems():
+        for item in self.table.data:
             item.active = True
 
         self.table.refresh()
 
     def onActivateOnly(self):
-        for item in self.getComponentChoices(self.chooseVar.get()):
+        for item in self.table.data:
             item.active = False
         for item in self.table.selected():
             item.active = True
@@ -2040,7 +2030,7 @@ class ComponentTable(Frame):
                 model.show(comp)
 
     def onShowOnly(self):
-        for item in self.getComponentChoices(self.chooseVar.get()):
+        for item in self.table.data:
             item.show = False
         for item in self.table.selected():
             item.show = True
@@ -2062,7 +2052,7 @@ class ComponentTable(Frame):
                 model.hide(comp)
 
     def onShowAll(self):
-        for item in self.iterAllItems():
+        for item in self.table.data:
             item.show = True
 
         for item in self.table.selected():
