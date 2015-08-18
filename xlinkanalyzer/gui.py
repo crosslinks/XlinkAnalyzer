@@ -988,6 +988,10 @@ class SetupFrame(TabFrame):
                                          command=self.onSubcomplexes)
         self.subCompButton.grid(row = curRow,column = 1, sticky = "W",**layout)
 
+        self.subCompButton = Button(self,text="Load from structure", \
+                                         command=self.onLoadFromStructure)
+        self.subCompButton.grid(row = curRow,column = 2, sticky = "W",**layout)
+
         curRow = curRow + 1
         self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
         self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
@@ -1035,6 +1039,9 @@ class SetupFrame(TabFrame):
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
         ItemList(Toplevel(),self.config,"domains",True)
+
+    def onLoadFromStructure(self):
+        dialog = LoadFromStructureDialog()
 
     def onLoad(self):
         if self.resMngr.loadAssembly(self):
@@ -2125,3 +2132,34 @@ class ComponentTable(Frame):
 
 def is_mac():
     return _platform == "darwin"
+
+class LoadFromStructureDialog(ModelessDialog):
+
+    title = 'Load from structure'
+    name = 'Load from structure'
+
+    buttons = ("Apply", "Close")
+
+    def __init__(self, **kw):
+        self._handlers = []
+
+        ModelessDialog.__init__(self, **kw)
+
+    def fillInUI(self, parent):
+        modelSelect = xlinkanalyzer.get_gui().modelSelect.create(parent)
+        modelSelect.pack()
+    
+    def Apply(self):
+        guiWin = xlinkanalyzer.get_gui()
+        cfg = getConfig()
+        for m in self.getActiveModels():
+            cfg.loadFromStructure(m.chimeraModel)
+
+        guiWin.configFrame.clear()
+        guiWin.configFrame.update()
+        guiWin.configFrame.config.state = "changed"
+
+    def getActiveModels(self):
+        return xlinkanalyzer.get_gui().modelSelect.getActiveModels()
+
+chimera.dialogs.register(LoadFromStructureDialog.name, LoadFromStructureDialog)

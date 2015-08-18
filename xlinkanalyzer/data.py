@@ -8,6 +8,7 @@ from collections import deque
 import itertools
 from sys import __stdout__
 from collections import defaultdict
+import random
 
 import chimera
 import tkMessageBox
@@ -133,11 +134,18 @@ class Component(Item):
     def setChainIds(self,ids):
         self.chainIds = ids
 
-    def setSelection(self,sel):
+    def addChain(self, chainId):
+        if chainId not in self.chainIds:
+            self.chainIds.append(chainId)
+            self.setSelection()
+
+    def setSelection(self,sel=None):
+        if sel is None:
+            sel = self.createComponentSelectionFromChains()
         self.selection = sel
 
     def getSelection(self):
-        return self.selection
+        return self.createComponentSelectionFromChains()
 
     def getSelectionsByChain(self):
         '''Return {chain_id: selection} object for use in selecting subset of chains.'''
@@ -809,6 +817,76 @@ class Assembly(Item):
                 s = Subcomplex(config=self)
                 s.deserialize(subD)
                 self.addItem(s)
+
+    def loadFromStructure(self, m):
+
+        def areSequencesSame(s1, s2, min_overlap=5):
+            pairs = {}
+            for r in s1.residues:
+                pairs[r.id.position] = r.type
+
+            same = 0
+            for r in s2.residues:
+                if r.id.position in pairs:
+                    if r.type == pairs[r.id.position]:
+                        same = same + 1
+                    else:
+                        return False
+
+            return same >= min_overlap
+
+        def getAddedBySeq(newS, addedSeqs):
+            for oldName, oldSubCfg in addedSeqs.iteritems():
+                oldS = oldSubCfg['oriSeq']
+                if areSequencesSame(newS, oldS):
+                    return oldName
+
+            return None
+
+        def getRandomColor():
+            table = chimera.colorTable
+            name = random.choice(table.colors.keys())
+            return table.getColorByName(name)
+
+        subunits = []
+        added = {}
+
+
+        molId = 1
+        for s in m.sequences():
+            if s.descriptiveName is not None:
+                name = s.descriptiveName
+            else:
+                addedName = getAddedBySeq(s, added)
+                if addedName is None:
+                    name = 'Mol{0}'.format(molId)
+                else:
+                    name = addedName
+
+            if name not in added:
+                subCfg = {
+                    'name': name,
+                    'chainIds': [str(s.chain)],
+                    'oriSeq': s
+                }
+                subunits.append(subCfg)
+
+                added[name] = subCfg
+                molId = molId + 1
+            else:
+                added[name]['chainIds'].append(str(s.chain))
+
+        for subunit in subunits:
+            oldSubunit = self.getComponentByName(subunit['name'])
+            if oldSubunit is None:
+                c = Component(subunit['name'],self)
+                c.setChainIds(subunit['chainIds'])
+                c.setSelection(c.createComponentSelectionFromChains())
+                c.color = getRandomColor()
+                self.addItem(c)
+            else:
+                for chainId in subunit['chainIds']:
+                    oldSubunit.addChain(chainId)
 
     def convert(self,_input):
         """
