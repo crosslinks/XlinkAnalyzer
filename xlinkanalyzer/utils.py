@@ -5,15 +5,17 @@ import random
 def areSequencesSame(s1, s2, min_overlap=5):
     pairs = {}
     for r in s1.residues:
-        pairs[r.id.position] = r.type
+        if r is not None:  # was None in 4V7R
+            pairs[r.id.position] = r.type
 
     same = 0
     for r in s2.residues:
-        if r.id.position in pairs:
-            if r.type == pairs[r.id.position]:
-                same = same + 1
-            else:
-                return False
+        if r is not None:  # was None in 4V7R
+            if r.id.position in pairs:
+                if r.type == pairs[r.id.position]:
+                    same = same + 1
+                else:
+                    return False
 
     return same >= min_overlap
 
