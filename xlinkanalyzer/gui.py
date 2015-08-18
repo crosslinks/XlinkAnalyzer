@@ -2098,12 +2098,11 @@ class ComponentTable(Frame):
         self.mover.redo_move()
 
     def getActiveComponents(self):
-        curr = self.getComponentChoices(self.chooseVar.get())
-        return [item for item in curr if item.active]
+        return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.getComponentChoices(self.chooseVar.get())) or len(self.getActiveComponents()) == 1:
+        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
             for comp in self.getActiveComponents():
                 sels.append(comp.getSelection())
 
