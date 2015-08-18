@@ -8,7 +8,6 @@ from collections import deque
 import itertools
 from sys import __stdout__
 from collections import defaultdict
-import random
 
 import chimera
 import tkMessageBox
@@ -22,6 +21,7 @@ from pyxlinks import XlinksSet
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
 from xlinkanalyzer import getConfig
+from xlinkanalyzer import utils as xutils
 
 class Item(object):
     SHOW = ["name"]
@@ -820,33 +820,14 @@ class Assembly(Item):
 
     def loadFromStructure(self, m):
 
-        def areSequencesSame(s1, s2, min_overlap=5):
-            pairs = {}
-            for r in s1.residues:
-                pairs[r.id.position] = r.type
-
-            same = 0
-            for r in s2.residues:
-                if r.id.position in pairs:
-                    if r.type == pairs[r.id.position]:
-                        same = same + 1
-                    else:
-                        return False
-
-            return same >= min_overlap
-
         def getAddedBySeq(newS, addedSeqs):
             for oldName, oldSubCfg in addedSeqs.iteritems():
                 oldS = oldSubCfg['oriSeq']
-                if areSequencesSame(newS, oldS):
+                if xutils.areSequencesSame(newS, oldS):
                     return oldName
 
             return None
 
-        def getRandomColor():
-            table = chimera.colorTable
-            name = random.choice(table.colors.keys())
-            return table.getColorByName(name)
 
         subunits = []
         added = {}
@@ -882,7 +863,7 @@ class Assembly(Item):
                 c = Component(subunit['name'],self)
                 c.setChainIds(subunit['chainIds'])
                 c.setSelection(c.createComponentSelectionFromChains())
-                c.color = getRandomColor()
+                c.color = xutils.getRandomColor()
                 self.addItem(c)
             else:
                 for chainId in subunit['chainIds']:
