@@ -449,6 +449,13 @@ class Subcomplex(Item):
 
         return out
 
+    def getSelection(self):
+        out = []
+        for item in self.items:
+            out.append(item.getSelection()[1:])
+
+        return ':{0}'.format(','.join(out))
+
 class SimpleDataItem(Item):
     def __init__(self,name,config,data):
         super(SimpleDataItem,self).__init__(name,config)
