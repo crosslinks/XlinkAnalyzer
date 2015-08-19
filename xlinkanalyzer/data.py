@@ -115,6 +115,7 @@ class Component(Item):
         self.componentToChain = {}
         self.domains = []
         self.chains = []
+        self.info = {}
 
     def getChains(self):
         if not self.chains:
@@ -820,53 +821,39 @@ class Assembly(Item):
 
     def loadFromStructure(self, m):
 
-        def getAddedBySeq(newS, addedSeqs):
-            for oldName, oldSubCfg in addedSeqs.iteritems():
-                oldS = oldSubCfg['oriSeq']
-                if xutils.areSequencesSame(newS, oldS):
-                    return oldName
+        def getAddedBySeq(newS, m):
+            for comp in self.getComponents():
+                for chainId in comp.chainIds:
+                    for s in m.sequences():
+                        if s.chain == chainId:
+                            if xutils.areSequencesSame(newS, s):
+                                return comp.name                        
 
             return None
-
-
-        subunits = []
-        added = {}
-
 
         molId = 1
         for s in m.sequences():
             name = xutils.getSeqName(s)
             if name is None:
-                addedName = getAddedBySeq(s, added)
+                addedName = getAddedBySeq(s, m)
                 if addedName is None:
                     name = 'Mol{0}'.format(molId)
                 else:
                     name = addedName
 
-            if name not in added:
-                subCfg = {
-                    'name': name,
-                    'chainIds': [str(s.chain)],
-                    'oriSeq': s
-                }
-                subunits.append(subCfg)
-
-                added[name] = subCfg
-                molId = molId + 1
-            else:
-                added[name]['chainIds'].append(str(s.chain))
-
-        for subunit in subunits:
-            oldSubunit = self.getComponentByName(subunit['name'])
+            oldSubunit = self.getComponentByName(name)
             if oldSubunit is None:
-                c = Component(subunit['name'],self)
-                c.setChainIds(subunit['chainIds'])
+                molId = molId + 1
+
+                c = Component(name,self)
+                c.setChainIds([str(s.chain)])
                 c.setSelection(c.createComponentSelectionFromChains())
                 c.color = xutils.getRandomColor()
                 self.addItem(c)
+
             else:
-                for chainId in subunit['chainIds']:
-                    oldSubunit.addChain(chainId)
+                oldSubunit.addChain(str(s.chain))
+
 
     def convert(self,_input):
         """

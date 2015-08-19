@@ -43,13 +43,24 @@ class CifHeaders(object):
             if data['id'] == entityId:
                 return data['pdbx_description']
 
+    def getDBrefInfo(self, chainId):
+        entityId = self.getEntityIdForChain(chainId)
+
+        for data in self.mmCIFHeaders['struct_ref']:
+            if data['entity_id'] == entityId:
+                return dict((k, data[k]) for k in ('db_code', 'pdbx_db_accession'))
 
 def getSeqName(s):
     name = s.descriptiveName
 
     if name is None:
-        if s.molecule.mmCIFHeaders is not None:
+        if hasattr(s.molecule, 'mmCIFHeaders') and s.molecule.mmCIFHeaders is not None:
             cif = CifHeaders(s.molecule.mmCIFHeaders)
             name = cif.getSeqNameForChain(s.chain)
 
     return name
+
+def getDBrefInfo(s):
+    if hasattr(s.molecule, 'mmCIFHeaders') and s.molecule.mmCIFHeaders is not None:
+        cif = CifHeaders(s.molecule.mmCIFHeaders)
+        return cif.getDBrefInfo(s.chain)
