@@ -81,6 +81,7 @@ def getSeqName(s):
 
     return name
 
+
 def getDBrefInfo(s):
     if hasattr(s.molecule, 'pdbHeaders') and s.molecule.pdbHeaders:
         pdbh = PDBHeaders(s.molecule.pdbHeaders)

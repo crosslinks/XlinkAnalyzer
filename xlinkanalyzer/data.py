@@ -667,9 +667,10 @@ class DataItem(Item):
 
         @param text Name read from the data file (a key of self.mapping)
 
-        Return Component object
+        Return Component object or None.
         '''
         return SubunitMatcher().getSubunit(text)
+
 
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
@@ -1130,6 +1131,7 @@ class ResourceManager(object):
                     indent=4,\
                     separators=(',', ': ')))
             f.close()
+
 
 class SubunitMatcher(object):
     def __init__(self):
