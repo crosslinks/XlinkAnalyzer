@@ -8,6 +8,7 @@ from collections import deque
 import itertools
 from sys import __stdout__
 from collections import defaultdict
+import re
 
 import chimera
 import tkMessageBox
@@ -1119,6 +1120,40 @@ class ResourceManager(object):
                     indent=4,\
                     separators=(',', ': ')))
             f.close()
+
+class SubunitMatcher(object):
+    def __init__(self):
+        self.config = getConfig()
+
+    def getSubunit(self, text):
+        subunits = self.config.getComponents()
+
+        for s in subunits:
+            if s.name == text:
+                return s
+
+        acc = self._extractdbAccession(text)
+        for s in subunits:
+            s_acc = s.info.get('pdbx_db_accession')
+            if s_acc and s_acc == acc:
+                return s
+
+    def _extractUniprotAccession(self, text):
+        uniprotAccRgxp = '[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}'
+
+        rgxp = '..\|({0})\|'.format(uniprotAccRgxp)
+        m = re.match(rgxp, text)
+        if m:
+            return m.groups()[0]
+        else:
+            m = re.match(uniprotAccRgxp, text)
+            if m:
+                return m.group()
+
+    def _extractdbAccession(self, text):
+        # TODO: looking for accessions of other databases
+        return self._extractUniprotAccession(text)
+
 
 if __name__ == "__main__":
     if True:
