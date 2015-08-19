@@ -835,9 +835,8 @@ class Assembly(Item):
 
         molId = 1
         for s in m.sequences():
-            if s.descriptiveName is not None:
-                name = s.descriptiveName
-            else:
+            name = xutils.getSeqName(s)
+            if name is None:
                 addedName = getAddedBySeq(s, added)
                 if addedName is None:
                     name = 'Mol{0}'.format(molId)
