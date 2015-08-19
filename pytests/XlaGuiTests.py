@@ -30,6 +30,8 @@ class XlaBaseTest(unittest.TestCase):
         guiWin.configFrame.mainWindow.setTitle(guiWin.configFrame.config.file)
         guiWin.configFrame.config.state = "unchanged"
 
+        self.config = guiWin.configFrame.config
+
 class TestLoadFromStructure(unittest.TestCase):
     def setUp(self, mPaths):
 
@@ -47,3 +49,5 @@ class TestLoadFromStructure(unittest.TestCase):
         guiWin.configFrame.clear()
         guiWin.configFrame.update()
         guiWin.configFrame.config.state = "changed"
+
+        self.config = guiWin.configFrame.config

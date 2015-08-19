@@ -851,6 +851,12 @@ class Assembly(Item):
                 c.color = xutils.getRandomColor()
                 self.addItem(c)
 
+                info = xutils.getDBrefInfo(s)
+                if info is not None:
+                    for k, v in info.iteritems():
+                        if v not in (None, '') and c.info.get(k) is None:
+                            c.info[k] = info[k]
+
             else:
                 oldSubunit.addChain(str(s.chain))
 

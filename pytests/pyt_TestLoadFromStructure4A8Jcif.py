@@ -18,4 +18,15 @@ class Test4A8J(XlaGuiTests.TestLoadFromStructure):
         super(Test4A8J, self).setUp(mPaths)
 
     def testThis(self):
-        pass
+        self.assertEqual(len(self.config.getComponents()), 3)
+
+        info = {
+                'ELONGATOR COMPLEX PROTEIN 4': {'db_name': 'UNP', 'db_code': 'ELP4_YEAST', 'pdbx_db_accession': 'Q02884'},
+                'ELONGATOR COMPLEX PROTEIN 5': {'db_name': 'UNP', 'db_code': 'ELP5_YEAST', 'pdbx_db_accession': 'P38874'},
+                'ELONGATOR COMPLEX PROTEIN 6': {'db_name': 'UNP', 'db_code': 'ELP6_YEAST', 'pdbx_db_accession': 'Q04868'},
+        }
+
+        self.assertSetEqual(set(info.keys()), set([s.name for s in self.config.getComponents()]))
+        
+        for subunit in self.config.getComponents():
+            self.assertDictContainsSubset(subunit.info, info[subunit.name])
