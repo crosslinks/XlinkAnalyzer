@@ -661,6 +661,16 @@ class DataItem(Item):
     def getMappingElements(self):
         return [[],[]]
 
+    def guessSubunit(self, text):
+        '''
+        Guess a subunit based on the name read from the data file.
+
+        @param text Name read from the data file (a key of self.mapping)
+
+        Return Component object
+        '''
+        return SubunitMatcher().getSubunit(text)
+
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,**kwargs):
