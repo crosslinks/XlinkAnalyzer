@@ -845,32 +845,33 @@ class Assembly(Item):
 
         molId = 1
         for s in m.sequences():
-            name = xutils.getSeqName(s)
-            if name is None:
-                addedName = getAddedBySeq(s, m)
-                if addedName is None:
-                    name = 'Mol{0}'.format(molId)
+            if s.hasProtein():
+                name = xutils.getSeqName(s)
+                if name is None:
+                    addedName = getAddedBySeq(s, m)
+                    if addedName is None:
+                        name = 'Mol{0}'.format(molId)
+                    else:
+                        name = addedName
+
+                oldSubunit = self.getComponentByName(name)
+                if oldSubunit is None:
+                    molId = molId + 1
+
+                    c = Component(name,self)
+                    c.setChainIds([str(s.chain)])
+                    c.setSelection(c.createComponentSelectionFromChains())
+                    c.color = xutils.getRandomColor()
+                    self.addItem(c)
+
+                    info = xutils.getDBrefInfo(s)
+                    if info is not None:
+                        for k, v in info.iteritems():
+                            if v not in (None, '') and c.info.get(k) is None:
+                                c.info[k] = info[k]
+
                 else:
-                    name = addedName
-
-            oldSubunit = self.getComponentByName(name)
-            if oldSubunit is None:
-                molId = molId + 1
-
-                c = Component(name,self)
-                c.setChainIds([str(s.chain)])
-                c.setSelection(c.createComponentSelectionFromChains())
-                c.color = xutils.getRandomColor()
-                self.addItem(c)
-
-                info = xutils.getDBrefInfo(s)
-                if info is not None:
-                    for k, v in info.iteritems():
-                        if v not in (None, '') and c.info.get(k) is None:
-                            c.info[k] = info[k]
-
-            else:
-                oldSubunit.addChain(str(s.chain))
+                    oldSubunit.addChain(str(s.chain))
 
 
     def convert(self,_input):
