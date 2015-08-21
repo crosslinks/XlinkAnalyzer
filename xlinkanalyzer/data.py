@@ -34,9 +34,14 @@ class Item(object):
         self.show = True
         self.active = True
         self.sym = True
+        self.defaults = dict()
 
     def __getitem__(self,slice):
         return self.__dict__
+
+    def setDefaults(self):
+        for k in self.SHOW:
+            self.defaults[k] = type(self.__dict__[k])()
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
@@ -104,16 +109,16 @@ class Chain(Item):
     def getSelection(self):
         return self.selection
 
-class Component(Item):
+class Subunit(Item):
     SHOW = ["name","chainIds","color"]
     def __init__(self,*args,**kwargs):
-        super(Component,self).__init__(*args,**kwargs)
-        self.type = "component"
+        super(Subunit,self).__init__(*args,**kwargs)
+        self.type = "subunit"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
         self.selection = ""
-        self.chainToComponent = {}
-        self.componentToChain = {}
+        self.chainToSubunit = {}
+        self.subunitToChain = {}
         self.domains = []
         self.chains = []
         self.info = {}
@@ -143,11 +148,11 @@ class Component(Item):
 
     def setSelection(self,sel=None):
         if sel is None:
-            sel = self.createComponentSelectionFromChains()
+            sel = self.createSubunitSelectionFromChains()
         self.selection = sel
 
     def getSelection(self):
-        return self.createComponentSelectionFromChains()
+        return self.createSubunitSelectionFromChains()
 
     def getSelectionsByChain(self):
         '''Return {chain_id: selection} object for use in selecting subset of chains.'''
@@ -157,7 +162,7 @@ class Component(Item):
 
         return out
 
-    def createComponentSelectionFromChains(self, chainIds = None):
+    def createSubunitSelectionFromChains(self, chainIds = None):
         if chainIds is None:
             chainIds = self.chainIds
         return ':'+','.join(['.'+s for s in chainIds])
@@ -177,13 +182,13 @@ class Component(Item):
             return _input
 
     def serialize(self):
-        _dict = super(Component,self).serialize()
+        _dict = super(Subunit,self).serialize()
         _dict["color"] = self.color.rgba()
         _dict["domains"] = [d.serialize() for d in self.domains]
-        if "chainToComponent" in _dict:
-            _dict.pop("chainToComponent")
-        if "componentToChain" in _dict:
-            _dict.pop("componentToChain")
+        if "chainToSubunit" in _dict:
+            _dict.pop("chainToSubunit")
+        if "subunitToChain" in _dict:
+            _dict.pop("subunitToChain")
         return _dict
 
     def deserialize(self,_dict):
@@ -198,13 +203,13 @@ class Component(Item):
                     d.subunit=self
                     self.domains.append(d)
             _dict.pop("domains")
-        super(Component,self).deserialize(_dict)
+        super(Subunit,self).deserialize(_dict)
 
     def contains(self, compName, resiId):
         return compName == self.name
 
     def __str__(self):
-        s = "Component: \n \
+        s = "Subunit: \n \
              -------------------------\n\
              Name:\t%s\n\
              Color:\t%s\n\
@@ -215,12 +220,12 @@ class Component(Item):
         return self.__str__()
 
     def __deepcopy__(self,x):
-        componentCopy =Component(name=self.name,config=self.config)
-        componentCopy.setColor(self.color)
-        componentCopy.setChainIds(self.chainIds)
-        genSelection = self.createComponentSelectionFromChains()
-        componentCopy.setSelection(genSelection)
-        return componentCopy
+        subunitCopy =Subunit(name=self.name,config=self.config)
+        subunitCopy.setColor(self.color)
+        subunitCopy.setChainIds(self.chainIds)
+        genSelection = self.createSubunitSelectionFromChains()
+        subunitCopy.setSelection(genSelection)
+        return subunitCopy
 
     def chainIdsToString(self,chainIds=None):
         if chainIds is None:
@@ -309,15 +314,15 @@ class Domain(Item):
         return ret
 
     def parseSubunit(self,name):
-        comp = self.config.getComponentByName(name)
+        comp = self.config.getSubunitByName(name)
         self.moveDomain(comp)
         return comp
 
-    def moveDomain(self,newComponent):
+    def moveDomain(self,newSubunit):
         domains = self.subunit.domains
         if self in domains:
             domains.pop(domains.index(self))
-        newComponent.domains.append(self)
+        newSubunit.domains.append(self)
 
     def rangesToString(self,rlist=None):
         if rlist:
@@ -398,7 +403,7 @@ class Subcomplex(Item):
         self.items = []
         self.dataMap = dict([("items",\
             [Domain(config=self.config,fake=True),\
-             Component(config=self.config,fake=True)])])
+             Subunit(config=self.config,fake=True)])])
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
@@ -418,7 +423,7 @@ class Subcomplex(Item):
         return copy
 
     def addItem(self,item):
-        if isinstance(item,Domain) or isinstance(item,Component):
+        if isinstance(item,Domain) or isinstance(item,Subunit):
             self.items.append(item)
 
     def serialize(self):
@@ -445,7 +450,7 @@ class Subcomplex(Item):
                 self.items.append(domain)
                 self.items.remove(name)
                 continue
-            subunit = self.config.getComponentByName(name)
+            subunit = self.config.getSubunitByName(name)
             if subunit:
                 self.items.append(subunit)
                 self.items.remove(name)
@@ -655,7 +660,7 @@ class DataItem(Item):
                           [f.validate() for f in self.files],True)
         return True if super(DataItem,self).validate() and allExist else False
 
-    def getProteinsByComponent(self,name):
+    def getProteinsBySubunit(self,name):
         return [k for k,v in self.mapping.items() if name in v]
 
     def getMappingElements(self):
@@ -667,7 +672,7 @@ class DataItem(Item):
 
         @param text Name read from the data file (a key of self.mapping)
 
-        Return Component object or None.
+        Return Subunit object or None.
         '''
         return SubunitMatcher().getSubunit(text)
 
@@ -758,13 +763,13 @@ class Assembly(Item):
         self.file = ""
         self.state = "unsaved"
         self.frame = frame
-        self.componentToChain = {}
-        self.chainToComponent = {}
+        self.subunitToChain = {}
+        self.chainToSubunit = {}
         self.chainToProtein = {}
 
         self.dataMap = dict([\
-            ("domains",Domain(config = self,subunit=Component(config=self,fake=True),fake=True)),\
-            ("subunits",Component(config=self,fake=True)),\
+            ("domains",Domain(config = self,subunit=Subunit(config=self,fake=True),fake=True)),\
+            ("subunits",Subunit(config=self,fake=True)),\
             ("subcomplexes",Subcomplex(config=self,fake=True)),\
             ("dataItems",[SequenceItem(config=self,fake=True),\
                           XQuestItem(config=self,fake=True),\
@@ -800,12 +805,12 @@ class Assembly(Item):
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
                           InteractingResidueItem)])
-        components = _dict.get("subunits")
+        subunits = _dict.get("subunits")
         dataItems = _dict.get("data")
         subcomplexes = _dict.get("subcomplexes")
         #TODO: this is a temporary solution
-        for compD in components:
-            c = Component(compD["name"],self)
+        for compD in subunits:
+            c = Subunit(compD["name"],self)
             c.deserialize(compD)
             self.addItem(c)
         for dataD in dataItems:
@@ -834,7 +839,7 @@ class Assembly(Item):
     def loadFromStructure(self, m):
 
         def getAddedBySeq(newS, m):
-            for comp in self.getComponents():
+            for comp in self.getSubunits():
                 for chainId in comp.chainIds:
                     for s in m.sequences():
                         if s.chain == chainId:
@@ -854,13 +859,13 @@ class Assembly(Item):
                     else:
                         name = addedName
 
-                oldSubunit = self.getComponentByName(name)
+                oldSubunit = self.getSubunitByName(name)
                 if oldSubunit is None:
                     molId = molId + 1
 
-                    c = Component(name,self)
+                    c = Subunit(name,self)
                     c.setChainIds([str(s.chain)])
-                    c.setSelection(c.createComponentSelectionFromChains())
+                    c.setSelection(c.createSubunitSelectionFromChains())
                     c.color = xutils.getRandomColor()
                     self.addItem(c)
 
@@ -892,8 +897,8 @@ class Assembly(Item):
     def getColor(self, name):
         #TODO: Try to simplify
         color = chimera.MaterialColor(*[0.0]*4)
-        if self.getComponentColors(name):
-            colorCfg = self.getComponentColors(name)
+        if self.getSubunitColors(name):
+            colorCfg = self.getSubunitColors(name)
             if isinstance(colorCfg, basestring):
                 color = chimera.colorTable.getColorByName(colorCfg)
             elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
@@ -903,7 +908,7 @@ class Assembly(Item):
         return color
 
     def addItem(self,item):
-        if isinstance(item,Component):
+        if isinstance(item,Subunit):
             self.subunits.append(item)
         elif isinstance(item,DataItem):
             self.dataItems.append(item)
@@ -914,7 +919,7 @@ class Assembly(Item):
         self.state = "changed"
 
     def deleteItem(self,item):
-        if isinstance(item,Component):
+        if isinstance(item,Subunit):
             if item in self.subunits:
                 self.subunits.remove(item)
         elif isinstance(item,DataItem):
@@ -936,17 +941,17 @@ class Assembly(Item):
         for dataItem in self.dataItems:
             self.dataItems.remove(item)
 
-    def getComponentByName(self,name):
-        candidates = [c for c in self.getComponents() if c.name==name]
+    def getSubunitByName(self,name):
+        candidates = [c for c in self.getSubunits() if c.name==name]
         if candidates:
             return candidates[0]
         else:
             return None
 
-    def getComponents(self):
+    def getSubunits(self):
         return self.subunits
 
-    def getComponentNames(self):
+    def getSubunitNames(self):
         return [i.name for i in self.subunits]
 
     def getDataItems(self,_type = None):
@@ -956,7 +961,7 @@ class Assembly(Item):
             typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
             return typeDataItems
 
-    def getComponentColors(self,name=None):
+    def getSubunitColors(self,name=None):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
@@ -966,7 +971,7 @@ class Assembly(Item):
         else:
             return dict([(i.name,i.color) for i in self.subunits])
 
-    def getComponentSelections(self,name = None):
+    def getSubunitSelections(self,name = None):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
@@ -997,7 +1002,7 @@ class Assembly(Item):
             else:
                 return None
         else:
-            ret = sum([c.domains for c in self.getComponents()],[])
+            ret = sum([c.domains for c in self.getSubunits()],[])
             for d in ret:
                 d.config = self
             return ret
@@ -1021,38 +1026,38 @@ class Assembly(Item):
             if subcomp.name == name:
                 return subcomp
 
-    def getChainIdsByComponentName(self,name=None):
+    def getChainIdsBySubunitName(self,name=None):
         if name:
-            comps = self.getComponents()
+            comps = self.getSubunits()
             chainsList = [c.chainIds for c in comps if c.name == name]
             if chainsList:
                 chains = reduce(lambda x,y: x+y,chainsList,[])
-                self.componentToChain[name] = chains
+                self.subunitToChain[name] = chains
                 return chains
             else:
                 raise KeyError
         else:
-            for name in self.getComponentNames():
-                self.getChainIdsByComponentName(name)
-            return self.componentToChain
+            for name in self.getSubunitNames():
+                self.getChainIdsBySubunitName(name)
+            return self.subunitToChain
 
-    def getComponentByChain(self,chain=None):
-        #returns a Component NAME
+    def getSubunitByChain(self,chain=None):
+        #returns a Subunit NAME
         if chain:
-            if chain in self.chainToComponent:
-                return self.chainToComponent[chain]
+            if chain in self.chainToSubunit:
+                return self.chainToSubunit[chain]
             else:
-                comps = self.getComponents()
+                comps = self.getSubunits()
                 candidates = [c for c in comps if chain in c.chainIds]
                 if candidates:
-                    component = candidates[0].name
-                    self.chainToComponent[chain] = component
-                    return component
+                    subunit = candidates[0].name
+                    self.chainToSubunit[chain] = subunit
+                    return subunit
                 else:
                     return None
         else:
             #this might return an empty dict
-            return self.chainToComponent
+            return self.chainToSubunit
 
     def serialize(self):
         _dict = {}
@@ -1075,9 +1080,9 @@ class Assembly(Item):
         '''
 
         cfg = pyxlinks.Config()
-        cfg.components = self.getComponentNames()
-        cfg.chain_to_comp = self.getComponentByChain()
-        cfg.component_chains = self.getChainIdsByComponentName()
+        cfg.subunits = self.getSubunitNames()
+        cfg.chain_to_comp = self.getSubunitByChain()
+        cfg.subunit_chains = self.getChainIdsBySubunitName()
         cfg.data = self.getDataItems()
         cfg.cfg_filename = self.file
         cfg.sequences = self.getSequences()
@@ -1139,7 +1144,7 @@ class SubunitMatcher(object):
         self.config = getConfig()
 
     def getSubunit(self, text):
-        subunits = self.config.getComponents()
+        subunits = self.config.getSubunits()
 
         for s in subunits:
             if s.name == text:

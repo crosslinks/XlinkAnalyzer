@@ -17,7 +17,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import Item, Assembly, Component, Domain, FileGroup, DataItem
+from data import Item, Assembly, Subunit, Domain, FileGroup, DataItem
 
 class FileFrame(Frame):
     def __init__(self,parent,active=False,fileGroup=FileGroup(),\

@@ -33,7 +33,7 @@ import ttk
 import pyxlinks
 
 
-from data import Component,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
+from data import Subunit,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
                  Assembly, ResourceManager, Item, InteractingResidueItem,\
                  Domain, Subcomplex
 
@@ -67,7 +67,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         manager.registerInstance(self)
 
         chimera.triggers.addTrigger('newAssemblyCfg')
-        chimera.triggers.addTrigger('componentAdded')
+        chimera.triggers.addTrigger('subunitAdded')
         chimera.triggers.addTrigger('modelLoaded')
         chimera.triggers.addTrigger('configUpdated')
         chimera.triggers.addTrigger('lengthThresholdChanged')
@@ -85,7 +85,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         ModelessDialog.destroy(self)
         chimera.triggers.deleteTrigger('newAssemblyCfg')
-        chimera.triggers.deleteTrigger('componentAdded')
+        chimera.triggers.deleteTrigger('subunitAdded')
         chimera.triggers.deleteTrigger('modelLoaded')
         chimera.triggers.deleteTrigger('configUpdated')
         chimera.triggers.deleteTrigger('lengthThresholdChanged')
@@ -107,7 +107,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
 
-        self.addTab('Components', ComponentsTabFrame)
+        self.addTab('Subunits', SubunitsTabFrame)
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
@@ -128,14 +128,14 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
             if cfg.name == name:
                 return cfg
 
-    def addComponentToCfgCB(self):
+    def addSubunitToCfgCB(self):
         cfgName = self.loadDataTab_configCfgsOptionMenu.var.get()
-        name = self.currAddComponentFrame.componentNameEntryField.get()
-        color = self.currAddComponentFrame.coloropt.get()
-        chains = self.currAddComponentFrame.chainEntryField.get()
+        name = self.currAddSubunitFrame.subunitNameEntryField.get()
+        color = self.currAddSubunitFrame.coloropt.get()
+        chains = self.currAddSubunitFrame.chainEntryField.get()
         chains = [x.strip() for x in chains.split(',')]
 
-        self.addComponentToCfg(cfgName, name, color=color, chains=chains)
+        self.addSubunitToCfg(cfgName, name, color=color, chains=chains)
 
     def getDataMgrsForModel(self, model):
         out = []
@@ -160,18 +160,18 @@ def show_dialog():
     from chimera import dialogs
     return dialogs.display(XlinkAnalyzer_Dialog.name)
 
-class ComponentsOptionMenu(Tkinter.OptionMenu):
+class SubunitsOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master, defOption, config):
         self.var = Tkinter.StringVar(master)
         defOption = defOption
         self.var.set(defOption)
 
-        options = [defOption] + config.getComponentNames()
+        options = [defOption] + config.getSubunitNames()
         Tkinter.OptionMenu.__init__(self, master, self.var, *options)
         self.config(font=('calibri',(10)),bg='white',width=20)
         self['menu'].config(font=('calibri',(10)), bg='white')
 
-class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
+class SubunitsDomainsOptionMenu(Pmw.OptionMenu):
     def __init__(self, master, defOption, config):
         self.xlaConfig = config
         self.var = Tkinter.StringVar(master)
@@ -181,11 +181,11 @@ class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
         self.objectsToOptions = []
 
         options = [defOption]
-        # options = [defOption] + self.xlaConfig.getComponentNames()
+        # options = [defOption] + self.xlaConfig.getSubunitNames()
 
         self.objectsToOptions.append((None, defOption))
 
-        for comp in self.xlaConfig.getComponents():
+        for comp in self.xlaConfig.getSubunits():
             options.append(comp.name)
             self.objectsToOptions.append((comp, comp.name))
 
@@ -203,7 +203,7 @@ class ComponentsDomainsOptionMenu(Pmw.OptionMenu):
         return self.objectsToOptions[idx][0]
 
 
-class ComponentsHandleOptionMenu(Tkinter.OptionMenu):
+class SubunitsHandleOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master):
         self.var = Tkinter.StringVar(master)
         defOption = 'Select'
@@ -307,7 +307,7 @@ class ShowModifiedFrame(Tkinter.Frame):
     def _isSequenceMappingComplete(self):
         config = getConfig()
         compMapped = [True if c in config.getSequences() else False \
-                      for c in config.getComponentNames()]
+                      for c in config.getSubunitNames()]
         return reduce(mul,compMapped,1)
 
     def showModifiedMap(self):
@@ -703,7 +703,7 @@ class ByCompViolatedListFrame(ViolatedListFrame):
             self.items.append(item)
 
     def getData(self):
-        return self.xlinkStats['sorted_by_component_violated']
+        return self.xlinkStats['sorted_by_subunit_violated']
 
     def getName(self, item):
         return item['comp']
@@ -1002,27 +1002,27 @@ class SetupFrame(TabFrame):
 
         curRow = curRow + 1
 
-        #Deploy the components in self.config
+        #Deploy the subunits in self.config
         for i,item in enumerate(self.config.items):
             itemFrame = ItemFrame(self,item=item)
             itemFrame.grid(row=i+1,\
                                 column = 0,\
                                 columnspan = 3,\
                                 sticky = "W")
-            self.componentFrames.append(itemFrame)
+            self.subunitFrames.append(itemFrame)
 
         self.pack(fill='both', expand=1)
 
     def __iter__(self):
-        for componentFrame in self.componentFrames:
-            yield componentFrame
+        for subunitFrame in self.subunitFrames:
+            yield subunitFrame
 
     def clear(self):
         self.config.items = []
         self.update()
 
     def onSubcomplexes(self):
-        subunitNames = self.config.getComponentNames()
+        subunitNames = self.config.getSubunitNames()
         domains = self.config.getDomains()
         if not (subunitNames or domains):
             title = "No Subunits or Domains yet"
@@ -1032,10 +1032,10 @@ class SetupFrame(TabFrame):
         ItemList(Toplevel(),self.config,"subcomplexes",True)
 
     def onDomain(self):
-        subunitNames = self.config.getComponentNames()
+        subunitNames = self.config.getSubunitNames()
         if not subunitNames:
-            title = "No components yet"
-            message = "Please add some components before configuring."
+            title = "No subunits yet"
+            message = "Please add some subunits before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
         ItemList(Toplevel(),self.config,"domains",True)
@@ -1115,11 +1115,11 @@ class DataMgrTabFrame(TabFrame):
         chimera.triggers.activateTrigger('activeDataChanged', self)
 
 
-class ComponentsTabFrame(TabFrame):
+class SubunitsTabFrame(TabFrame):
     def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         config = getConfig()
-        self.table = ComponentTable(self,config)
+        self.table = SubunitTable(self,config)
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
@@ -1321,9 +1321,9 @@ class ColorXlinkedFrame(Tkinter.Frame):
         modelSelect.grid(row = curRow, columnspan=2, sticky="we")
         curRow += 1
 
-        self.compOptMenuFrom = ComponentsOptionMenu(self, 'on subunit (def: all)', xlinkMgrTabFrame.config)
+        self.compOptMenuFrom = SubunitsOptionMenu(self, 'on subunit (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuFrom.grid(row = curRow, column = 0)
-        self.compOptMenuTo = ComponentsDomainsOptionMenu(self, 'to subunit or domain (def: all)', xlinkMgrTabFrame.config)
+        self.compOptMenuTo = SubunitsDomainsOptionMenu(self, 'to subunit or domain (def: all)', xlinkMgrTabFrame.config)
         self.compOptMenuTo.grid(row = curRow, column=1)
         curRow += 1
 
@@ -1356,7 +1356,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         fromComp = None
         fromCompSel = self.compOptMenuFrom.var.get()
-        if fromCompSel in self.xlinkMgrTabFrame.config.getComponentNames():
+        if fromCompSel in self.xlinkMgrTabFrame.config.getSubunitNames():
             fromComp = fromCompSel
 
         to = self.compOptMenuTo.getSelected()
@@ -1570,10 +1570,10 @@ class XlinkMgrTabFrame(TabFrame):
             modelSelect.grid(row = curRow, columnspan=2, sticky="we")
             curRow += 1
 
-            self.showXlinksFromTabNameCompOptMenuFrom = ComponentsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'from subunit', self.config)
+            self.showXlinksFromTabNameCompOptMenuFrom = SubunitsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'from subunit', self.config)
             self.showXlinksFromTabNameCompOptMenuFrom.grid(row = curRow, column = 0)
 
-            self.showXlinksFromTabNameCompOptMenuTo = ComponentsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'to all', self.config)
+            self.showXlinksFromTabNameCompOptMenuTo = SubunitsOptionMenu(xlNotebook.page(showXlinksFromTabName), 'to all', self.config)
             self.showXlinksFromTabNameCompOptMenuTo.grid(row = curRow, column = 1)
             curRow += 1
 
@@ -1657,13 +1657,13 @@ class XlinkMgrTabFrame(TabFrame):
         dataMgrs = self.getXlinkDataMgrs()
         fromComp = None
         fromCompSel = self.showXlinksFromTabNameCompOptMenuFrom.var.get()
-        if fromCompSel in self.config.getComponentNames():
+        if fromCompSel in self.config.getSubunitNames():
             fromComp = fromCompSel
 
         if fromComp is not None:
             toComp = None
             toCompSel = self.showXlinksFromTabNameCompOptMenuTo.var.get()
-            if toCompSel in self.config.getComponentNames():
+            if toCompSel in self.config.getSubunitNames():
                 toComp = toCompSel
 
             for mgr in dataMgrs:
@@ -1855,10 +1855,10 @@ class InteractingResiMgrTabFrame(TabFrame):
             btn.grid(row = curRow, columnspan=totalCols)
             curRow += 1
 
-            self.interactingResiCompOptMenuFrom = ComponentsOptionMenu(self, 'from subunit', self.config)
+            self.interactingResiCompOptMenuFrom = SubunitsOptionMenu(self, 'from subunit', self.config)
             self.interactingResiCompOptMenuFrom.grid(row = curRow, column = 0)
 
-            self.interactingResiCompOptMenuTo = ComponentsOptionMenu(self, 'to all', self.config)
+            self.interactingResiCompOptMenuTo = SubunitsOptionMenu(self, 'to all', self.config)
             self.interactingResiCompOptMenuTo.grid(row = curRow, column = 1)
             curRow += 1
 
@@ -1867,12 +1867,12 @@ class InteractingResiMgrTabFrame(TabFrame):
 
         fromComp = None
         fromCompSel = self.interactingResiCompOptMenuFrom.var.get()
-        if fromCompSel in self.config.getComponentNames():
+        if fromCompSel in self.config.getSubunitNames():
             fromComp = fromCompSel
 
         toComp = None
         toCompSel = self.interactingResiCompOptMenuTo.var.get()
-        if toCompSel in self.config.getComponentNames():
+        if toCompSel in self.config.getSubunitNames():
             toComp = toCompSel
 
         for mgr in self.dataMgrs:
@@ -1881,19 +1881,19 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
-class ComponentTable(Frame):
+class SubunitTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
 
-        c = Component(config)
+        c = Subunit(config)
         c.name = "Kai"
 
         self.config = config
 
-        self.activeComponents = []
-        self.mover = xmove.ComponentMover()
+        self.activeSubunits = []
+        self.mover = xmove.SubunitMover()
         self.mover.ctable = self
-        self.mover.mode = xmove.COMPONENT_MOVEMENT
+        self.mover.mode = xmove.SUBUNIT_MOVEMENT
 
         curRow = 0
         self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -1977,7 +1977,7 @@ class ComponentTable(Frame):
                                        command=self.onRedo)
         self.redo.grid(row=curRow,column=3,sticky="W")
 
-        self.choices = dict([("Subunits",self.config.getComponents),\
+        self.choices = dict([("Subunits",self.config.getSubunits),\
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
 
@@ -2104,13 +2104,13 @@ class ComponentTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):
+    def getActiveSubunits(self):
         return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
-            for comp in self.getActiveComponents():
+        if len(self.getActiveSubunits()) != len(self.table.data) or len(self.getActiveSubunits()) == 1:
+            for comp in self.getActiveSubunits():
                 sels.append(comp.getSelection())
 
         return sels
