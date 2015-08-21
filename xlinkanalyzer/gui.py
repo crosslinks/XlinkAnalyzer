@@ -1119,7 +1119,7 @@ class SubunitsTabFrame(TabFrame):
     def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         config = getConfig()
-        self.table = SubunitTable(self,config)
+        self.table = ComponentTable(self,config)
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
@@ -1881,7 +1881,7 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
-class SubunitTable(Frame):
+class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
 
@@ -1890,10 +1890,10 @@ class SubunitTable(Frame):
 
         self.config = config
 
-        self.activeSubunits = []
-        self.mover = xmove.SubunitMover()
+        self.activeComponents = []
+        self.mover = xmove.ComponentMover()
         self.mover.ctable = self
-        self.mover.mode = xmove.SUBUNIT_MOVEMENT
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
 
         curRow = 0
         self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -2104,13 +2104,13 @@ class SubunitTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveSubunits(self):
+    def getActiveComponents(self):
         return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveSubunits()) != len(self.table.data) or len(self.getActiveSubunits()) == 1:
-            for comp in self.getActiveSubunits():
+        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
+            for comp in self.getActiveComponents():
                 sels.append(comp.getSelection())
 
         return sels

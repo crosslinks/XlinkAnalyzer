@@ -18,4 +18,4 @@ class TestRvb12(XlaGuiTests.TestLoadFromStructure):
         super(TestRvb12, self).setUp(mPaths)
 
     def testRvb12(self):
-        self.assertEqual(len(self.config.getComponents()), 2)
+        self.assertEqual(len(self.config.getSubunits()), 2)

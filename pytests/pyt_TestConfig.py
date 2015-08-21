@@ -22,7 +22,7 @@ class TestConfig_PolI(util.XLABaseTest):
         super(TestConfig_PolI, self).setUp(mPaths, cPath)
 
     def testSubunits(self):
-        self.assertEqual(len(self.config.getComponents()), 14)
+        self.assertEqual(len(self.config.Subunits()), 14)
 
 
 class TestConfig_Rvb12(util.XLABaseTest):
@@ -34,4 +34,4 @@ class TestConfig_Rvb12(util.XLABaseTest):
 
     def testSubunits(self):
         pass
-        # self.assertEqual(len(self.config.getComponents()), 14)
+        # self.assertEqual(len(self.config.Subunits()), 14)

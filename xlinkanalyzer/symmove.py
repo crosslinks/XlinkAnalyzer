@@ -112,7 +112,7 @@ class SymMover(object):
         # print >> __stdout__, "update"
 
         # atoms = []
-        # for selection in xla.get_gui().Components.getMovableAtomSpecs():
+        # for selection in xla.get_gui().Subunits.getMovableAtomSpecs():
         #     atoms.extend(evalSpec(selection).atoms())
 
         for serie in self.series:

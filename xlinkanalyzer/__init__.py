@@ -28,7 +28,7 @@ def getConfig():
 
 def activateByName(name, chainIds=None):  # this is for testing only
     if name is not None:
-        comp = getConfig().getComponentByName(name)
+        comp = getConfig().getSubunitByName(name)
         if not comp:
             comp = getConfig().getDomainByName(name)
             if not comp:
@@ -49,6 +49,6 @@ def activateByName(name, chainIds=None):  # this is for testing only
                         elif hasattr(item, 'subunit'):
                             chainIds.extend(item.subunit.chainIds)
             for chainId in chainIds:
-                get_gui().Components.table.activeComponents.append((comp, chainId))
+                get_gui().Subunits.table.activeComponents.append((comp, chainId))
     else:
-        get_gui().Components.table.activeComponents = []
+        get_gui().Subunits.table.activeComponents = []
