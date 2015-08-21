@@ -1080,9 +1080,9 @@ class Assembly(Item):
         '''
 
         cfg = pyxlinks.Config()
-        cfg.components = self.getSubunitNames()
+        cfg.components = self.getSubunitNames()  # KEEP cfg.components for pyxlinks compatibility !!!
         cfg.chain_to_comp = self.getSubunitByChain()
-        cfg.component_chains = self.getChainIdsBySubunitName()
+        cfg.component_chains = self.getChainIdsBySubunitName()  # KEEP cfg.component_chains for pyxlinks compatibility !!!
         cfg.data = self.getDataItems()
         cfg.cfg_filename = self.file
         cfg.sequences = self.getSequences()

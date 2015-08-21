@@ -1119,7 +1119,7 @@ class SubunitsTabFrame(TabFrame):
     def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         config = getConfig()
-        self.table = ComponentTable(self,config)
+        self.table = ComponentTable(self,config)  # YES Keep ComponentTable name!
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
@@ -1881,7 +1881,7 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
-class ComponentTable(Frame):
+class ComponentTable(Frame):   # YES Keep ComponentTable name!
     def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
 
@@ -1890,10 +1890,10 @@ class ComponentTable(Frame):
 
         self.config = config
 
-        self.activeComponents = []
-        self.mover = xmove.ComponentMover()
+        self.activeComponents = []  # YES Keep *component* name!
+        self.mover = xmove.ComponentMover()  # YES Keep *component* name!
         self.mover.ctable = self
-        self.mover.mode = xmove.COMPONENT_MOVEMENT
+        self.mover.mode = xmove.COMPONENT_MOVEMENT  # YES Keep *component* name!
 
         curRow = 0
         self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -2104,13 +2104,13 @@ class ComponentTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):
+    def getActiveComponents(self):  # YES Keep *component* name!
         return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
-            for comp in self.getActiveComponents():
+        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:  # YES Keep *component* name!
+            for comp in self.getActiveComponents():  # YES Keep *component* name!
                 sels.append(comp.getSelection())
 
         return sels
