@@ -79,7 +79,7 @@ class Model(object):
         except KeyError:
             print 'No domains for ', name
         else:
-            chains = self.config.getChainIdsByComponentName(name)
+            chains = self.config.getChainIdsBySubunitName(name)
             for chain in chains:
                 for dom in cfg:
                     color = dom.color
@@ -98,14 +98,14 @@ class Model(object):
 
 
     def colorAll(self):
-        '''Color all components of the model by colors from the config'''
-        for comp in self.config.getComponents():
+        '''Color all subunit of the model by colors from the config'''
+        for comp in self.config.getSubunits():
             self.color(comp)
 
     def showOnly(self, comp):
         '''Show only a given component of the model'''
 
-        for otherComp in self.config.getComponents():
+        for otherComp in self.config.getSubunits():
             if otherComp != comp:
                 runCommand('~display ' + ' #' + str(self.getModelId()) + otherComp.getSelection())
                 runCommand('~ribbon '+ ' #' + str(self.getModelId()) + otherComp.getSelection())
@@ -122,8 +122,8 @@ class Model(object):
         runCommand('~ribbon ' + ' #' + str(self.getModelId()) + comp.getSelection())
 
     def showAll(self):
-        '''Show all components.'''
-        for comp in self.config.getComponents():
+        '''Show all subunits.'''
+        for comp in self.config.getSubunits():
             self.show(comp)
 
     def get_monolinks_possible_in_structure(self, possible_fn=None):
@@ -201,7 +201,7 @@ class RMF_Model(Model):
     def showOnly(self, comp):
         '''Show only a given component of the model'''
 
-        for cName in self.config.getComponentNames():
+        for cName in self.config.getSubunitNames():
             if cName != comp:
                 runCommand('~display ' + ' #' + str(self.getModelId()) + comp.getSelection())
                 if self.moleculeModel:
@@ -358,8 +358,6 @@ class RMF_Model(Model):
                 beads_sorted = sorted(igroup, key=lambda x: x[2])
                 for b1, b2 in pairwise(beads_sorted):
                     if b2[2] == b1[3]:
-                        # at1 = get_atom_from_component(b1[0])
-                        # at2 = get_atom_from_component(b2[0])
                         at1 = b1[0]
                         at2 = b2[0]
                         grp.newPseudoBond(at1, at2)
@@ -372,8 +370,6 @@ class RMF_Model(Model):
                         for ca in cas_for_chains[chain_id]:
                             if None not in (start, end):
                                 if ca[2] == start - 1 or ca[2] == end:
-                                    # at1 = get_atom_from_component(b[0])
-                                    # at2 = get_atom_from_component(ca[0])
                                     at1 = b[0]
                                     at2 = ca[0]
                                     grp.newPseudoBond(at1, at2)
@@ -453,7 +449,7 @@ class InteractingResiDataMgr(DataMgr):
                         continue
 
                     to_color = self.model.config.getColor(comp_to)
-                    chains = self.model.config.getChainIdsByComponentName(comp_from)
+                    chains = self.model.config.getChainIdsBySubunitName(comp_from)
                     for chain in chains:
                         all_chain_resi = self.model.resi_lookup_map.get(chain)
                         if all_chain_resi:
@@ -509,7 +505,7 @@ class XlinkDataMgr(DataMgr):
         for resi in self.model.iterateResidues():
             res_id = resi.id.position
             chain_id = resi.id.chainId
-            xquest_name = self.model.config.getComponentByChain(chain_id)
+            xquest_name = self.model.config.getSubunitByChain(chain_id)
             if xquest_name:
                 xlinks_for_prot = self.xlinks_grouped.get(xquest_name)
                 if xlinks_for_prot:
@@ -546,7 +542,7 @@ class XlinkDataMgr(DataMgr):
 
     def isCrosslinked(self, resId, chainId):
         isCrosslinked = False
-        xquest_name = self.model.config.getComponentByChain(chainId)
+        xquest_name = self.model.config.getSubunitByChain(chainId)
 
         if xquest_name is not None:
             xlinks_for_prot = self.xlinks_grouped.get(xquest_name)
@@ -564,7 +560,7 @@ class XlinkDataMgr(DataMgr):
     def isMonolinked(self, resId, chainId):
         isMonolinked = False
 
-        comp = self.model.config.getComponentByChain(chainId)
+        comp = self.model.config.getSubunitByChain(chainId)
         monolinks = self.xlinkAnalyzer.xlinks.get_by_both_pos(comp, resId, None, None)
 
         if monolinks is not None:
@@ -581,7 +577,7 @@ class XlinkDataMgr(DataMgr):
         min_pept_length=6
         max_pept_length=50
 
-        comp = self.model.config.getComponentByChain(chainId)
+        comp = self.model.config.getSubunitByChain(chainId)
         monolinks = self.xlinkAnalyzer.xlinks.get_by_both_pos(comp, resId, None, None)
 
         observable = None
@@ -708,12 +704,12 @@ class XlinkDataMgr(DataMgr):
         self.pbg = None
 
     def _mergeDataSets(self):
-        '''Create merged pyxlinks.XlinksSet object where all names were renamed to component names.
+        '''Create merged pyxlinks.XlinksSet object where all names were renamed to subunit names.
 
-        Can handle input XlinksSets with different prot names, and unify the names to component names.
+        Can handle input XlinksSets with different prot names, and unify the names to subunit names.
         '''
         xlinkDataSets = self.data
-        xlinkSetsCopies = [] #xlinkSets copies with names changed to component names
+        xlinkSetsCopies = [] #xlinkSets copies with names changed to subunit names
         for xlinkDataSet in xlinkDataSets:
             xlinkSetsCopies.append(xlinkDataSet.xlinksSets.get_deep_copy())
 
@@ -745,8 +741,8 @@ class XlinkDataMgr(DataMgr):
             protein1 = pyxlinks.get_protein(xlink, 1)
             protein2 = pyxlinks.get_protein(xlink, 2)
             try:
-                chains1 = self.model.config.getChainIdsByComponentName(protein1)
-                chains2 = self.model.config.getChainIdsByComponentName(protein2)
+                chains1 = self.model.config.getChainIdsBySubunitName(protein1)
+                chains2 = self.model.config.getChainIdsBySubunitName(protein2)
             except:
                 continue
 
@@ -893,7 +889,7 @@ class XlinkDataMgr(DataMgr):
         """
         toDomain - xlinkanalyzer.Domain object or domain name
         color - chimera.MaterialColor or string (overrides colorByCompTo)
-        colorByCompTo - color by color of a component it crosslinks
+        colorByCompTo - color by color of a subunit it crosslinks
         """
 
         if color is None and not colorByCompTo:
@@ -911,10 +907,10 @@ class XlinkDataMgr(DataMgr):
         good = []
         bad = []
         for obj, f in self.iter_obj_xlinks():
-            component = self.model.config.getComponentByChain(get_chain_for_chimera_obj(obj))
+            subunit = self.model.config.getSubunitByChain(get_chain_for_chimera_obj(obj))
 
-            # xlinked_components = list(data_interface.get_xlinked_components(f))
-            xlinked_components = [pyxlinks.get_protein(f, 1), pyxlinks.get_protein(f, 2)] #xlinks return by self.iter_obj_xlinks are renamed to component names already
+            # xlinked_subunits = list(data_interface.get_xlinked_components(f))
+            xlinked_subunits = [pyxlinks.get_protein(f, 1), pyxlinks.get_protein(f, 2)] #xlinks return by self.iter_obj_xlinks are renamed to subunit names already
 
             prot1 = pyxlinks.get_protein(f, 1)
             pos1 = pyxlinks.get_AbsPos(f, 1)
@@ -922,14 +918,14 @@ class XlinkDataMgr(DataMgr):
             pos2 = pyxlinks.get_AbsPos(f, 2)
             objResiId = str(obj.id.position)
 
-            if prot1 == component and pos1 == objResiId:
+            if prot1 == subunit and pos1 == objResiId:
                 posTo = pos2
                 xlinked_to = prot2
-            elif prot2 == component and pos2 == objResiId:
+            elif prot2 == subunit and pos2 == objResiId:
                 posTo = pos1
                 xlinked_to = prot1
 
-            xlinked_to_comp = self.model.config.getComponentByName(xlinked_to)
+            xlinked_to_comp = self.model.config.getSubunitByName(xlinked_to)
 
             if minLdScore is not None and float(f['ld-Score']) < minLdScore:
                 bad.append([obj, xlinked_to])
@@ -940,7 +936,7 @@ class XlinkDataMgr(DataMgr):
                     bad.append([obj, xlinked_to])
                     continue
 
-            if fromComp is not None and fromComp != component:
+            if fromComp is not None and fromComp != subunit:
                 bad.append([obj, xlinked_to])
                 continue
 
@@ -1000,9 +996,9 @@ class XlinkDataMgr(DataMgr):
             chain1 = get_chain_for_atom(at1)
             chain2 = get_chain_for_atom(at2)
             # prot1 = config.chain_to_xquest_name[chain1]
-            prot1 = self.model.config.getComponentByChain(chain1)
+            prot1 = self.model.config.getSubunitByChain(chain1)
             # prot2 = config.chain_to_xquest_name[chain2]
-            prot2 = self.model.config.getComponentByChain(chain2)
+            prot2 = self.model.config.getSubunitByChain(chain2)
             # prot2 = config.get_xquest_name_from_chain(chain2)
             if prot1 == prot2 and None not in (prot1, prot2):
                 b.display = False
@@ -1013,9 +1009,9 @@ class XlinkDataMgr(DataMgr):
             chain1 = get_chain_for_atom(at1)
             chain2 = get_chain_for_atom(at2)
             # prot1 = config.chain_to_xquest_name[chain1]
-            prot1 = self.model.config.getComponentByChain(chain1)
+            prot1 = self.model.config.getSubunitByChain(chain1)
             # prot2 = config.chain_to_xquest_name[chain2]
-            prot2 = self.model.config.getComponentByChain(chain2)
+            prot2 = self.model.config.getSubunitByChain(chain2)
             # prot2 = config.get_xquest_name_from_chain(chain2)
             if prot1 != prot2 and None not in (prot1, prot2):
                 b.display = False
@@ -1222,18 +1218,18 @@ class XlinkDataMgr(DataMgr):
 
             to_show_updated = []
             for x in to_show:
-                # xlinked_components = [x.xlink['Protein1'], x.xlink['Protein2']]
+                # xlinked_subunits = [x.xlink['Protein1'], x.xlink['Protein2']]
                 protein1 = pyxlinks.get_protein(x.xlink, 1)
                 protein2 = pyxlinks.get_protein(x.xlink, 2)
-                xlinked_components = [protein1, protein2]
-                if xfrom not in xlinked_components:
+                xlinked_subunits = [protein1, protein2]
+                if xfrom not in xlinked_subunits:
                     to_hide.append(x)
                 else:
                     if to is not None:
-                        components = xlinked_components
-                        components.remove(xfrom)
-                        component_other = components[0]
-                        if to != component_other:
+                        subunits = xlinked_subunits
+                        subunits.remove(xfrom)
+                        subunit_other = subunits[0]
+                        if to != subunit_other:
                             to_hide.append(x)
                         else:
                             to_show_updated.append(x)
@@ -1387,7 +1383,7 @@ class XlinkDataMgr(DataMgr):
         violated = []
         all_xlink_sets = []
 
-        by_component_violated = defaultdict(list)
+        by_subunit_violated = defaultdict(list)
         by_pair_violated = defaultdict(list)
 
         reprXlinks = [] #xlinks from xlink sets used for distance calculation
@@ -1415,20 +1411,20 @@ class XlinkDataMgr(DataMgr):
 
                         if pyxlinks.is_inter(xlink):
                             for i in (1, 2):
-                                by_component_violated[pyxlinks.get_protein(xlink, i)].append(x_set)
+                                by_subunit_violated[pyxlinks.get_protein(xlink, i)].append(x_set)
                         else:
-                            by_component_violated[pyxlinks.get_protein(xlink, 1)].append(x_set)
+                            by_subunit_violated[pyxlinks.get_protein(xlink, 1)].append(x_set)
 
 
                         by_pair_violated[frozenset([pyxlinks.get_protein(xlink, 1), pyxlinks.get_protein(xlink, 2)])].append(x_set)
 
-        #sorted_by_component_violated - dict mapping comp [string] to list of ambig xlinks sets
-        sorted_by_component_violated = sorted(by_component_violated.iteritems(), key=lambda a: len(a[1]), reverse=True)
-        # for comp, comp_violated in sorted_by_component_violated:
+        #sorted_by_subunit_violated - dict mapping comp [string] to list of ambig xlinks sets
+        sorted_by_subunit_violated = sorted(by_subunit_violated.iteritems(), key=lambda a: len(a[1]), reverse=True)
+        # for comp, comp_violated in sorted_by_subunit_violated:
         #     print comp, len(comp_violated)
 
         #sorted_by_pair_violated - dict mapping comp pair [frozenset] to list of ambig xlinks sets
-        #for intra xlinks frozenset contains single component name e.g. frozenset(['A190'])
+        #for intra xlinks frozenset contains single subunit name e.g. frozenset(['A190'])
         sorted_by_pair_violated = sorted(by_pair_violated.iteritems(), key=lambda a: len(a[1]), reverse=True)
         # for comp, comp_violated in sorted_by_pair_violated:
         #     print comp, len(comp_violated)
@@ -1441,7 +1437,7 @@ class XlinkDataMgr(DataMgr):
             'all': len(all_xlink_sets),
             'satisfied %': self.percentage(len(satisfied), len(all_xlink_sets)),
             'violated %': self.percentage(len(violated), len(all_xlink_sets)),
-            'sorted_by_component_violated': sorted_by_component_violated,
+            'sorted_by_subunit_violated': sorted_by_subunit_violated,
             'sorted_by_pair_violated': sorted_by_pair_violated,
             'reprXlinks': reprXlinks
         }
@@ -1528,7 +1524,7 @@ class XlinkDataMgr(DataMgr):
     def getOriXlinks(self, xlink, copiesWithSource=False):
         """Retrieve xlinks from original unmerged, not renamed dataset.
 
-        Works by reading component names from xlink, translating them back to xquest names,
+        Works by reading subunit names from xlink, translating them back to xquest names,
         and retrieving by prot name/resi number from original datastes
 
         xlink - xlink for which to get original xlinks
@@ -1543,8 +1539,8 @@ class XlinkDataMgr(DataMgr):
             if not data.xlinksSets.grouped_by_both_pos:
                 data.xlinksSets.group_by_both_pos()
 
-            xQuestNames1 = data.getProteinsByComponent(comp1)
-            xQuestNames2 = data.getProteinsByComponent(comp2)
+            xQuestNames1 = data.getProteinsBySubunit(comp1)
+            xQuestNames2 = data.getProteinsBySubunit(comp2)
 
             protPairs = product(xQuestNames1, xQuestNames2)
 

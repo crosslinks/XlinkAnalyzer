@@ -24,11 +24,11 @@ class TestDomains_PolI(util.XLABaseTest):
 
     def testDomainsLoaded(self):
         self.assertEqual(len(self.config.getDomains('A49')), 1)
-        self.assertEqual(len(self.config.getComponentWithDomains()), 1)
+        self.assertEqual(len(self.config.getSubunitWithDomains()), 1)
 
-    def testComponentsDomainsOptionMenu(self):
+    def testSubunitsDomainsOptionMenu(self):
         self._createTestWindow()
-        compOptMenuTo = gui.ComponentsDomainsOptionMenu(self.testWindow, 'to subunit (def: all)', self.config)
+        compOptMenuTo = gui.SubunitsDomainsOptionMenu(self.testWindow, 'to subunit (def: all)', self.config)
         compOptMenuTo.pack()
 
 
