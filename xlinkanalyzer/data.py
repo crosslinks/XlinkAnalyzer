@@ -39,10 +39,6 @@ class Item(object):
     def __getitem__(self,slice):
         return self.__dict__
 
-    def setDefaults(self):
-        for k in self.SHOW:
-            self.defaults[k] = type(self.__dict__[k])()
-
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
@@ -666,7 +662,7 @@ class DataItem(Item):
     def getMappingElements(self):
         return [[],[]]
 
-    def guessSubunit(self, text):
+    def getMappingDefaults(self, text):
         '''
         Guess a subunit based on the name read from the data file.
 
@@ -937,9 +933,9 @@ class Assembly(Item):
 
     def clear(self):
         for subunit in self.subunits:
-            self.subunits.remove(item)
+            self.subunits.remove(subunit)
         for dataItem in self.dataItems:
-            self.dataItems.remove(item)
+            self.dataItems.remove(subunit)
 
     def getSubunitByName(self,name):
         candidates = [c for c in self.getSubunits() if c.name==name]
@@ -1145,7 +1141,7 @@ class SubunitMatcher(object):
 
     def getSubunit(self, text):
         subunits = self.config.getSubunits()
-
+        
         for s in subunits:
             if s.name == text:
                 return s
@@ -1155,6 +1151,7 @@ class SubunitMatcher(object):
             s_acc = s.info.get('pdbx_db_accession')
             if s_acc and s_acc == acc:
                 return s
+        
 
     def _extractUniprotAccession(self, text):
         uniprotAccRgxp = '[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}'
