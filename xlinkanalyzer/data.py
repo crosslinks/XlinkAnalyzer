@@ -670,7 +670,7 @@ class DataItem(Item):
 
         Return Subunit object or None.
         '''
-        return SubunitMatcher().getSubunit(text)
+        return SubunitMatcher(self.config).getSubunit(text)
 
 
 class XQuestItem(DataItem):
@@ -1136,8 +1136,8 @@ class ResourceManager(object):
 
 
 class SubunitMatcher(object):
-    def __init__(self):
-        self.config = getConfig()
+    def __init__(self, config):
+        self.config = config
 
     def getSubunit(self, text):
         subunits = self.config.getSubunits()
