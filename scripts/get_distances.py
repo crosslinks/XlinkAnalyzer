@@ -35,6 +35,13 @@ for name in xi.getMappingElements()[0]:
 model = xla.manager.Model(chimeraModel, config)
 mgr = xla.manager.XlinkDataMgr(model, [xi])
 mgr.showAllXlinks()
+
+wrong = mgr.getNonCrosslinkableXlinks()
+if len(wrong) > 0:
+    print 'Non crosslinkable resid xlinked'
+    print wrong
+
+
 stats = mgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
 print stats['satisfied %']
 

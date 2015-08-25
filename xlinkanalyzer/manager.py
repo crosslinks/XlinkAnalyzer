@@ -857,6 +857,17 @@ class XlinkDataMgr(DataMgr):
         self.hideAllXlinks()
         self.color_xlinked(to)
 
+    def getNonCrosslinkableXlinks(self, method=None):
+        if method is None:
+            method = is_crosslinkable
+
+        out = []
+        for x in self.iter_all_xlinks():
+            if not (method(x.pb.atoms[0].residue) and method(x.pb.atoms[1].residue)):
+                out.append(x)
+
+        return out
+        
     def resetView(self):
         #undo crosslink resi mapped
         for obj, f in self.iter_obj_xlinks():
