@@ -1576,18 +1576,18 @@ class XlinkDataMgr(DataMgr):
 
             for xlink in oriXlinks:
                 xlink['distance'] = xlinkBond.pb.length()
-                xlink['Subunit1'] = comp1
-                xlink['Subunit2'] = comp2
+                # xlink['Subunit1'] = comp1
+                # xlink['Subunit2'] = comp2
 
             xlinks.extend(oriXlinks)
 
         fieldnames = self.xlinksSetsMerged.fieldnames
         if 'distance' not in fieldnames:
             fieldnames.append('distance')
-        if 'Subunit1' not in fieldnames:
-            fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
-        if 'Subunit2' not in fieldnames:
-            fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
+        # if 'Subunit1' not in fieldnames:
+        #     fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
+        # if 'Subunit2' not in fieldnames:
+        #     fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
         xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
 
         return xlinksSet
