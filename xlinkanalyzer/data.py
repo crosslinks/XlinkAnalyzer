@@ -1143,7 +1143,7 @@ class SubunitMatcher(object):
         subunits = self.config.getSubunits()
         
         for s in subunits:
-            if s.name == text:
+            if s.name.lower() == text.lower():
                 return s
 
         acc = self._extractdbAccession(text)

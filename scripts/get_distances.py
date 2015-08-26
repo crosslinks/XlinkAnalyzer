@@ -13,7 +13,6 @@ model_filename = arguments[0]
 xfiles = arguments[1:]
 
 print model_filename
-print xfiles
 
 chimera.openModels.open(model_filename)
 chimeraModel = chimera.openModels.list()[-1]
@@ -28,9 +27,10 @@ for name in xi.getMappingElements()[0]:
     guess = xi.getMappingDefaults(name)
     if guess is not None:
         xi.mapping[name] = [guess.name]
-    else:
-        xi.mapping[name] = None
+    # else:
+    #     xi.mapping[name] = None
 
+print xi.mapping
 
 model = xla.manager.Model(chimeraModel, config)
 mgr = xla.manager.XlinkDataMgr(model, [xi])
@@ -38,10 +38,11 @@ mgr.showAllXlinks()
 
 wrong = mgr.getNonCrosslinkableXlinks()
 if len(wrong) > 0:
-    print 'Non crosslinkable resid xlinked'
+    print 'Non crosslinkable resi xlinked'
     print wrong
 
 
 stats = mgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
 print stats['satisfied %']
+print 'All: {0}'.format(stats['all'])
 
