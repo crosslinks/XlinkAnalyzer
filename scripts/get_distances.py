@@ -30,7 +30,7 @@ for name in xi.getMappingElements()[0]:
     # else:
     #     xi.mapping[name] = None
 
-print xi.mapping
+print 'Mapping: ', xi.mapping
 
 model = xla.manager.Model(chimeraModel, config)
 mgr = xla.manager.XlinkDataMgr(model, [xi])
@@ -39,14 +39,15 @@ mgr.showAllXlinks()
 wrong = mgr.getNonCrosslinkableXlinks()
 if len(wrong) > 0:
     print 'Non crosslinkable resi xlinked'
-    print wrong
+    for xl in wrong:
+        print ', '.join([xl.xlink.get('Protein1'), xl.xlink.get('Protein2'), xl.xlink.get('AbsPos1'), xl.xlink.get('AbsPos2'), xl.xlink.get('Spectrum'), xl.xlink.get('Type'), xl.xlink.get('XLType'), xl.xlink.get('ld-Score')])
 
 
 stats = mgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
-# print stats['reprXlinks']
-print stats['satisfied %']
-print 'All: {0}'.format(stats['all'])
 
-mgr.exportXlinksWithDistancesToCSV(stats, '/tmp/dupa.csv')
-print '/tmp/dupa.csv'
+print 'All mapped: {0}'.format(stats['all'])
+
+filename = os.path.splitext(os.path.basename(model_filename))[0] + '.csv'
+mgr.exportXlinksWithDistancesToCSV(stats, filename)
+print filename
 
