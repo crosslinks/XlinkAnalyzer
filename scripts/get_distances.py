@@ -43,6 +43,10 @@ if len(wrong) > 0:
 
 
 stats = mgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+# print stats['reprXlinks']
 print stats['satisfied %']
 print 'All: {0}'.format(stats['all'])
+
+mgr.exportXlinksWithDistancesToCSV(stats, '/tmp/dupa.csv')
+print '/tmp/dupa.csv'
 

@@ -537,29 +537,9 @@ class DetailXlinkStats(LabelFrame):
         XlinksHistogram(xlinkStats, xlinkDataMgr)
 
     def exportXlinkList(self, xlinkStats, xlinkDataMgr):
-        xlinks = []
-        for xlinkBond in xlinkStats['reprXlinks']:
-            oriXlinks = xlinkDataMgr.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
-            comp1 = pyxlinks.get_protein(xlinkBond.xlink, 1)
-            comp2 = pyxlinks.get_protein(xlinkBond.xlink, 2)
+        xlinksSet = xlinkDataMgr.getXlinksWithDistances(xlinkStats)
 
-            for xlink in oriXlinks:
-                xlink['distance'] = xlinkBond.pb.length()
-                xlink['Subunit1'] = comp1
-                xlink['Subunit2'] = comp2
-
-            xlinks.extend(oriXlinks)
-
-        if len(xlinks) > 0:
-            fieldnames = xlinkDataMgr.xlinksSetsMerged.fieldnames
-            if 'distance' not in fieldnames:
-                fieldnames.append('distance')
-            if 'Subunit1' not in fieldnames:
-                fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
-            if 'Subunit2' not in fieldnames:
-                fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
-            xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
-
+        if len(xlinksSet.data) > 0:
             #TODO: change initialdir to project dir
             f = tkFileDialog.asksaveasfilename(defaultextension=".csv", initialdir=None, parent=self)
             if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
