@@ -103,7 +103,7 @@ class MapFrame(Frame):
 
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
-        self.listFrame = LabelFrame(self.frame,padx=5,pady=5)
+        self.listFrame = ScrolledFrame(self.frame)
 
         row = 0
         Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
@@ -122,17 +122,17 @@ class MapFrame(Frame):
             OptionMenu(self.frame,self.mapVar,*self.mappings.keys())\
                        .grid(sticky='W',row=2,column=2)
 
-        self.frame.grid()
-        self.grid()
+        self.frame.pack()
+        # self.grid()
         self.frame.update()
 
     def buildList(self):
         c = 1
         self.vars = []
         for i,_from in enumerate(self.mapFrom):
-            Label(self.listFrame,text=_from)\
+            Label(self.listFrame.interior(),text=_from)\
                  .grid(row=i+c,column=0,pady=1,padx=3)
-            Frame(self.listFrame)\
+            Frame(self.listFrame.interior())\
                  .grid(row=i+c,column=1,pady=1,padx=50)
             var = StringVar(self)
             self.vars.append(var)
@@ -144,7 +144,7 @@ class MapFrame(Frame):
                     var.set(self.parse(self.mapDict[_from]))
             var.trace("w",lambda a,b,c,index=i,key=_from:\
                       self.updateMap(index,key))
-            OptionMenu(self.listFrame,var,*self.mapTo)\
+            OptionMenu(self.listFrame.interior(),var,*self.mapTo)\
             .grid(row=i+c,column=2,sticky="W",pady=1,padx=3)
 
     def parse(self,value):

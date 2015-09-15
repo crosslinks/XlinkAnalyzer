@@ -857,6 +857,17 @@ class XlinkDataMgr(DataMgr):
         self.hideAllXlinks()
         self.color_xlinked(to)
 
+    def getNonCrosslinkableXlinks(self, method=None):
+        if method is None:
+            method = is_crosslinkable
+
+        out = []
+        for x in self.iter_all_xlinks():
+            if not (method(x.pb.atoms[0].residue) and method(x.pb.atoms[1].residue)):
+                out.append(x)
+
+        return out
+        
     def resetView(self):
         #undo crosslink resi mapped
         for obj, f in self.iter_obj_xlinks():
@@ -1556,6 +1567,35 @@ class XlinkDataMgr(DataMgr):
 
         return oriXlinks
 
+    def getXlinksWithDistances(self, xlinkStats):
+        xlinks = []
+        for xlinkBond in xlinkStats['reprXlinks']:
+            oriXlinks = self.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
+            comp1 = pyxlinks.get_protein(xlinkBond.xlink, 1)
+            comp2 = pyxlinks.get_protein(xlinkBond.xlink, 2)
+
+            for xlink in oriXlinks:
+                xlink['distance'] = xlinkBond.pb.length()
+                # xlink['Subunit1'] = comp1
+                # xlink['Subunit2'] = comp2
+
+            xlinks.extend(oriXlinks)
+
+        fieldnames = self.xlinksSetsMerged.fieldnames
+        if 'distance' not in fieldnames:
+            fieldnames.append('distance')
+        # if 'Subunit1' not in fieldnames:
+        #     fieldnames.insert(fieldnames.index('Protein1')+1, 'Subunit1')
+        # if 'Subunit2' not in fieldnames:
+        #     fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
+        xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
+
+        return xlinksSet
+
+    def exportXlinksWithDistancesToCSV(self, xlinkStats, filename):
+        xlinksSet = self.getXlinksWithDistances(xlinkStats)
+
+        xlinksSet.save_to_file(filename, quoting=csv.QUOTE_NONNUMERIC)
 
 class XlinkAnalyzer(pyxlinks.XlinkAnalyzerA):
     def __init__(self, data_config):
