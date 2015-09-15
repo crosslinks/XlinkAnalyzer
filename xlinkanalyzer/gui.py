@@ -17,6 +17,7 @@ from chimera.widgets import ModelScrolledListBoxBase, ModelItems
 from chimera.mplDialog import MPLDialog
 from chimera.tkoptions import ColorOption
 from chimera import UserError,MaterialColor
+from chimera import preferences
 
 from operator import mul
 
@@ -32,10 +33,11 @@ from Tkinter import Toplevel,LabelFrame,Button,StringVar,Entry,\
 import ttk
 import pyxlinks
 
-
 from data import Subunit,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
                  Assembly, ResourceManager, Item, InteractingResidueItem,\
                  Domain, Subcomplex
+
+
 
 import manager as xmanager
 from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
@@ -51,6 +53,27 @@ from item import ItemList
 DEBUG_MODE = False
 DEV = True
 
+###################
+# Init Preferences
+###################
+
+
+prefs = preferences.addCategory("xlinkanalyzer",preferences.HiddenCategory)
+
+def push(path):
+    if "path2" in prefs:
+        prefs["path3"]=prefs["path2"]
+    if "path1" in prefs:
+        prefs["path2"]=prefs["path1"]
+    prefs["path1"]=path
+
+def getPaths():
+    ret = []
+    for s in ["path1","path2","path3"]:
+        if s in prefs:
+            ret.append(prefs[s])
+    return ret
+    
 class XlinkAnalyzer_Dialog(ModelessDialog):
 
     title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
@@ -964,6 +987,7 @@ class SetupFrame(TabFrame):
         self.mainWindow = mainWindow
         self.mainWindow.setTitle(self.config.state)
         self.name = "AF"
+        self.quickLoad = []
         layout = {"pady":5,"padx":5}
 
         Frame.__init__(self,master)
@@ -981,6 +1005,7 @@ class SetupFrame(TabFrame):
         self.grid_rowconfigure(curRow, weight=1)
 
         curRow = curRow + 1
+        layout = {"pady":0,"padx":5}
         self.domainsButton = Button(self,text="Domains", command=self.onDomain)
         self.domainsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
 
@@ -1001,6 +1026,9 @@ class SetupFrame(TabFrame):
         self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
 
         curRow = curRow + 1
+        
+        #Quickload
+        self.buildButtons()
 
         #Deploy the subunits in self.config
         for i,item in enumerate(self.config.items):
@@ -1017,10 +1045,25 @@ class SetupFrame(TabFrame):
         for subunitFrame in self.subunitFrames:
             yield subunitFrame
 
+    def buildButtons(self):
+        for b in self.quickLoad:
+            b.destroy()
+        layout = {"pady":0,"padx":5}
+        paths = getPaths()
+        for i,p in enumerate(paths):
+            b = Button(self,text=p,command=lambda p=p:self.onQuickLoad(p))
+            b.grid(row=i+1,column=4,sticky="W",**layout)
+            self.quickLoad.append(b)
+
     def clear(self):
         self.config.items = []
         self.update()
-
+    
+    def onQuickLoad(self,p):
+        self.config.items = []
+        self.resMngr.loadAssembly(self, p)
+        self.update()
+    
     def onSubcomplexes(self):
         subunitNames = self.config.getSubunitNames()
         domains = self.config.getDomains()
@@ -1048,7 +1091,9 @@ class SetupFrame(TabFrame):
             self.clear()
             self.update()
             self.mainWindow.setTitle(self.config.file)
+            push(self.config.file)
             self.config.state="unchanged"
+            self.buildButtons()
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)
@@ -1071,7 +1116,12 @@ class SetupFrame(TabFrame):
     def reload(self, name, userData, o):
         self.mainWindow.setTitle(self.config.file+"*")
         self.config.state = "changed"
-
+    
+    def pushToPreferences(self,path):
+        
+        
+        pass
+    
     def createToolTip(self, widget, text):
         toolTip = ToolTip(widget)
         def enter(event):
