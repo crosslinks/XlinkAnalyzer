@@ -1169,6 +1169,9 @@ class SubunitMatcher(object):
         return self._extractUniprotAccession(text)
 
 
+def isXlinkItem(item):
+    return hasattr(item, 'xQuestNames')
+
 if __name__ == "__main__":
     if True:
         import numpy
