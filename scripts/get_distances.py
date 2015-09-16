@@ -3,14 +3,24 @@ chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --p
 '''
 
 import os.path
+from optparse import OptionParser
 
 import xlinkanalyzer as xla
 import xlinkanalyzer.data
 import xlinkanalyzer.manager
 import chimera
 
-model_filename = arguments[0]
-xfiles = arguments[1:]
+
+usage = "usage: %prog [options] xquest_filename dist > some_name.csv"
+parser = OptionParser(usage=usage)
+
+parser.add_option("--proj", dest="proj_fn", default=None,
+                  help="path to project json file [default: %default]")
+
+(options, args) = parser.parse_args()
+
+model_filename = args[0]
+xfiles = args[1:]
 
 print model_filename
 
