@@ -1040,9 +1040,12 @@ class SetupFrame(TabFrame):
         self.update()
     
     def onQuickLoad(self,p):
-        self.config.items = []
-        self.resMngr.loadAssembly(self, p)
-        self.update()
+        result = tkMessageBox.askquestion("Loading ...", "Load project "+p+"?")
+        if result == 'yes':
+            self.config.items = []
+            self.resMngr.loadAssembly(self, p)
+            self.update()
+        
     
     def onSubcomplexes(self):
         subunitNames = self.config.getSubunitNames()
