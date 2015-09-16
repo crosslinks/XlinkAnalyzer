@@ -757,18 +757,24 @@ class ItemList(LabelFrame):
     def synchronize(self,container = None):
         if container:
             self.container = container
+        #TODO: Thats lazy
         for i,item in enumerate(self.container.__dict__[self.show]):
             if not item in [frame.data for frame in self.frames]:
                 frame = ItemFrame(self.scrolledFrame.interior(),\
                                   item,False,self)
                 frame.grid(sticky="W")
                 self.frames.append(frame)
+        
+        for f in self.frames:
+            if not (f.data in self.container.__dict__[self.show]):
+                f.destroy()
         self.scrolledFrame.grid()
         self.grid()
         try:
             chimera.triggers.activateTrigger('configUpdated', None)
         except:
             print "No chimera config update!"
+    
 
 if __name__ == "__main__":
     class A(object):

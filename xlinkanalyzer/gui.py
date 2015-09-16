@@ -1036,7 +1036,7 @@ class SetupFrame(TabFrame):
             self.quickLoad.append(b)
 
     def clear(self):
-        self.config.items = []
+        
         self.update()
     
     def onQuickLoad(self,p):
@@ -1099,11 +1099,6 @@ class SetupFrame(TabFrame):
     def reload(self, name, userData, o):
         self.mainWindow.setTitle(self.config.file+"*")
         self.config.state = "changed"
-    
-    def pushToPreferences(self,path):
-        
-        
-        pass
     
     def createToolTip(self, widget, text):
         toolTip = ToolTip(widget)

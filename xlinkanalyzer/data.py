@@ -796,7 +796,14 @@ class Assembly(Item):
     def __len__(self):
         return len(self.subunits+self.dataItems)
 
+    def clear(self):
+        self.subunits = []
+        self.subcomplexes = []
+        self.dataItems = []
+        self.domains = []
+
     def loadFromDict(self,_dict):
+        self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
@@ -831,9 +838,7 @@ class Assembly(Item):
                 s = Subcomplex(config=self)
                 s.deserialize(subD)
                 self.addItem(s)
-
     def loadFromStructure(self, m):
-
         def getAddedBySeq(newS, m):
             for comp in self.getSubunits():
                 for chainId in comp.chainIds:
@@ -930,12 +935,6 @@ class Assembly(Item):
             if item in self.items:
                 self.items.remove(item)
         self.state = "changed"
-
-    def clear(self):
-        for subunit in self.subunits:
-            self.subunits.remove(subunit)
-        for dataItem in self.dataItems:
-            self.dataItems.remove(subunit)
 
     def getSubunitByName(self,name):
         candidates = [c for c in self.getSubunits() if c.name==name]
