@@ -1,5 +1,5 @@
 '''
-chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"
+chimera --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"
 '''
 
 import os.path
@@ -48,19 +48,20 @@ def loadFromStructure(chimeraModel, xfiles):
         guess = xi.getMappingDefaults(name)
         if guess is not None:
             xi.mapping[name] = [guess.name]
-        # else:
-        #     xi.mapping[name] = None
 
-    print 'Mapping: ', xi.mapping
+    print 'Mapping (cross-check if not using --proj option): ', xi.mapping
 
     return config
 
 
 def main():
-    usage = 'usage: %prog [options] chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"'
+    usage = 'usage: chimera --nogui --script "[path to XlinkAnalyzer scripts]/%prog [options] <pdb_or_cif_file> <crosslinkfile1.csv> <crosslinkfile2.csv> ..."'
     parser = OptionParser(usage=usage)
 
-    parser.add_option("--proj", dest="proj_fn", default=None,
+    parser.add_option("-o", "--out", dest="out_fn", default=None,
+                      help="output filename")
+
+    parser.add_option("-p", "--proj", dest="proj_fn", default=None,
                       help="path to project json file [default: %default (try to guess protein name mapping)]")
 
     (options, args) = parser.parse_args()
@@ -93,7 +94,11 @@ def main():
 
     print 'No. of xlinks mapped to structure: {0}'.format(stats['all'])
 
-    filename = os.path.splitext(os.path.basename(model_filename))[0] + '.distances.csv'
+    if options.out_fn is None:
+        filename = os.path.splitext(os.path.basename(model_filename))[0] + '.distances.csv'
+    else:
+        filename = options.out_fn
+
     mgr.exportXlinksWithDistancesToCSV(stats, filename)
     print 'Output filename:', filename
 
