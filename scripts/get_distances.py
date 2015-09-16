@@ -4,12 +4,16 @@ chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --p
 
 import os.path
 from optparse import OptionParser
+import json
+from os.path import dirname
 
 import xlinkanalyzer as xla
 import xlinkanalyzer.data
 import xlinkanalyzer.manager
 import xlinkanalyzer.data
+import xlinkanalyzer.minify_json
 import chimera
+
 
 def getXlinkItems(config):
     data = []
@@ -19,6 +23,19 @@ def getXlinkItems(config):
                 data.append(item.data)
 
     return data
+
+
+def loadFromJson(json_fn):
+    config = xlinkanalyzer.data.Assembly()
+    with open(json_fn,'r') as f:
+        data = json.loads(xlinkanalyzer.minify_json.json_minify(f.read()))
+        config.root = dirname(json_fn)
+        if config.frame:
+            config.frame.clear()
+        config.loadFromDict(data)
+
+    return config
+
 
 def loadFromStructure(chimeraModel, xfiles):
     config = xlinkanalyzer.data.Assembly()
@@ -38,12 +55,13 @@ def loadFromStructure(chimeraModel, xfiles):
 
     return config
 
+
 def main():
-    usage = "usage: %prog [options] xquest_filename dist > some_name.csv"
+    usage = 'usage: %prog [options] chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"'
     parser = OptionParser(usage=usage)
 
     parser.add_option("--proj", dest="proj_fn", default=None,
-                      help="path to project json file [default: %default]")
+                      help="path to project json file [default: %default (try to guess protein name mapping)]")
 
     (options, args) = parser.parse_args()
 
@@ -56,7 +74,7 @@ def main():
     chimeraModel = chimera.openModels.list()[-1]
 
     if options.proj_fn:
-        pass
+        config = loadFromJson(options.proj_fn)
     else:
         config = loadFromStructure(chimeraModel, xfiles)
 
@@ -73,11 +91,11 @@ def main():
 
     stats = mgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
 
-    print 'All mapped: {0}'.format(stats['all'])
+    print 'No. of xlinks mapped to structure: {0}'.format(stats['all'])
 
-    filename = os.path.splitext(os.path.basename(model_filename))[0] + '.csv'
+    filename = os.path.splitext(os.path.basename(model_filename))[0] + '.distances.csv'
     mgr.exportXlinksWithDistancesToCSV(stats, filename)
-    print filename
+    print 'Output filename:', filename
 
 if __name__ == '__main__':
     main()
