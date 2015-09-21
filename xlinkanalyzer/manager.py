@@ -793,8 +793,10 @@ class XlinkDataMgr(DataMgr):
                     at1 = self.getAtomToLink(resi1)
                     at2 = self.getAtomToLink(resi2)
 
-                    # if at1 is not at2: #cannot check this way because of beads
-                    if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
+                    if at1 is not at2 and not (pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2)): #cannot check this way because of beads
+                        # if pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2):
+                        #     continue
+                    # if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
                         try:
                             pb = self.pbg.newPseudoBond(at1, at2)
                         except TypeError:  # may happen if at1 is at2, happens for beads
