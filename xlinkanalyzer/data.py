@@ -254,7 +254,7 @@ class Domain(Item):
         if isinstance(other,self.__class__):
             if other.name == self.name and other.subunit == self.subunit\
             and other.ranges == self.ranges and other.color == self.color\
-            and other._chainIds == self.chainIds:
+            and other.chainIds == self.chainIds:
                 return True
             else:
                 return False
