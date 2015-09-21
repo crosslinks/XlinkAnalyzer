@@ -1040,7 +1040,7 @@ class SetupFrame(TabFrame):
         self.update()
     
     def onQuickLoad(self,p):
-        result = tkMessageBox.askquestion("Loading ...", "Load project "+p+"?")
+        result = tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master)
         if result == 'yes':
             self.config.items = []
             self.resMngr.loadAssembly(self, p)

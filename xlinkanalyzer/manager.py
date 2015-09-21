@@ -520,17 +520,13 @@ class XlinkDataMgr(DataMgr):
                         else:
                             self.objToXlinksMap[resi_key].extend(xlinks_for_resi)
 
-
-    def isXquestItem(self, item):
-        return hasattr(item, 'xQuestNames')
-
     def onConfigUpdated(self, name, userData, o):
         self.reload(getConfig())
 
     def reload(self, config):
         data = []
         for item in config.dataItems:
-            if self.isXquestItem(item):
+            if xlinkanalyzer.data.isXlinkItem(item):
                 if item.data.active:
                     data.append(item.data)
         self.data = data
