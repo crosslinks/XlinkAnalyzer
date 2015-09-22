@@ -66,11 +66,10 @@ class FileFrame(Frame):
         return self.fileGroup.getResourcePaths()
 
 class MapFrame(Frame):
-    def __init__(self,parent,mapDict,getElements=None,getDefaults=None,\
+    def __init__(self,parent,mapDict,getElements=None,\
                  mappings={},active=False,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
-        if getDefaults:
-            self.getDefaults=getDefaults
+
         if not (mapDict.keys() and mapDict.values()) and getElements:
             self.getElements = getElements
             self.mapFrom,self.mapTo = getElements()
@@ -136,9 +135,6 @@ class MapFrame(Frame):
                  .grid(row=i+c,column=1,pady=1,padx=50)
             var = StringVar(self)
             self.vars.append(var)
-            if self.getDefaults:
-                if self.getDefaults(_from):
-                    var.set(self.getDefaults(_from).name)
             if _from in self.mapDict:
                 if self.mapDict[_from]:
                     var.set(self.parse(self.mapDict[_from]))
@@ -377,12 +373,9 @@ class ItemFrame(LabelFrame):
             elif _UIClass == MapFrame and not self.active:
                 _dict = _data
                 _getMapping = None
-                _getDefaults = None
                 if "getMappingElements" in dir(self.data):
                     _getMapping = self.data.getMappingElements
-                if "getMappingDefaults" in dir(self.data):
-                    _getDefaults = self.data.getMappingDefaults
-                _mapFrame = MapFrame(self,_data,_getMapping,_getDefaults,self.mappings,True)
+                _mapFrame = MapFrame(self,_data,_getMapping,self.mappings,True)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
             elif _UIClass == ItemList and not self.active:

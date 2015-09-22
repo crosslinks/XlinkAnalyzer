@@ -700,6 +700,12 @@ class XQuestItem(DataItem):
 
             self.xQuestNames = list(self.xlinksSets.get_protein_names())
 
+            for name in self.xQuestNames:
+                if name not in self.mapping:
+                    guess = self.getMappingDefaults(name)
+                    if guess is not None:
+                        self.mapping[name] = [guess.name]
+
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
         _dict.pop("xlinksSets")
