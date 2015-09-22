@@ -140,7 +140,9 @@ class MapFrame(Frame):
                     var.set(self.parse(self.mapDict[_from]))
             var.trace("w",lambda a,b,c,index=i,key=_from:\
                       self.updateMap(index,key))
-            OptionMenu(self.listFrame.interior(),var,*self.mapTo)\
+            mapToList = ['']
+            mapToList.extend([x for x in self.mapTo if x])
+            OptionMenu(self.listFrame.interior(),var,*mapToList)\
             .grid(row=i+c,column=2,sticky="W",pady=1,padx=3)
 
     def parse(self,value):

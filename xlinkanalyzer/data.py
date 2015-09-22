@@ -596,7 +596,7 @@ class DataItem(Item):
         return self.__str__()
 
     def __getitem__(self,key):
-        if key in self.mapping:
+        if self.mapping.get(key):
             return self.mapping[key][0]
         else:
             return None
@@ -705,6 +705,8 @@ class XQuestItem(DataItem):
                     guess = self.getMappingDefaults(name)
                     if guess is not None:
                         self.mapping[name] = [guess.name]
+                    else:
+                        self.mapping[name] = []
 
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
