@@ -1062,7 +1062,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             # found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 for x in x_set:
                     if x.pb:
                         at1 = x.pb.atoms[0]
@@ -1275,7 +1275,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 for x in x_set:
                     if x.pb:
                         if is_satisfied(x.pb, threshold):
@@ -1399,7 +1399,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 all_xlink_sets.append(x_set)
                 for x in x_set:
                     if x.pb:
