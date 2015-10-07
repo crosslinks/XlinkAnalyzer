@@ -545,25 +545,27 @@ class ItemFrame(LabelFrame):
     def onAdd(self):
         if self.validate():
             self.synchronize()
-            if not self.differs:
-                if self.listFrame:
-                    if type(self.data) == dict:
-                        _type = self.fields["type"][3].get()
-                        _type = self.typeDict[_type]
-                        cp = deepcopy(self.data[_type])
-                    else:
-                        cp = deepcopy(self.data)
-                    self.listFrame.container.addItem(cp)
-                    self.listFrame.synchronize()
-            elif self.differs:
-                _type = self.fields["Type"][3].get()
-                name = self.fields["Choose"][3].get()
-                pool = self.fields["Choose"][0][_type]
-                choice = [p for p in pool if p.name == name][0]
-                if self.listFrame:
-                    self.listFrame.container.addItem(choice)
-                    self.listFrame.synchronize()
-            self.empty()
+            try:
+                if not self.differs:
+                    if self.listFrame:
+                        if type(self.data) == dict:
+                            _type = self.fields["type"][3].get()
+                            _type = self.typeDict[_type]
+                            cp = deepcopy(self.data[_type])
+                        else:
+                            cp = deepcopy(self.data)
+                        self.listFrame.container.addItem(cp)
+                        self.listFrame.synchronize()
+                elif self.differs:
+                    _type = self.fields["Type"][3].get()
+                    name = self.fields["Choose"][3].get()
+                    pool = self.fields["Choose"][0][_type]
+                    choice = [p for p in pool if p.name == name][0]
+                    if self.listFrame:
+                        self.listFrame.container.addItem(choice)
+                        self.listFrame.synchronize()
+            finally:
+                self.empty()
         else:
             title = "Empty Fields"
             message = "Please fill in all fields."
