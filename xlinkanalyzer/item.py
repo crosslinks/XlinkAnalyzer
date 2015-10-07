@@ -52,8 +52,9 @@ class FileFrame(Frame):
         menu = self.fileMenu["menu"]
         menu.delete(0, "end")
         paths = tkFileDialog.askopenfilenames(parent=self)
-        map(self.fileGroup.addFile,paths)
-        self.resetFileMenu(paths,0)
+        if len(paths) > 0:
+            map(self.fileGroup.addFile,paths)
+            self.resetFileMenu(paths,0)
 
     def resetFileMenu(self, options, index=None):
         menu = self.fileMenu["menu"]
