@@ -1088,12 +1088,13 @@ class SetupFrame(TabFrame):
         self.config.state="unchanged"
 
     def onSave(self):
-        if self.config.state == "unsaved":
-            self.resMngr.saveAssembly(self)
+        if self.config.state == "changed" and self.config.file == "":
+            didSave = self.resMngr.saveAssembly(self)
         else:
-            self.resMngr.saveAssembly(self,False)
-        self.mainWindow.setTitle(self.config.file)
-        self.config.state="unchanged"
+            didSave = self.resMngr.saveAssembly(self,False)
+        if didSave:
+            self.mainWindow.setTitle(self.config.file)
+            self.config.state="unchanged"
 
     def update(self):
         self.subUnitFrame.synchronize(self.config)

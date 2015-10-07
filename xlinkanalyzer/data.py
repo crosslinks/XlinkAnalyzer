@@ -765,7 +765,7 @@ class Assembly(Item):
         self.domains = []
         self.root = ""
         self.file = ""
-        self.state = "unsaved"
+        self.state = "changed"
         self.frame = frame
         self.subunitToChain = {}
         self.chainToSubunit = {}
@@ -1120,6 +1120,10 @@ class ResourceManager(object):
             self.dumpJson(_file)
             self.config.file = _file
             self.state = "unchanged"
+
+            return True
+        else:
+            return False
 
     def loadAssembly(self,parent,_file=None):
         if not _file:
