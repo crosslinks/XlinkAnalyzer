@@ -1,4 +1,4 @@
-
+from sys import platform as _platform
 import re
 import inspect
 from sys import __stdout__
@@ -12,6 +12,8 @@ from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
 import tkMessageBox, tkFileDialog
 
 from Pmw import ScrolledFrame, EntryField
+
+import ttk
 
 import chimera
 from chimera import MaterialColor
@@ -385,7 +387,10 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_itemList,None,None)
 
         if not self.active:
-            self.apply = Button(self,text=unichr(10004),command=self.onApply)
+            if is_mac():
+                self.apply = ttk.Button(self,text=unichr(10004),command=self.onApply, width=1)
+            else:
+                self.apply = Button(self,text=unichr(10004),command=self.onApply)
             self.createToolTip(self.apply,"Apply")
             self.delete = Button(self,text="x",command=self.onDelete)
             self.createToolTip(self.delete,"Delete")
@@ -536,7 +541,8 @@ class ItemFrame(LabelFrame):
 
                 elif isinstance(_ui,OptionMenu):
                     _var.set(_toString(_dict[k]))
-            self.apply.config(bg="light grey")
+
+            self.unHighlightApply()
     try:
         chimera.triggers.activateTrigger('configUpdated', None)
     except:
@@ -600,7 +606,7 @@ class ItemFrame(LabelFrame):
         self.destroy()
 
     def onApply(self):
-        self.apply.configure(bg="light grey")
+        self.unHighlightApply()
         self.synchronize()
 
     def onEdit(self):
@@ -629,9 +635,26 @@ class ItemFrame(LabelFrame):
             changed = bool(sum(bList))
 
             if changed:
-                self.apply.configure(bg="#00A8FF")
+                print "was changed"
+                self.highlightApply()
             else:
-                self.apply.configure(bg="light grey")
+                self.unHighlightApply()
+
+    def highlightApply(self):
+        if is_mac():
+            style = ttk.Style()
+            style.configure('changed.TButton', foreground="red")
+            self.apply.configure(style='changed.TButton')
+        else:
+            self.apply.configure(bg="#00A8FF")
+
+    def unHighlightApply(self):
+        if is_mac():
+            style = ttk.Style()
+            style.configure('applied.TButton', foreground="black")
+            self.apply.configure(style='applied.TButton')
+        else:
+            self.apply.configure(bg="light grey")
 
     def gcs(self,*instances):
         classes = [type(x).mro() for x in instances]
@@ -807,3 +830,6 @@ if __name__ == "__main__":
     c = C()
     iL = ItemList(root,c,"oLL")
     iL.grid()
+
+def is_mac():
+    return _platform == "darwin"
