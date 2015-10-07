@@ -722,7 +722,7 @@ class XQuestItem(DataItem):
 
 class XlinkAnalyzerItem(XQuestItem):
     def __init__(self,*args,**kwargs):
-        super(XQuestItem,self).__init__(*args,**kwargs)
+        super(XlinkAnalyzerItem,self).__init__(*args,**kwargs)
         self.type = xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE
 
 class SequenceItem(DataItem):
@@ -813,6 +813,7 @@ class Assembly(Item):
     def loadFromDict(self,_dict):
         self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
+                        (xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,XlinkAnalyzerItem),\
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
                           InteractingResidueItem)])
