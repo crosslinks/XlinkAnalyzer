@@ -79,7 +79,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
     title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
     name = 'Xlink Analyzer'
     help = 'http://www.beck.embl.de/XlinkAnalyzer.html'
-    buttons = ("Close",)
+    buttons = ("Close","Cite XlinkAnalyzer")
 
     loadDataTabName = 'Setup'
 
@@ -138,6 +138,11 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         # self.addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.notebook.setnaturalsize()
+
+    def CiteXlinkAnalyzer(self):
+        from chimera import help
+        help.display("http://www.ncbi.nlm.nih.gov/pubmed/25661704")
+
 
     def createLoadDataTab(self):
         tab = self.notebook.add(self.loadDataTabName)
