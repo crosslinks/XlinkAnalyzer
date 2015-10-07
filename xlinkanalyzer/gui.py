@@ -78,7 +78,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
     title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
     name = 'Xlink Analyzer'
-    help = 'blah.html'
+    help = 'http://www.beck.embl.de/XlinkAnalyzer.html'
+    buttons = ("Close",)
 
     loadDataTabName = 'Setup'
 
