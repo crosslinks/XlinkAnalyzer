@@ -1008,7 +1008,7 @@ class SetupFrame(TabFrame):
         curRow = curRow + 1
         
         #Quickload
-        self.buildButtons()
+        self.buildQuickLoad()
 
         #Deploy the subunits in self.config
         for i,item in enumerate(self.config.items):
@@ -1025,14 +1025,18 @@ class SetupFrame(TabFrame):
         for subunitFrame in self.subunitFrames:
             yield subunitFrame
 
-    def buildButtons(self):
+    def buildQuickLoad(self):
         for b in self.quickLoad:
             b.destroy()
         layout = {"pady":0,"padx":5}
         paths = getPaths()
+        label = Label(self, text="Recent projects:",
+                         borderwidth=0)
+        label.grid(row=1, column=4, sticky="nsw", padx=1, pady=1)
+
         for i,p in enumerate(paths):
             b = Button(self,text=p,command=lambda p=p:self.onQuickLoad(p))
-            b.grid(row=i+1,column=4,sticky="W",**layout)
+            b.grid(row=i+2,column=4,sticky="W",**layout)
             self.quickLoad.append(b)
 
     def clear(self):
@@ -1040,8 +1044,8 @@ class SetupFrame(TabFrame):
         self.update()
     
     def onQuickLoad(self,p):
-        result = tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master)
-        if result == 'yes':
+        if self.config.isEmpty() or \
+        (not self.config.isEmpty() and tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master) =="yes"):
             self.config.items = []
             self.resMngr.loadAssembly(self, p)
             self.update()
@@ -1076,7 +1080,7 @@ class SetupFrame(TabFrame):
             self.mainWindow.setTitle(self.config.file)
             push(self.config.file)
             self.config.state="unchanged"
-            self.buildButtons()
+            self.buildQuickLoad()
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)

@@ -810,6 +810,10 @@ class Assembly(Item):
         self.dataItems = []
         self.domains = []
 
+    def isEmpty(self):
+        return len(self.subunits+self.subcomplexes+self.dataItems+self.domains) == 0
+
+
     def loadFromDict(self,_dict):
         self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
