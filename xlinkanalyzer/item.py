@@ -635,7 +635,6 @@ class ItemFrame(LabelFrame):
             changed = bool(sum(bList))
 
             if changed:
-                print "was changed"
                 self.highlightApply()
             else:
                 self.unHighlightApply()
