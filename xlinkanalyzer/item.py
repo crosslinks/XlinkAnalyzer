@@ -543,10 +543,10 @@ class ItemFrame(LabelFrame):
                     _var.set(_toString(_dict[k]))
 
             self.unHighlightApply()
-    try:
-        chimera.triggers.activateTrigger('configUpdated', None)
-    except:
-        print "No chimera config update!"
+        try:
+            chimera.triggers.activateTrigger('configUpdated', None)
+        except:
+            print "No chimera config update!"
 
     def onAdd(self):
         if self.validate():
