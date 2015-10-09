@@ -1746,8 +1746,14 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartMode.get():
+                    mgr.smartMode = True
+                    if self.showFirstOnlyOliMode.get():
+                        mgr.show_only_one = True
+                    else:
+                        mgr.show_only_one = False
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
+                    mgr.smartMode = False
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(mgr.minLdScore)
 
@@ -1762,8 +1768,14 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartMode.get():
+                    mgr.smartMode = True
+                    if self.showFirstOnlyOliMode.get():
+                        mgr.show_only_one = True
+                    else:
+                        mgr.show_only_one = False
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
+                    mgr.smartMode = False
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(minScore)
 

@@ -473,6 +473,8 @@ class XlinkDataMgr(DataMgr):
             handler = chimera.triggers.addHandler('configUpdated', self.onConfigUpdated, None)
             self._handlers.append((chimera.triggers, 'configUpdated', handler))
         self.minLdScore = 0
+        self.smartMode = False
+        self.show_only_one = False
         self.load()
 
     def destroy(self):
@@ -533,6 +535,11 @@ class XlinkDataMgr(DataMgr):
         self.deletePBG()
         self.xlinkAnalyzer = None
         self.load()
+        if self.smartMode:
+            self.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.show_only_one)
+        else:
+            self.smartMode = False
+            self.showAllXlinks()            
         self.hide_by_ld_score(self.minLdScore)
         restyleXlinks([self], XLINK_LEN_THRESHOLD)
 
