@@ -262,9 +262,14 @@ class Domain(Item):
             return False
 
     def getChains(self):
+        selsChains = self.getSelectionsByChain()
         if not self.chains:
             self.chains = [Chain(c,self,config=self.config) \
                            for c in self.subunit.chainIds]
+
+            for c in self.chains:
+                sels = [s[0] for s in selsChains[c.id]]
+                c.setSelection(','.join([sel[1:] for sel in sels]))
         return self.chains
 
     def getSelection(self):

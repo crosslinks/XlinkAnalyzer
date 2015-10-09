@@ -2176,6 +2176,8 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
         currentSelections = self.getCurrentSelections()
         atomSpecs = []
         for modelId, sel in itertools.product(activeModelIds, currentSelections):
+            if not sel.startswith(':'):
+                sel = ':' + sel
             atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
