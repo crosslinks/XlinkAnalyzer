@@ -312,7 +312,7 @@ class ItemFrame(LabelFrame):
                         if type(v1) == list:
                             if self.data in v1 and mapable:
                                 self.mappings = dict([(dI.name,dI.mapping)\
-                                                       for dI in v1])
+                                                       for dI in v1 if hasattr(dI, 'mapping')])
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()

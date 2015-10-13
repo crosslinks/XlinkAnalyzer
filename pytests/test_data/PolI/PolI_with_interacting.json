@@ -2,6 +2,34 @@
     "data": [
         {
             "active": true,
+            "data": {
+                "A190": {
+                    "A43": [
+                        571,
+                        568,
+                        10
+                    ],
+                    "ABC27": [
+                        1586,
+                        1539,
+                        131,
+                        145
+                    ]
+                },
+                "ABC27": {
+                    "A190": [
+                        202,
+                        147,
+                        178
+                    ]
+                }
+            },
+            "informed": false,
+            "name": "example interacting",
+            "type": "interacting_resi"
+        },
+        {
+            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
