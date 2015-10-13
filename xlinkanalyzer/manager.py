@@ -463,7 +463,51 @@ class InteractingResiDataMgr(DataMgr):
                                             atom.color = to_color
                                         resi_from.ribbonColor = to_color
 
+class ConsurfDataMgr(DataMgr):
+    def __init__(self, model, data):
+        super(ConsurfDataMgr, self).__init__(model, data)
+        self.defConsurfColors()
+        self.load()
 
+    def defConsurfColors(self):
+        runCommand('colordef CONS10 1.00 1.00 0.59')
+        runCommand('colordef CONS9 0.63 0.15 0.38')
+        runCommand('colordef CONS8 0.94 0.49 0.67')
+        runCommand('colordef CONS7 0.98 0.79 0.87')
+        runCommand('colordef CONS6 0.99 0.93 0.96')
+        runCommand('colordef CONS5 1.00 1.00 1.00')
+        runCommand('colordef CONS4 0.92 1.00 1.00')
+        runCommand('colordef CONS3 0.84 1.00 1.00')
+        runCommand('colordef CONS2 0.55 1.00 1.00')
+        runCommand('colordef CONS1 0.06 0.78 0.82')
+
+    def color(self, subName):
+        sels = defaultdict(list)
+        subunit = getConfig().getSubunitByName(subName)
+        if subunit is not None:
+            chains = subunit.getChains()
+            print self.data
+            for dataItem in self.data:
+                if dataItem.hasMapping() and subName in dataItem.mapping.values()[0]:
+                    gr = dataItem.getGroupedByColor()
+                    for colorId, resis in gr.iteritems():
+                        for chain in chains:
+                            sels[colorId].extend([str(resi)+'.'+chain.id for resi in resis])
+        for colorId, sel in sels.iteritems():
+            sel = ','.join(sel)
+            runCommand('color CONS{colorId} #{modelId}:{sel}'.format(colorId=colorId, modelId=self.model.getModelId(), sel=sel))
+
+    def load(self):
+        pass
+
+    def reload(self, config):
+        data = []
+        for item in config.dataItems:
+            if item.type == xlinkanalyzer.CONSURF_DATA_TYPE:
+                if item.data.active:
+                    data.append(item.data)
+        self.data = data
+        self.load()
 
 class XlinkDataMgr(DataMgr):
     def __init__(self, model, data):

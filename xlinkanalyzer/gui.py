@@ -40,7 +40,7 @@ from data import Subunit,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 
 
 import manager as xmanager
-from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
+from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr, ConsurfDataMgr
 import xlinkanalyzer
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import move as xmove
@@ -135,6 +135,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
+        self.addTab('Consurf', ConsurfMgrTabFrame)
         # self.addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.notebook.setnaturalsize()
@@ -957,6 +958,10 @@ class TabFrame(Tkinter.Frame):
     def getActiveModels(self):
         self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
 
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
 class SetupFrame(TabFrame):
     def __init__(self,master,mainWindow=None):
         """
@@ -1497,9 +1502,9 @@ class XlinkMgrTabFrame(TabFrame):
 
         return dataMgrsForActive
 
-    def clear(self):
-        for child in self.winfo_children():
-            child.destroy()
+    # def clear(self):
+    #     for child in self.winfo_children():
+    #         child.destroy()
 
     def reload(self, name, userData, o):
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
@@ -1858,9 +1863,9 @@ class InteractingResiMgrTabFrame(TabFrame):
         self.dataMgrs = validDataMgrs
         self.models = validModels
 
-    def clear(self):
-        for child in self.winfo_children():
-            child.destroy()
+    # def clear(self):
+    #     for child in self.winfo_children():
+    #         child.destroy()
 
     def getActiveDataMgrs(self):
         self.getActiveModels()
@@ -2216,3 +2221,84 @@ class LoadFromStructureDialog(ModelessDialog):
         return xlinkanalyzer.get_gui().modelSelect.getActiveModels()
 
 chimera.dialogs.register(LoadFromStructureDialog.name, LoadFromStructureDialog)
+
+
+
+class ConsurfMgrTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+        Label(self, text="Load consurf files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
+        self.dataMgrs = []
+        self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
+        self._addHandlers()
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
+
+    def onModelRemove(self, trigger, userData, removedModels):
+        for dataMgr in self.dataMgrs:
+            if hasattr(dataMgr, 'defConsurfColors'):
+                if dataMgr.model.chimeraModel in removedModels:
+                    dataMgr.destroy()
+                    self.dataMgrs.remove(dataMgr)
+
+        for model in self.models:
+            if model in removedModels:
+                self.models.remove(model)
+
+    def reload(self, name, userData, o):
+        if xlinkanalyzer.CONSURF_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
+            self.clear()
+
+            curRow = 0
+            totalCols = 2
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            modelSelect.grid(row = curRow, columnspan=totalCols, sticky="we")
+            curRow += 1
+
+            self.compOptMenu = SubunitsOptionMenu(self, 'on subunit (def: all)', getConfig())
+            self.compOptMenu.grid(row = curRow, column = 0)
+
+            btn = Tkinter.Button(self,
+                text='Color',
+                # foreground=color,
+                command=self.color)
+
+            btn.grid(row = curRow, column=1, sticky='e')
+
+            curRow += 1
+
+    def getActiveDataMgrs(self):
+        self.getActiveModels()
+        dataMgrsForActive = []
+        for model in self.models:
+            dataMgrsForModel = []
+            for mgr in self.dataMgrs:
+                if hasattr(mgr, 'defConsurfColors') and mgr.model is model:
+                    dataMgrsForModel.append(mgr)
+
+            if len(dataMgrsForModel) == 0:
+                dataMgrsForModel.append(ConsurfDataMgr(model, self.getActiveData()))
+                self.dataMgrs.extend(dataMgrsForModel)
+
+            dataMgrsForActive.extend(dataMgrsForModel)
+        return dataMgrsForActive
+
+    def getActiveData(self):
+        data = []
+        for item in self.config.getDataItems(xlinkanalyzer.CONSURF_DATA_TYPE):
+            if item.active:
+                data.append(item)
+        return data
+
+    def color(self):
+        subName = None
+        subSel = self.compOptMenu.var.get()
+        if subSel in getConfig().getSubunitNames():
+            subName = subSel
+
+        dataMgrs = self.getActiveDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'defConsurfColors'):
+                mgr.color(subName)

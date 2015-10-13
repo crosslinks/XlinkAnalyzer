@@ -778,7 +778,9 @@ class ConsurfItem(DataItem):
                         lineData = line.split()
                         if '/' in line:
                             resiId = int(lineData[0])
-                            colorId = int(lineData[4])
+                            colorId = int(lineData[4].strip('*'))
+                            if colorId == 0:
+                                colorId = 10
                             self.scores[resiId] = colorId
 
     def serialize(self):
@@ -787,10 +789,18 @@ class ConsurfItem(DataItem):
         return _dict
 
     def getMappingElements(self):
-        _from = ['consurf']
+        _from = ['unknown_protein']
         _to = [s.name for s in self.config.subunits] if self.config.subunits\
             else [""]
         return [_from,_to]
+
+    def getGroupedByColor(self):
+        v = defaultdict(list)
+
+        for key, value in sorted(self.scores.iteritems()):
+            v[value].append(key)
+
+        return v
 
 class Assembly(Item):
     def __init__(self,frame=None):
