@@ -764,7 +764,7 @@ class ConsurfItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,**kwargs):
         super(ConsurfItem,self).__init__(**kwargs)
-        self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
+        self.type = xlinkanalyzer.CONSURF_DATA_TYPE
         self.data = {}
         self.scores = {}
         # self.locate()
