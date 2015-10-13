@@ -760,6 +760,38 @@ class SequenceItem(DataItem):
             else [""]
         return [_from,_to]
 
+class ConsurfItem(DataItem):
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,**kwargs):
+        super(ConsurfItem,self).__init__(**kwargs)
+        self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
+        self.data = {}
+        self.scores = {}
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                with open(fileName) as f:
+                    for line in f:
+                        lineData = line.split()
+                        if '/' in line:
+                            resiId = int(lineData[0])
+                            colorId = int(lineData[4])
+                            self.scores[resiId] = colorId
+
+    def serialize(self):
+        _dict = super(ConsurfItem,self).serialize()
+        _dict.pop("scores")
+        return _dict
+
+    def getMappingElements(self):
+        _from = ['consurf']
+        _to = [s.name for s in self.config.subunits] if self.config.subunits\
+            else [""]
+        return [_from,_to]
+
 class Assembly(Item):
     def __init__(self,frame=None):
         super(Assembly,self).__init__()
@@ -782,7 +814,8 @@ class Assembly(Item):
             ("subcomplexes",Subcomplex(config=self,fake=True)),\
             ("dataItems",[SequenceItem(config=self,fake=True),\
                           XQuestItem(config=self,fake=True),\
-                          XlinkAnalyzerItem(config=self,fake=True)])])
+                          XlinkAnalyzerItem(config=self,fake=True),\
+                          ConsurfItem(config=self,fake=True)])])
 
     def __str__(self):
         s = ""
@@ -825,7 +858,8 @@ class Assembly(Item):
                         (xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,XlinkAnalyzerItem),\
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
-                          InteractingResidueItem)])
+                          InteractingResidueItem),\
+                         (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
         subunits = _dict.get("subunits")
         dataItems = _dict.get("data")
         subcomplexes = _dict.get("subcomplexes")

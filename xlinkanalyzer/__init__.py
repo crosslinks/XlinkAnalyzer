@@ -8,6 +8,7 @@ XQUEST_DATA_TYPE = 'xquest'
 EM_DATA_TYPE = 'em_map'
 SEQUENCES_DATA_TYPE = 'sequences'
 INTERACTING_RESI_DATA_TYPE = 'interacting_resi'
+CONSURF_DATA_TYPE = 'Consurf'
 XLINK_LEN_THRESHOLD = 30
 
 DEBUG_MODE = False
