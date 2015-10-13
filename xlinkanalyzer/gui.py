@@ -1502,10 +1502,6 @@ class XlinkMgrTabFrame(TabFrame):
 
         return dataMgrsForActive
 
-    # def clear(self):
-    #     for child in self.winfo_children():
-    #         child.destroy()
-
     def reload(self, name, userData, o):
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
@@ -1862,10 +1858,6 @@ class InteractingResiMgrTabFrame(TabFrame):
 
         self.dataMgrs = validDataMgrs
         self.models = validModels
-
-    # def clear(self):
-    #     for child in self.winfo_children():
-    #         child.destroy()
 
     def getActiveDataMgrs(self):
         self.getActiveModels()

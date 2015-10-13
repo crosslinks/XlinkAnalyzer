@@ -475,8 +475,7 @@ class Subcomplex(Item):
 class SimpleDataItem(Item):
     def __init__(self, data=None, **kwargs):
         super(SimpleDataItem,self).__init__(**kwargs)
-    # def __init__(self,name,config,data):
-    #     super(SimpleDataItem,self).__init__(name,config)
+
         self.type = "simpleData"
         if kwargs.get('data'):
             self.data = kwargs.get('data')
@@ -504,8 +503,6 @@ class InteractingResidueItem(SimpleDataItem):
     def __init__(self,**kwargs):
         super(InteractingResidueItem,self).__init__(**kwargs)
 
-    # def __init__(self,name,config,data=None):
-    #     super(InteractingResidueItem,self).__init__(name,config,data)
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
         self.data = {}
