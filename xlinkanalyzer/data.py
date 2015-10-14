@@ -840,7 +840,7 @@ class Assembly(Item):
             ("dataItems",[SequenceItem(config=self,fake=True),\
                           XQuestItem(config=self,fake=True),\
                           XlinkAnalyzerItem(config=self,fake=True),\
-                          InteractingResidueItem(config=self,fake=True),\
+                          # InteractingResidueItem(config=self,fake=True),\
                           ConsurfItem(config=self,fake=True)])])
 
     def __str__(self):
