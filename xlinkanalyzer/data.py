@@ -1,20 +1,16 @@
 import json
-import sys
 import os
-from numpy import unique
-from sys import platform as _platform
 from copy import deepcopy
-from collections import deque
+from collections import deque, defaultdict
+from weakref import WeakSet,ref
 import itertools
-from sys import __stdout__
-from collections import defaultdict
 import re
 
+
 import chimera
-import tkMessageBox
 import tkFileDialog
 import pyxlinks
-from os.path import relpath, exists, join, normpath, dirname, commonprefix, samefile
+from os.path import relpath, normpath, dirname, commonprefix, samefile
 from chimera import MaterialColor
 from MultAlignViewer.parsers import readFASTA
 from pyxlinks import XlinksSet
@@ -55,6 +51,9 @@ class Item(object):
 
     def __getitem__(self,slice):
         return self.__dict__
+
+    def __str__(self):
+        return self.name
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
@@ -224,16 +223,11 @@ class Subunit(Item):
     def contains(self, compName, resiId):
         return compName == self.name
 
-    def __str__(self):
-        s = "Subunit: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Color:\t%s\n\
-             Chains:\t%s\n"%(self.name,self.color.rgba(),self.chainIds)
-        return str(s)
-
     def __repr__(self):
-        return self.__str__()
+        return self.name
+
+    def __str__(self):
+        return self.name
 
     def __deepcopy__(self,x):
         subunitCopy =Subunit(name=self.name,config=self.config)
@@ -424,7 +418,7 @@ class Domain(Item):
         return str(s)
 
     def __repr__(self):
-        return self.__str__()
+        return self.name
 
     def validate(self):
         #TODO: Extend this
@@ -603,9 +597,6 @@ class FileGroup(object):
     def __deepcopy__(self,x):
         return FileGroup(self.files)
 
-    # def locate(self):
-    #     [f.path for f in self.files]
-
     def validate(self):
         bools = [f.validate() for f in self.files]
         return reduce(lambda x,y:x and y,bools,True)
@@ -634,12 +625,99 @@ class FileGroup(object):
     def empty(self):
         self.files = []
 
+class Subset(object):
+    def __init__(self,items,chosen=None,getElements=None):
+        self.items = WeakSet(items)
+        self.getElements = getElements
+        self.chosen = WeakSet(chosen).intersection(WeakSet(items))
+        
+    def __str__(self):
+        return list.__str__([i for i in self.chosen])
+
+    def __iter__(self):
+        return self.chosen.__iter__()
+    
+    def __len__(self):
+        return len(self.chosen)
+    
+    def __contains__(self,i):
+        return i in self.chosen
+    
+    def __getitem__(self,i):
+        tmp = self.chosen.copy()
+        ret = self.chosen.pop(i)
+        self.chosen = tmp
+        return ret
+    
+    def setChosen(self,items):
+        if self.getElements:
+            self.items = self.getElements()
+        self.chosen = self.items.intersection(WeakSet(items))
+    
+    def getElements(self):
+        return self.items
+    
+    def add(self,v):
+        if self.getElements:
+            self.items = self.getElements()
+        if v in self.items:
+            self.chosen = self.chosen.union(WeakSet([v]))
+    
+    def remove(self,v):
+        if v in self.items:
+            self.chosen = self.chosen.difference(WeakSet([v]))
+            
+class Mapping(object):    
+    def __init__(self,dataItem):
+        self.mapping = {}
+        self.dataItem = dataItem
+    
+    def __str__(self,*args,**kwargs):
+        ret = ""
+        ret += "Mapping of DataItem %s:\n" % (self.dataItem.name)
+        for key in self:
+            ret += "\t %s --> \t %s\n"%(key,self[key])
+        return ret
+    
+    def __contains__(self,key):
+        return self.mapping.__contains__(key)
+    
+    def __iter__(self):
+        return self.mapping.__iter__()
+    
+    def __setitem__(self,key,value):
+        self.mapping[key] = value
+        
+    def __getitem__(self,key):
+        if not key in self.mapping:
+            return Subset(self.getElements(),chosen=None,getElements=self.getElements)
+        else:
+            return self.mapping[key]
+
+    def keys(self):
+        return self.dataItem.keys()
+    
+    def values(self):
+        return self.mapping.values()
+    
+    def items(self):
+        return self.mapping.items()
+    
+    def getElements(self):
+        return self.dataItem.getElements()
+    
+    def isEmpty(self):
+        return not bool(len(self.getElements()))
+    
+    def isExhausted(self,key):
+        return not bool(WeakSet(self.getElements()).difference(WeakSet(self[key])))
+
 class DataItem(Item):
     SHOW = ["name","fileGroup","mapping"]
-    def __init__(self,fileGroup=FileGroup(),mapping=None,**kwargs):
+    def __init__(self,fileGroup=FileGroup(),**kwargs):
         super(DataItem,self).__init__(**kwargs)
         self.type = "data"
-        self.mapping = mapping or {}
+        self.mapping = Mapping(self)
         self.fileGroup = fileGroup
         self.active = True
 
@@ -652,7 +730,7 @@ class DataItem(Item):
         return str(s)
 
     def __repr__(self):
-        return self.__str__()
+        return self.name
 
     def __getitem__(self,key):
         if self.mapping.get(key):
@@ -663,7 +741,7 @@ class DataItem(Item):
     def __setitem__(self,key,value):
         if type(value) != list:
             if key in self.mapping:
-                self.mapping[key].append(value)
+                self.mapping[key].add(value)
             else:
                 self.mapping[key]=[value]
         else:
@@ -675,7 +753,7 @@ class DataItem(Item):
     def __deepcopy__(self,x):
         fileGroupCopy = deepcopy(self.fileGroup)
         itemCopy = type(self)(config=self.config,name=self.name,\
-                            fileGroup=fileGroupCopy,mapping=self.mapping)
+                            fileGroup=fileGroupCopy)
         itemCopy.type = self.type
         return itemCopy
 
@@ -685,11 +763,11 @@ class DataItem(Item):
     def updateData(self):
         pass
 
+    def keys(self):
+        return []
+
     def parseFiles(self,filePaths):
         map(self.fileGroup.addFile,filePaths)
-
-    # def locate(self):
-    #     self.fileGroup.locate()
 
     def resourcePaths(self):
         return [f.getResourcePath() for f in self.fileGroup]
@@ -703,7 +781,6 @@ class DataItem(Item):
         self.updateData()
 
     def serialize(self):
-        # self.locate()
         _dict = super(DataItem,self).serialize()
         _dict["fileGroup"] = self.fileGroup.serialize()
         if "data" in _dict:
@@ -718,8 +795,8 @@ class DataItem(Item):
     def getProteinsBySubunit(self,name):
         return [k for k,v in self.mapping.items() if name in v]
 
-    def getMappingElements(self):
-        return [[],[]]
+    def getElements(self):
+        return []
 
     def getMappingDefaults(self, text):
         '''
@@ -731,7 +808,6 @@ class DataItem(Item):
         '''
         return SubunitMatcher(self.config).getSubunit(text)
 
-
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,**kwargs):
@@ -740,7 +816,6 @@ class XQuestItem(DataItem):
         self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
-        # self.locate()
         self.updateData()
 
     def __deepycopy__(self,x):
@@ -772,13 +847,14 @@ class XQuestItem(DataItem):
         _dict.pop("xlinksSets")
         _dict.pop("xQuestNames")
         return _dict
-
-    def getMappingElements(self):
-        _from = [e for e in self.xQuestNames] if self.xQuestNames else [""]
-        _to = [s.name for s in self.config.subunits] if self.config.subunits\
-              else [""]
-        return [_from,_to]
-
+    
+    def getElements(self):
+        return self.config.getSubunits()
+    
+    def keys(self):
+        self.updateData()
+        return self.xQuestNames
+    
 class XlinkAnalyzerItem(XQuestItem):
     def __init__(self,*args,**kwargs):
         super(XlinkAnalyzerItem,self).__init__(*args,**kwargs)

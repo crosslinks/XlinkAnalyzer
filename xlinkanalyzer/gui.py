@@ -66,6 +66,7 @@ def push(path):
     if "path1" in prefs:
         prefs["path2"]=prefs["path1"]
     prefs["path1"]=path
+    print prefs["path1"]
 
 def getPaths():
     ret = []
