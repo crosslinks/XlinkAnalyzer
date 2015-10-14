@@ -1,14 +1,14 @@
 
 import re
 import inspect
-from sys import __stdout__
 
 from collections import OrderedDict
 from copy import deepcopy
+from functools import partial
 
 import Tkinter
-from Tkinter import Frame, LabelFrame, Button, Entry, Frame,Tk, StringVar, \
-                    Toplevel, Label, OptionMenu, TclError
+from Tkinter import LabelFrame, Button, Entry, Frame, StringVar, \
+                    Toplevel, Label, OptionMenu, TclError, Tk
 import tkMessageBox, tkFileDialog
 
 from Pmw import ScrolledFrame, EntryField
@@ -17,7 +17,8 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import Item, Assembly, Subunit, Domain, FileGroup, DataItem
+from data import FileGroup,Mapping,Subset
+from __builtin__ import True
 
 class FileFrame(Frame):
     def __init__(self,parent,active=False,fileGroup=FileGroup(),\
@@ -65,27 +66,107 @@ class FileFrame(Frame):
     def getResourcePaths(self):
         return self.fileGroup.getResourcePaths()
 
-class MapFrame(Frame):
-    def __init__(self,parent,mapDict,getElements=None,getDefaults=None,\
-                 mappings={},active=False,*args,**kwargs):
+class MenuFrame(Frame):
+    """
+    __str__ must be an unique identifier
+    """
+    def __init__(self,parent,items,callback=None,current=None,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
-        if getDefaults:
-            self.getDefaults=getDefaults
-        if not (mapDict.keys() and mapDict.values()) and getElements:
-            self.getElements = getElements
-            self.mapFrom,self.mapTo = getElements()
+        self.var = StringVar(self)
+        self.items = items
+        if current in self.items:
+            self.var.set(current)
+        self.var.trace("w", lambda x,y,z,v=self.var: self.onChoice())
+        self.delete = None
+        self.choice = None
+        self.callback = callback
+        self.listeners = []
+        self.menu = OptionMenu(self,self.var,*([i.name for i in self.items]+["None"]))
+        self.menu.configure(width=10)
+        
+    def onChoice(self):
+        if self.callback:
+            print "callback"
+            candidates = [i for i in self.items if i.name == self.var.get()]
+            item = None
+            if candidates:
+                item = candidates[0]
+                self.choice = item
+            else:
+                self.delete = self.choice
+            self.callback(item)
+            
+    def grid(self,*args,**kwargs):
+        Frame.grid(self,*args,**kwargs)
+        self.menu.grid()
+    
+    def get(self):
+        return self.choice
+    
+    def set(self,item):
+        if item in self.items:
+            self.var.set(item)
+            
+class SubsetFrame(Frame):
+    def __init__(self,parent,subset,active=False,*args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
+        self.subset = subset
+        self.menus = []
+        self.initFlag = False
+        self.synchronize(subset)
+        self.grid()
+        
+    def synchronize(self,subset=None):
+        add = True
+        if subset:
+            for i,s in enumerate(subset):
+                m = MenuFrame(self,self.subset.getElements(),self.onChoice)
+                self.initFlag = True
+                m.set(s)
+                m.grid(sticky="w",row=0,column=i)
+                self.menus.append(m)
         else:
-            self.mapFrom = mapDict.keys()
-            self.mapTo = mapDict.values()
-        self.mapTo = [self.parse(v) for v in self.mapTo]
-        self.mapDict = mapDict
+            for m in self.menus:
+                if m.delete:
+                    self.menus.remove(m)
+                    m.destroy()
+                    add = False
+            double = []
+            for i in range(len(self.menus)):
+                m = self.menus[i]
+                for j in range(i+1,len(self.menus)):
+                    if m.get() == self.menus[j].get():
+                        double.append(m)
+                        double.append(self.menus[j])
+                        break
+            if double:
+                m = double[1]
+                self.menus.remove(m)
+                m.destroy()
+            for s in self.subset:
+                if s not in [m.get() for m in self.menus]:
+                    self.subset.remove(s)
+        if add:
+            m = MenuFrame(self,self.subset.getElements(),self.onChoice)
+            m.grid(sticky="w",row=0,column=len(self.subset)+1)
+            self.menus.append(m)
+            
+    def onChoice(self,item):
+        self.subset.add(item)
+        if not self.initFlag:
+            self.synchronize()
+        self.initFlag = False
+        
+class MapFrame(Frame):
+    def __init__(self,parent,mapping,active=False,*args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
         self.active = active
-        self.mappings = mappings
+        self.mapping = mapping
         self.mapVar = StringVar(self)
         self.mapVar.trace("w",lambda a,b,c:self.copyMapping())
-        self.vars = []
+        self.subsetframes = {}
 
-        if not (self.mapFrom or self.mapTo or active):
+        if self.mapping.isEmpty():
             title = "No elements to map yet"
             message = "Please add some elements before mapping."
             tkMessageBox.showinfo(title,message,parent=self.master)
@@ -95,12 +176,7 @@ class MapFrame(Frame):
         self.mapButton.grid()
         self.grid()
 
-
     def popUp(self):
-        if not (self.mapDict.keys() and self.mapDict.values())\
-        and self.getElements:
-            self.mapFrom,self.mapTo = self.getElements()
-
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = ScrolledFrame(self.frame)
@@ -116,50 +192,24 @@ class MapFrame(Frame):
         Button(self.frame,text="Save",command=self.onSave)\
                .grid(sticky='W',row=2,column=0)
 
-        if self.mappings:
-            Label(self.frame,text="Copy Mapping From: ")\
-                  .grid(sticky='W',row=2,column=1)
-            OptionMenu(self.frame,self.mapVar,*self.mappings.keys())\
-                       .grid(sticky='W',row=2,column=2)
-
         self.frame.pack()
-        # self.grid()
         self.frame.update()
 
     def buildList(self):
-        c = 1
-        self.vars = []
-        for i,_from in enumerate(self.mapFrom):
-            Label(self.listFrame.interior(),text=_from)\
+        c = 0
+        for i,key in enumerate(self.mapping.keys()):
+            Label(self.listFrame.interior(),text=key)\
                  .grid(row=i+c,column=0,pady=1,padx=3)
-            Frame(self.listFrame.interior())\
-                 .grid(row=i+c,column=1,pady=1,padx=50)
-            var = StringVar(self)
-            self.vars.append(var)
-            if self.getDefaults:
-                if self.getDefaults(_from):
-                    var.set(self.getDefaults(_from).name)
-            if _from in self.mapDict:
-                if self.mapDict[_from]:
-                    var.set(self.parse(self.mapDict[_from]))
-            var.trace("w",lambda a,b,c,index=i,key=_from:\
-                      self.updateMap(index,key))
-            OptionMenu(self.listFrame.interior(),var,*self.mapTo)\
-            .grid(row=i+c,column=2,sticky="W",pady=1,padx=3)
-
-    def parse(self,value):
-        if value and type(value) == list:
-            return value[0]
-        else:
-            return value
-
-    def updateMap(self,index,key):
-        self.mapDict[key]= [self.vars[index].get()]
+            ssf = SubsetFrame(self.listFrame.interior(),self.mapping[key])
+            self.subsetframes[key] = ssf
+            ssf.grid(sticky="w",row=i,column=1)
 
     def onSave(self):
         self.pop.destroy()
+        for key,ssf in self.subsetframes.items():
+            self.mapping[key] = ssf.subset
         chimera.triggers.activateTrigger('configUpdated', None)
-
+        
     def copyMapping(self):
         key = self.mapVar.get()
         mapping = self.mappings[key]
@@ -167,7 +217,22 @@ class MapFrame(Frame):
             if name in mapping:
                 self.mapDict[name] = mapping[name]
         self.buildList()
-
+        
+if __name__ == "__main__":
+    from data import Item,DataItem
+    
+    
+    
+    l = [Item(name="Item "+str(i)) for i in range(5)]
+    d = DataItem()
+    d.getElements = lambda _l =l:l
+    d.keys = lambda: [str(i) for i in range(5)]
+    
+    root = Tk()
+    m = Mapping(d)
+    mf = MapFrame(root,m)
+    mf.grid()
+    
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
@@ -201,7 +266,7 @@ class ItemFrame(LabelFrame):
                                 (unicode,Entry),\
                                 (MaterialColor,ColorOption),\
                                 (list,Entry),\
-                                (dict,MapFrame),
+                                (Mapping,MapFrame),
                                 (FileGroup,FileFrame)\
                              ])
 
@@ -237,7 +302,6 @@ class ItemFrame(LabelFrame):
         return items
 
     def analyzeData(self):
-
         #sort method used later on
         def sortKeys(shows):
             common = list(set.intersection(*[set(s) for s in shows]))
@@ -375,14 +439,8 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_menu,None,None)
 
             elif _UIClass == MapFrame and not self.active:
-                _dict = _data
-                _getMapping = None
-                _getDefaults = None
-                if "getMappingElements" in dir(self.data):
-                    _getMapping = self.data.getMappingElements
-                if "getMappingDefaults" in dir(self.data):
-                    _getDefaults = self.data.getMappingDefaults
-                _mapFrame = MapFrame(self,_data,_getMapping,_getDefaults,self.mappings,True)
+                _mapping = _data
+                _mapFrame = MapFrame(self,_data,True)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
             elif _UIClass == ItemList and not self.active:
@@ -777,36 +835,37 @@ class ItemList(LabelFrame):
     
 
 if __name__ == "__main__":
-    class A(object):
-        SHOW = ["list","string"]
-        def __init__(self):
-            self.list = [1,2,3]
-            self.string = "String"
-
-    class B(object):
-        SHOW = ["oL"]
-        def __init__(self):
-            self.oL = []
-            self.dataMap = dict([("oL",A())])
-
-        def addItem(self,item):
-            if isinstance(item,A):
-               self.oL.append(item)
-
-    class C(object):
-        def __init__(self):
-            self.oLL = []
-            self.string = ""
-            self.numbers = []
-            self.dataMap = dict([("oLL",B())])
-
-        def addItem(self,item):
-            if isinstance(item,B):
-               self.oLL.append(item)
-
-    from Tkinter import Tk
-    root = Tk()
-    b = B()
-    c = C()
-    iL = ItemList(root,c,"oLL")
-    iL.grid()
+    if False:
+        class A(object):
+            SHOW = ["list","string"]
+            def __init__(self):
+                self.list = [1,2,3]
+                self.string = "String"
+    
+        class B(object):
+            SHOW = ["oL"]
+            def __init__(self):
+                self.oL = []
+                self.dataMap = dict([("oL",A())])
+    
+            def addItem(self,item):
+                if isinstance(item,A):
+                   self.oL.append(item)
+    
+        class C(object):
+            def __init__(self):
+                self.oLL = []
+                self.string = ""
+                self.numbers = []
+                self.dataMap = dict([("oLL",B())])
+    
+            def addItem(self,item):
+                if isinstance(item,B):
+                   self.oLL.append(item)
+    
+        from Tkinter import Tk
+        root = Tk()
+        b = B()
+        c = C()
+        iL = ItemList(root,c,"oLL")
+        iL.grid()
