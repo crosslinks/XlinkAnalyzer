@@ -463,7 +463,51 @@ class InteractingResiDataMgr(DataMgr):
                                             atom.color = to_color
                                         resi_from.ribbonColor = to_color
 
+class ConsurfDataMgr(DataMgr):
+    def __init__(self, model, data):
+        super(ConsurfDataMgr, self).__init__(model, data)
+        self.defConsurfColors()
+        self.load()
 
+    def defConsurfColors(self):
+        runCommand('colordef CONS10 1.00 1.00 0.59')
+        runCommand('colordef CONS9 0.63 0.15 0.38')
+        runCommand('colordef CONS8 0.94 0.49 0.67')
+        runCommand('colordef CONS7 0.98 0.79 0.87')
+        runCommand('colordef CONS6 0.99 0.93 0.96')
+        runCommand('colordef CONS5 1.00 1.00 1.00')
+        runCommand('colordef CONS4 0.92 1.00 1.00')
+        runCommand('colordef CONS3 0.84 1.00 1.00')
+        runCommand('colordef CONS2 0.55 1.00 1.00')
+        runCommand('colordef CONS1 0.06 0.78 0.82')
+
+    def color(self, subName):
+        sels = defaultdict(list)
+        subunit = getConfig().getSubunitByName(subName)
+        if subunit is not None:
+            chains = subunit.getChains()
+            print self.data
+            for dataItem in self.data:
+                if dataItem.hasMapping() and subName in dataItem.mapping.values()[0]:
+                    gr = dataItem.getGroupedByColor()
+                    for colorId, resis in gr.iteritems():
+                        for chain in chains:
+                            sels[colorId].extend([str(resi)+'.'+chain.id for resi in resis])
+        for colorId, sel in sels.iteritems():
+            sel = ','.join(sel)
+            runCommand('color CONS{colorId} #{modelId}:{sel}'.format(colorId=colorId, modelId=self.model.getModelId(), sel=sel))
+
+    def load(self):
+        pass
+
+    def reload(self, config):
+        data = []
+        for item in config.dataItems:
+            if item.type == xlinkanalyzer.CONSURF_DATA_TYPE:
+                if item.data.active:
+                    data.append(item.data)
+        self.data = data
+        self.load()
 
 class XlinkDataMgr(DataMgr):
     def __init__(self, model, data):
@@ -473,6 +517,8 @@ class XlinkDataMgr(DataMgr):
             handler = chimera.triggers.addHandler('configUpdated', self.onConfigUpdated, None)
             self._handlers.append((chimera.triggers, 'configUpdated', handler))
         self.minLdScore = 0
+        self.smartMode = False
+        self.show_only_one = False
         self.load()
 
     def destroy(self):
@@ -533,6 +579,11 @@ class XlinkDataMgr(DataMgr):
         self.deletePBG()
         self.xlinkAnalyzer = None
         self.load()
+        if self.smartMode:
+            self.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.show_only_one)
+        else:
+            self.smartMode = False
+            self.showAllXlinks()            
         self.hide_by_ld_score(self.minLdScore)
         restyleXlinks([self], XLINK_LEN_THRESHOLD)
 
@@ -793,8 +844,10 @@ class XlinkDataMgr(DataMgr):
                     at1 = self.getAtomToLink(resi1)
                     at2 = self.getAtomToLink(resi2)
 
-                    # if at1 is not at2: #cannot check this way because of beads
-                    if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
+                    if at1 is not at2 and not (pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2)): #cannot check this way because of beads
+                        # if pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2):
+                        #     continue
+                    # if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
                         try:
                             pb = self.pbg.newPseudoBond(at1, at2)
                         except TypeError:  # may happen if at1 is at2, happens for beads
@@ -1060,7 +1113,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             # found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 for x in x_set:
                     if x.pb:
                         at1 = x.pb.atoms[0]
@@ -1273,7 +1326,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 for x in x_set:
                     if x.pb:
                         if is_satisfied(x.pb, threshold):
@@ -1397,7 +1450,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) > self.minLdScore:
+            if float(xlink['ld-Score']) >= self.minLdScore:
                 all_xlink_sets.append(x_set)
                 for x in x_set:
                     if x.pb:

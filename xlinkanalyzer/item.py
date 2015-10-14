@@ -1,4 +1,4 @@
-
+from sys import platform as _platform
 import re
 import inspect
 
@@ -12,6 +12,8 @@ from Tkinter import LabelFrame, Button, Entry, Frame, StringVar, \
 import tkMessageBox, tkFileDialog
 
 from Pmw import ScrolledFrame, EntryField
+
+import ttk
 
 import chimera
 from chimera import MaterialColor
@@ -51,8 +53,9 @@ class FileFrame(Frame):
         menu = self.fileMenu["menu"]
         menu.delete(0, "end")
         paths = tkFileDialog.askopenfilenames(parent=self)
-        map(self.fileGroup.addFile,paths)
-        self.resetFileMenu(paths,0)
+        if len(paths) > 0:
+            map(self.fileGroup.addFile,paths)
+            self.resetFileMenu(paths,0)
 
     def resetFileMenu(self, options, index=None):
         menu = self.fileMenu["menu"]
@@ -375,7 +378,7 @@ class ItemFrame(LabelFrame):
                         if type(v1) == list:
                             if self.data in v1 and mapable:
                                 self.mappings = dict([(dI.name,dI.mapping)\
-                                                       for dI in v1])
+                                                       for dI in v1 if hasattr(dI, 'mapping')])
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()
@@ -448,7 +451,10 @@ class ItemFrame(LabelFrame):
                 self.fields[k] = (_data,_itemList,None,None)
 
         if not self.active:
-            self.apply = Button(self,text=unichr(10004),command=self.onApply)
+            if is_mac():
+                self.apply = ttk.Button(self,text=unichr(10004),command=self.onApply, width=1)
+            else:
+                self.apply = Button(self,text=unichr(10004),command=self.onApply)
             self.createToolTip(self.apply,"Apply")
             self.delete = Button(self,text="x",command=self.onDelete)
             self.createToolTip(self.delete,"Delete")
@@ -599,34 +605,37 @@ class ItemFrame(LabelFrame):
 
                 elif isinstance(_ui,OptionMenu):
                     _var.set(_toString(_dict[k]))
-            self.apply.config(bg="light grey")
-    try:
-        chimera.triggers.activateTrigger('configUpdated', None)
-    except:
-        print "No chimera config update!"
+
+            self.unHighlightApply()
+        try:
+            chimera.triggers.activateTrigger('configUpdated', None)
+        except:
+            print "No chimera config update!"
 
     def onAdd(self):
         if self.validate():
             self.synchronize()
-            if not self.differs:
-                if self.listFrame:
-                    if type(self.data) == dict:
-                        _type = self.fields["type"][3].get()
-                        _type = self.typeDict[_type]
-                        cp = deepcopy(self.data[_type])
-                    else:
-                        cp = deepcopy(self.data)
-                    self.listFrame.container.addItem(cp)
-                    self.listFrame.synchronize()
-            elif self.differs:
-                _type = self.fields["Type"][3].get()
-                name = self.fields["Choose"][3].get()
-                pool = self.fields["Choose"][0][_type]
-                choice = [p for p in pool if p.name == name][0]
-                if self.listFrame:
-                    self.listFrame.container.addItem(choice)
-                    self.listFrame.synchronize()
-            self.empty()
+            try:
+                if not self.differs:
+                    if self.listFrame:
+                        if type(self.data) == dict:
+                            _type = self.fields["type"][3].get()
+                            _type = self.typeDict[_type]
+                            cp = deepcopy(self.data[_type])
+                        else:
+                            cp = deepcopy(self.data)
+                        self.listFrame.container.addItem(cp)
+                        self.listFrame.synchronize()
+                elif self.differs:
+                    _type = self.fields["Type"][3].get()
+                    name = self.fields["Choose"][3].get()
+                    pool = self.fields["Choose"][0][_type]
+                    choice = [p for p in pool if p.name == name][0]
+                    if self.listFrame:
+                        self.listFrame.container.addItem(choice)
+                        self.listFrame.synchronize()
+            finally:
+                self.empty()
         else:
             title = "Empty Fields"
             message = "Please fill in all fields."
@@ -661,7 +670,7 @@ class ItemFrame(LabelFrame):
         self.destroy()
 
     def onApply(self):
-        self.apply.configure(bg="light grey")
+        self.unHighlightApply()
         self.synchronize()
 
     def onEdit(self):
@@ -690,9 +699,25 @@ class ItemFrame(LabelFrame):
             changed = bool(sum(bList))
 
             if changed:
-                self.apply.configure(bg="#00A8FF")
+                self.highlightApply()
             else:
-                self.apply.configure(bg="light grey")
+                self.unHighlightApply()
+
+    def highlightApply(self):
+        if is_mac():
+            style = ttk.Style()
+            style.configure('changed.TButton', foreground="red")
+            self.apply.configure(style='changed.TButton')
+        else:
+            self.apply.configure(bg="#00A8FF")
+
+    def unHighlightApply(self):
+        if is_mac():
+            style = ttk.Style()
+            style.configure('applied.TButton', foreground="black")
+            self.apply.configure(style='applied.TButton')
+        else:
+            self.apply.configure(bg="light grey")
 
     def gcs(self,*instances):
         classes = [type(x).mro() for x in instances]
@@ -869,3 +894,6 @@ if __name__ == "__main__":
         c = C()
         iL = ItemList(root,c,"oLL")
         iL.grid()
+
+def is_mac():
+    return _platform == "darwin"

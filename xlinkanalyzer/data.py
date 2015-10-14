@@ -256,9 +256,14 @@ class Domain(Item):
             return False
 
     def getChains(self):
+        selsChains = self.getSelectionsByChain()
         if not self.chains:
             self.chains = [Chain(c,self,config=self.config) \
                            for c in self.subunit.chainIds]
+
+            for c in self.chains:
+                sels = [s[0] for s in selsChains[c.id]]
+                c.setSelection(','.join([sel[1:] for sel in sels]))
         return self.chains
 
     def getSelection(self):
@@ -462,10 +467,13 @@ class Subcomplex(Item):
         return ':{0}'.format(','.join(out))
 
 class SimpleDataItem(Item):
-    def __init__(self,name,config,data):
-        super(SimpleDataItem,self).__init__(name,config)
+    def __init__(self, data=None, **kwargs):
+        super(SimpleDataItem,self).__init__(**kwargs)
+
         self.type = "simpleData"
-        self.data = data
+        if kwargs.get('data'):
+            self.data = kwargs.get('data')
+        self.active = True
 
     def __str__(self):
         s = "SimpleDataItem: \n \
@@ -478,19 +486,31 @@ class SimpleDataItem(Item):
     def __repr__(self):
         return self.__str__()
 
+    def __deepcopy__(self,x):
+        dataCopy = deepcopy(self.data)
+        itemCopy = type(self)(config=self.config,name=self.name,\
+                            data=dataCopy)
+        itemCopy.type = self.type
+        return itemCopy
+
 class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,config,data=None):
-        super(InteractingResidueItem,self).__init__(name,config,data)
+    def __init__(self,**kwargs):
+        super(InteractingResidueItem,self).__init__(**kwargs)
+
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
         self.data = {}
-        if data:
-            self.data = data
+        if kwargs.get('data'):
+            self.data = kwargs.get('data')
 
     def deserialize(self):
         #mirror the old structure
         self.config = self.data
         self.active = True
+
+    def __deepycopy__(self,x):
+        super(InteractingResidueItem).__deepcopy__(self)
+
 
 class File(object):
     def __init__(self,path=""):
@@ -674,7 +694,7 @@ class DataItem(Item):
         return self.name
 
     def __getitem__(self,key):
-        if key in self.mapping:
+        if self.mapping.get(key):
             return self.mapping[key][0]
         else:
             return None
@@ -775,6 +795,14 @@ class XQuestItem(DataItem):
 
             self.xQuestNames = list(self.xlinksSets.get_protein_names())
 
+            for name in self.xQuestNames:
+                if name not in self.mapping:
+                    guess = self.getMappingDefaults(name)
+                    if guess is not None:
+                        self.mapping[name] = [guess.name]
+                    else:
+                        self.mapping[name] = []
+
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
         _dict.pop("xlinksSets")
@@ -790,7 +818,7 @@ class XQuestItem(DataItem):
     
 class XlinkAnalyzerItem(XQuestItem):
     def __init__(self,*args,**kwargs):
-        super(XQuestItem,self).__init__(*args,**kwargs)
+        super(XlinkAnalyzerItem,self).__init__(*args,**kwargs)
         self.type = xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE
 
 class SequenceItem(DataItem):
@@ -823,6 +851,48 @@ class SequenceItem(DataItem):
             else [""]
         return [_from,_to]
 
+class ConsurfItem(DataItem):
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,**kwargs):
+        super(ConsurfItem,self).__init__(**kwargs)
+        self.type = xlinkanalyzer.CONSURF_DATA_TYPE
+        self.data = {}
+        self.scores = {}
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                with open(fileName) as f:
+                    for line in f:
+                        lineData = line.split()
+                        if '/' in line:
+                            resiId = int(lineData[0])
+                            colorId = int(lineData[4].strip('*'))
+                            if colorId == 0:
+                                colorId = 10
+                            self.scores[resiId] = colorId
+
+    def serialize(self):
+        _dict = super(ConsurfItem,self).serialize()
+        _dict.pop("scores")
+        return _dict
+
+    def getMappingElements(self):
+        _from = ['unknown_protein']
+        _to = [s.name for s in self.config.subunits] if self.config.subunits\
+            else [""]
+        return [_from,_to]
+
+    def getGroupedByColor(self):
+        v = defaultdict(list)
+
+        for key, value in sorted(self.scores.iteritems()):
+            v[value].append(key)
+
+        return v
+
 class Assembly(Item):
     def __init__(self,frame=None):
         super(Assembly,self).__init__()
@@ -833,7 +903,7 @@ class Assembly(Item):
         self.domains = []
         self.root = ""
         self.file = ""
-        self.state = "unsaved"
+        self.state = "changed"
         self.frame = frame
         self.subunitToChain = {}
         self.chainToSubunit = {}
@@ -845,7 +915,9 @@ class Assembly(Item):
             ("subcomplexes",Subcomplex(config=self,fake=True)),\
             ("dataItems",[SequenceItem(config=self,fake=True),\
                           XQuestItem(config=self,fake=True),\
-                          XlinkAnalyzerItem(config=self,fake=True)])])
+                          XlinkAnalyzerItem(config=self,fake=True),\
+                          InteractingResidueItem(config=self,fake=True),\
+                          ConsurfItem(config=self,fake=True)])])
 
     def __str__(self):
         s = ""
@@ -878,12 +950,17 @@ class Assembly(Item):
         self.dataItems = []
         self.domains = []
 
+    def isEmpty(self):
+        return len(self.subunits+self.subcomplexes+self.dataItems+self.domains) == 0
+
+
     def loadFromDict(self,_dict):
         self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
+                        (xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,XlinkAnalyzerItem),\
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
-                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
-                          InteractingResidueItem)])
+                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
+                         (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
         subunits = _dict.get("subunits")
         dataItems = _dict.get("data")
         subcomplexes = _dict.get("subcomplexes")
@@ -895,7 +972,7 @@ class Assembly(Item):
         for dataD in dataItems:
             if "data" in dataD:
                 d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["data"])
+                    (name=dataD["name"],config=self,data=dataD["data"])
             elif "resource" in dataD:
                 paths = [os.path.join(self.root, r) for r in dataD["resource"]]
                 fileGroup = FileGroup(paths)
@@ -989,6 +1066,8 @@ class Assembly(Item):
             self.subunits.append(item)
         elif isinstance(item,DataItem):
             self.dataItems.append(item)
+        elif isinstance(item,SimpleDataItem):
+            self.dataItems.append(item)
         elif isinstance(item,Domain):
             self.domains.append(item)
         elif isinstance(item,Subcomplex):
@@ -1000,6 +1079,9 @@ class Assembly(Item):
             if item in self.subunits:
                 self.subunits.remove(item)
         elif isinstance(item,DataItem):
+            if item in self.dataItems:
+                self.dataItems.remove(item)
+        elif isinstance(item,SimpleDataItem):
             if item in self.dataItems:
                 self.dataItems.remove(item)
         elif isinstance(item,Domain):
@@ -1183,6 +1265,10 @@ class ResourceManager(object):
             self.dumpJson(_file)
             self.config.file = _file
             self.state = "unchanged"
+
+            return True
+        else:
+            return False
 
     def loadAssembly(self,parent,_file=None):
         if not _file:

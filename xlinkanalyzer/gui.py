@@ -40,7 +40,7 @@ from data import Subunit,DataItem,SimpleDataItem,XQuestItem, SequenceItem,\
 
 
 import manager as xmanager
-from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr
+from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr, ConsurfDataMgr
 import xlinkanalyzer
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import move as xmove
@@ -79,7 +79,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
     title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
     name = 'Xlink Analyzer'
-    help = 'blah.html'
+    help = 'http://www.beck.embl.de/XlinkAnalyzer.html'
+    buttons = ("Close","Cite XlinkAnalyzer")
 
     loadDataTabName = 'Setup'
 
@@ -135,9 +136,15 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
-        # self.addTab('Interacting', InteractingResiMgrTabFrame)
+        self.addTab('Consurf', ConsurfMgrTabFrame)
+        self.addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.notebook.setnaturalsize()
+
+    def CiteXlinkAnalyzer(self):
+        from chimera import help
+        help.display("http://www.ncbi.nlm.nih.gov/pubmed/25661704")
+
 
     def createLoadDataTab(self):
         tab = self.notebook.add(self.loadDataTabName)
@@ -848,7 +855,7 @@ class ModelSelect(object):
         return box
 
     def isRMFmodel(self, chimeraModel):
-        return chimeraModel.openedAs[0].endswith('.rmf')
+        return hasattr(chimeraModel, 'openedAs') and chimeraModel.openedAs[0].endswith('.rmf')
 
     def createRMFmodel(self, chimeraModel):
         '''
@@ -952,6 +959,10 @@ class TabFrame(Tkinter.Frame):
     def getActiveModels(self):
         self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
 
+    def clear(self):
+        for child in self.winfo_children():
+            child.destroy()
+
 class SetupFrame(TabFrame):
     def __init__(self,master,mainWindow=None):
         """
@@ -1009,7 +1020,7 @@ class SetupFrame(TabFrame):
         curRow = curRow + 1
         
         #Quickload
-        self.buildButtons()
+        self.buildQuickLoad()
 
         #Deploy the subunits in self.config
         for i,item in enumerate(self.config.items):
@@ -1026,14 +1037,18 @@ class SetupFrame(TabFrame):
         for subunitFrame in self.subunitFrames:
             yield subunitFrame
 
-    def buildButtons(self):
+    def buildQuickLoad(self):
         for b in self.quickLoad:
             b.destroy()
         layout = {"pady":0,"padx":5}
         paths = getPaths()
+        label = Label(self, text="Recent projects:",
+                         borderwidth=0)
+        label.grid(row=1, column=4, sticky="nsw", padx=1, pady=1)
+
         for i,p in enumerate(paths):
             b = Button(self,text=p,command=lambda p=p:self.onQuickLoad(p))
-            b.grid(row=i+1,column=4,sticky="W",**layout)
+            b.grid(row=i+2,column=4,sticky="W",**layout)
             self.quickLoad.append(b)
 
     def clear(self):
@@ -1041,8 +1056,8 @@ class SetupFrame(TabFrame):
         self.update()
     
     def onQuickLoad(self,p):
-        result = tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master)
-        if result == 'yes':
+        if self.config.isEmpty() or \
+        (not self.config.isEmpty() and tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master) =="yes"):
             self.config.items = []
             self.resMngr.loadAssembly(self, p)
             self.update()
@@ -1077,7 +1092,7 @@ class SetupFrame(TabFrame):
             self.mainWindow.setTitle(self.config.file)
             push(self.config.file)
             self.config.state="unchanged"
-            self.buildButtons()
+            self.buildQuickLoad()
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)
@@ -1085,12 +1100,13 @@ class SetupFrame(TabFrame):
         self.config.state="unchanged"
 
     def onSave(self):
-        if self.config.state == "unsaved":
-            self.resMngr.saveAssembly(self)
+        if self.config.state == "changed" and self.config.file == "":
+            didSave = self.resMngr.saveAssembly(self)
         else:
-            self.resMngr.saveAssembly(self,False)
-        self.mainWindow.setTitle(self.config.file)
-        self.config.state="unchanged"
+            didSave = self.resMngr.saveAssembly(self,False)
+        if didSave:
+            self.mainWindow.setTitle(self.config.file)
+            self.config.state="unchanged"
 
     def update(self):
         self.subUnitFrame.synchronize(self.config)
@@ -1487,10 +1503,6 @@ class XlinkMgrTabFrame(TabFrame):
 
         return dataMgrsForActive
 
-    def clear(self):
-        for child in self.winfo_children():
-            child.destroy()
-
     def reload(self, name, userData, o):
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             self.clear()
@@ -1736,8 +1748,14 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartMode.get():
+                    mgr.smartMode = True
+                    if self.showFirstOnlyOliMode.get():
+                        mgr.show_only_one = True
+                    else:
+                        mgr.show_only_one = False
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
+                    mgr.smartMode = False
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(mgr.minLdScore)
 
@@ -1752,8 +1770,14 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 if self.smartMode.get():
+                    mgr.smartMode = True
+                    if self.showFirstOnlyOliMode.get():
+                        mgr.show_only_one = True
+                    else:
+                        mgr.show_only_one = False
                     mgr.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.showFirstOnlyOliMode.get())
                 else:
+                    mgr.smartMode = False
                     mgr.showAllXlinks()
                     mgr.hide_by_ld_score(minScore)
 
@@ -1835,10 +1859,6 @@ class InteractingResiMgrTabFrame(TabFrame):
 
         self.dataMgrs = validDataMgrs
         self.models = validModels
-
-    def clear(self):
-        for child in self.winfo_children():
-            child.destroy()
 
     def getActiveDataMgrs(self):
         self.getActiveModels()
@@ -2154,6 +2174,8 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
         currentSelections = self.getCurrentSelections()
         atomSpecs = []
         for modelId, sel in itertools.product(activeModelIds, currentSelections):
+            if not sel.startswith(':'):
+                sel = ':' + sel
             atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
@@ -2192,3 +2214,84 @@ class LoadFromStructureDialog(ModelessDialog):
         return xlinkanalyzer.get_gui().modelSelect.getActiveModels()
 
 chimera.dialogs.register(LoadFromStructureDialog.name, LoadFromStructureDialog)
+
+
+
+class ConsurfMgrTabFrame(TabFrame):
+    def __init__(self, master, *args, **kwargs):
+        TabFrame.__init__(self, master, *args, **kwargs)
+        Label(self, text="Load consurf files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
+        self.dataMgrs = []
+        self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
+        self._addHandlers()
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self._onModelRemoveHandler)
+
+    def onModelRemove(self, trigger, userData, removedModels):
+        for dataMgr in self.dataMgrs:
+            if hasattr(dataMgr, 'defConsurfColors'):
+                if dataMgr.model.chimeraModel in removedModels:
+                    dataMgr.destroy()
+                    self.dataMgrs.remove(dataMgr)
+
+        for model in self.models:
+            if model in removedModels:
+                self.models.remove(model)
+
+    def reload(self, name, userData, o):
+        if xlinkanalyzer.CONSURF_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
+            self.clear()
+
+            curRow = 0
+            totalCols = 2
+
+            modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
+            modelSelect.grid(row = curRow, columnspan=totalCols, sticky="we")
+            curRow += 1
+
+            self.compOptMenu = SubunitsOptionMenu(self, 'on subunit (def: all)', getConfig())
+            self.compOptMenu.grid(row = curRow, column = 0)
+
+            btn = Tkinter.Button(self,
+                text='Color',
+                # foreground=color,
+                command=self.color)
+
+            btn.grid(row = curRow, column=1, sticky='e')
+
+            curRow += 1
+
+    def getActiveDataMgrs(self):
+        self.getActiveModels()
+        dataMgrsForActive = []
+        for model in self.models:
+            dataMgrsForModel = []
+            for mgr in self.dataMgrs:
+                if hasattr(mgr, 'defConsurfColors') and mgr.model is model:
+                    dataMgrsForModel.append(mgr)
+
+            if len(dataMgrsForModel) == 0:
+                dataMgrsForModel.append(ConsurfDataMgr(model, self.getActiveData()))
+                self.dataMgrs.extend(dataMgrsForModel)
+
+            dataMgrsForActive.extend(dataMgrsForModel)
+        return dataMgrsForActive
+
+    def getActiveData(self):
+        data = []
+        for item in self.config.getDataItems(xlinkanalyzer.CONSURF_DATA_TYPE):
+            if item.active:
+                data.append(item)
+        return data
+
+    def color(self):
+        subName = None
+        subSel = self.compOptMenu.var.get()
+        if subSel in getConfig().getSubunitNames():
+            subName = subSel
+
+        dataMgrs = self.getActiveDataMgrs()
+        for mgr in dataMgrs:
+            if hasattr(mgr, 'defConsurfColors'):
+                mgr.color(subName)
