@@ -1,0 +1,76 @@
+{
+    "data": [],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "D"
+            ],
+            "chains": [],
+            "color": [
+                0.8549019607843137,
+                0.4392156862745098,
+                0.8392156862745098,
+                1.0
+            ],
+            "defaults": {},
+            "domains": [],
+            "info": {
+                "db_code": "ELP4_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q02884"
+            },
+            "name": "elongator complex protein 4",
+            "selection": ":.A,.D",
+            "type": "subunit"
+        },
+        {
+            "chainIds": [
+                "B",
+                "E"
+            ],
+            "chains": [],
+            "color": [
+                0.4392156862745098,
+                0.5019607843137255,
+                0.5647058823529412,
+                1.0
+            ],
+            "defaults": {},
+            "domains": [],
+            "info": {
+                "db_code": "ELP5_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P38874"
+            },
+            "name": "elongator complex protein 5",
+            "selection": ":.B,.E",
+            "type": "subunit"
+        },
+        {
+            "chainIds": [
+                "C",
+                "F"
+            ],
+            "chains": [],
+            "color": [
+                0.5647058823529412,
+                0.9333333333333333,
+                0.5647058823529412,
+                1.0
+            ],
+            "defaults": {},
+            "domains": [],
+            "info": {
+                "db_code": "ELP6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q04868"
+            },
+            "name": "elongator complex protein 6",
+            "selection": ":.C,.F",
+            "type": "subunit"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}
