@@ -1163,7 +1163,7 @@ class SubunitsTabFrame(TabFrame):
     def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         config = getConfig()
-        self.table = ComponentTable(self,config)  # YES Keep ComponentTable name!
+        self.table = ComponentTable(self,config)
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
@@ -1929,19 +1929,16 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
-class ComponentTable(Frame):   # YES Keep ComponentTable name!
+class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
 
-        c = Subunit(config)
-        c.name = "Kai"
-
         self.config = config
 
-        self.activeComponents = []  # YES Keep *component* name!
-        self.mover = xmove.ComponentMover()  # YES Keep *component* name!
+        self.activeComponents = []
+        self.mover = xmove.ComponentMover()
         self.mover.ctable = self
-        self.mover.mode = xmove.COMPONENT_MOVEMENT  # YES Keep *component* name!
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
 
         curRow = 0
         self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -2152,13 +2149,13 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):  # YES Keep *component* name!
+    def getActiveComponents(self):
         return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:  # YES Keep *component* name!
-            for comp in self.getActiveComponents():  # YES Keep *component* name!
+        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
+            for comp in self.getActiveComponents():
                 sels.append(comp.getSelection())
 
         return sels
