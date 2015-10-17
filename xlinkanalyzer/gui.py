@@ -1050,7 +1050,11 @@ class SetupFrame(TabFrame):
         label.grid(row=1, column=4, sticky="nsw", padx=1, pady=1)
 
         for i,p in enumerate(paths):
-            b = Button(self,text=p,command=lambda p=p:self.onQuickLoad(p))
+            if len(p) > 80:
+                text = p[:32] + '...' + p[-45:]
+            else:
+                text = p
+            b = Button(self,text=text,command=lambda p=p:self.onQuickLoad(p))
             b.grid(row=i+2,column=4,sticky="W",**layout)
             self.quickLoad.append(b)
 
