@@ -26,15 +26,32 @@ from xlinkanalyzer import utils as xutils
 
 class Item(object):
     SHOW = ["name"]
+    _show = True
+    _active = True
     def __init__(self,name="",config=None,fake=False):
         self.type = "item"
         self.name = name
         self.config = config
         self.fake = fake
-        self.show = True
-        self.active = True
         self.sym = True
         self.defaults = dict()
+
+    @property
+    def show(self):
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        self._show = val
+        chimera.triggers.activateTrigger('component shown/hidden', self)
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
 
     def __getitem__(self,slice):
         return self.__dict__
@@ -43,9 +60,8 @@ class Item(object):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
         _dict.pop("fake")
-        _dict.pop("show")
-        _dict.pop("active")
         _dict.pop("sym")
+
         return _dict
 
     def deserialize(self,_dict):
@@ -136,10 +152,12 @@ class Subunit(Item):
 
     def setChainIds(self,ids):
         self.chainIds = ids
+        self.chains = [Chain(c,self,config=self.config) for c in self.chainIds]
 
     def addChain(self, chainId):
         if chainId not in self.chainIds:
             self.chainIds.append(chainId)
+            self.chains.append(Chain(chainId,self,config=self.config))
             self.setSelection()
 
     def setSelection(self,sel=None):
@@ -185,6 +203,8 @@ class Subunit(Item):
             _dict.pop("chainToSubunit")
         if "subunitToChain" in _dict:
             _dict.pop("subunitToChain")
+        if "chains" in _dict:
+            _dict.pop("chains")
         return _dict
 
     def deserialize(self,_dict):
@@ -232,6 +252,25 @@ class Subunit(Item):
         ret = [s for s in chainIdsS.split(",")]
         self.selection =':'+','.join(['.'+s for s in ret])
         return ret
+
+    def getChildren(self):
+        return self.domains + self.getChains()
+
+    @Item.show.setter
+    def show(self, val):
+        self._show = val
+        for child in self.getChildren():
+            child._show = val # _show to not to activate children's triggers
+
+        chimera.triggers.activateTrigger('component shown/hidden', self)
+
+
+    @Item.active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChildren():
+            child._active = val
+
 
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
@@ -775,6 +814,7 @@ class SequenceItem(DataItem):
             else [""]
         return [_from,_to]
 
+
 class ConsurfItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,**kwargs):
@@ -816,6 +856,7 @@ class ConsurfItem(DataItem):
             v[value].append(key)
 
         return v
+
 
 class Assembly(Item):
     def __init__(self,frame=None):

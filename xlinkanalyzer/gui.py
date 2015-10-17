@@ -98,6 +98,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         chimera.triggers.addTrigger('activeDataChanged')
         chimera.triggers.addTrigger('afterAllUpdate')
 
+        chimera.triggers.addTrigger('component shown/hidden')
+
         self._handlers = []
 
         ModelessDialog.__init__(self, **kw)
@@ -115,6 +117,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         chimera.triggers.deleteTrigger('lengthThresholdChanged')
         chimera.triggers.deleteTrigger('activeDataChanged')
         chimera.triggers.deleteTrigger('afterAllUpdate')
+
+        chimera.triggers.deleteTrigger('component shown/hidden')
 
     def _deleteHandlers(self):
         if not self._handlers:
@@ -1934,6 +1938,7 @@ class ComponentTable(Frame):
         Frame.__init__(self,parent,*args,**kwargs)
 
         self.config = config
+        self._allComponents = []
 
         self.activeComponents = []
         self.mover = xmove.ComponentMover()
@@ -2035,13 +2040,36 @@ class ComponentTable(Frame):
         self.table.launch()
         self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
 
+        self._addHandlers()
+
+    def _addHandlers(self):
+        self._handlers = []
+        handler = chimera.triggers.addHandler('component shown/hidden', self.onCompShowChange, None)
+        self._handlers.append((chimera.triggers, 'component shown/hidden', handler))
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self.onCompShowChange)
+        Frame.destroy(self)
+
+    def onCompShowChange(self, trigger, userData, comp):
+        self.getActiveModels()
+        for model in self.models:
+            if comp.show:
+                model.show(comp)
+            else:
+                model.hide(comp)
+
     def reload(self):
+        self._allComponents = []
         items = self.choices["Subunits"]()
+        self._allComponents.extend(items)
         if self.domVar.get():
             items = sum([[sub] + sub.domains for sub in items],[])
         items = items + self.choices["Subcomplexes"]()
+        [self._allComponents.append(el) for el in items if el not in self._allComponents]
         if self.chainVar.get():
             items = sum([item.getChains() for item in items],[])
+            [self._allComponents.append(el) for el in items if el not in self._allComponents]
         self.table.setData(items)
         self.table.refresh()
 
@@ -2074,12 +2102,8 @@ class ComponentTable(Frame):
     def onShow(self):
         for item in self.table.selected():
             item.show = True
-        self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.show(comp)
+        self.table.refresh()
 
     def onShowOnly(self):
         for item in self.table.data:
@@ -2088,33 +2112,17 @@ class ComponentTable(Frame):
             item.show = True
         self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.showOnly(comp)
-
     def onHide(self):
         for item in self.table.selected():
             item.show = False
-        self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.hide(comp)
+        self.table.refresh()
 
     def onShowAll(self):
-        for item in self.table.data:
+        for item in self._allComponents:
             item.show = True
 
-        for item in self.table.selected():
-            item.show = True
         self.table.refresh()
-
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.showAll()
 
     def onSelect(self):
         self.getActiveModels()

@@ -2,8 +2,6 @@ from MoveSelection import Selection_Mover
 from MoveSelection import move as chimera_move
 from chimera.specifier import evalSpec
 
-import xlinkanalyzer as xla
-
 
 COMPONENT_MOVEMENT = 'move component'
 
