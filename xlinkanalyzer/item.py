@@ -89,7 +89,6 @@ class MenuFrame(Frame):
         
     def onChoice(self):
         if self.callback:
-            print "callback"
             candidates = [i for i in self.items if i.name == self.var.get()]
             item = None
             if candidates:

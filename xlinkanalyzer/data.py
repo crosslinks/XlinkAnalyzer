@@ -24,7 +24,7 @@ class Item(object):
     SHOW = ["name"]
     _show = True
     _active = True
-    def __init__(self,name="",config=None,fake=False):
+    def __init__(self,name="",config=None,fake=False,*args,**kwargs):
         self.type = "item"
         self.name = name
         self.config = config
@@ -258,13 +258,11 @@ class Subunit(Item):
 
         chimera.triggers.activateTrigger('component shown/hidden', self)
 
-
     @Item.active.setter
     def active(self, val):
         self._active = val
         for child in self.getChildren():
             child._active = val
-
 
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
@@ -686,7 +684,10 @@ class Mapping(object):
         return self.mapping.__iter__()
     
     def __setitem__(self,key,value):
-        self.mapping[key] = value
+        if isinstance(value, Subset): 
+            self.mapping[key] = value
+        elif isinstance(value,list):
+            self.mapping[key] = Subset(self.getElements(),chosen=value,getElements=self.getElements)
         
     def __getitem__(self,key):
         if not key in self.mapping:
@@ -773,11 +774,18 @@ class DataItem(Item):
         return [f.getResourcePath() for f in self.fileGroup]
 
     def deserialize(self,_dict):
-        super(DataItem,self).deserialize(_dict)
         if "fileGroup" in _dict:
             fileGroup = FileGroup()
             fileGroup.deserialize(_dict["fileGroup"], self.config.root)
             self.__dict__["fileGroup"] = fileGroup
+            _dict.pop("fileGroup")
+        if "mapping" in _dict:
+            self.mapping = Mapping(self)
+            for k,v in _dict["mapping"].items():
+                #TODO: this depends on the mapped object 
+                self.mapping[k] = [self.config.getSubunitByName(name) for name in v]
+            _dict.pop("mapping")
+        super(DataItem,self).deserialize(_dict)
         self.updateData()
 
     def serialize(self):
@@ -883,12 +891,8 @@ class SequenceItem(DataItem):
         _dict.pop("sequences")
         return _dict
 
-    def getMappingElements(self):
-        _from = [e for e in self.sequences.keys()]\
-                 if self.sequences.keys() else [""]
-        _to = [s.name for s in self.config.subunits] if self.config.subunits\
-            else [""]
-        return [_from,_to]
+    def getElements(self):
+        return self.config.getSubunits()
 
 
 class ConsurfItem(DataItem):
@@ -1003,35 +1007,39 @@ class Assembly(Item):
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
                          (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
         subunits = _dict.get("subunits")
-        dataItems = _dict.get("data")
         subcomplexes = _dict.get("subcomplexes")
-        #TODO: this is a temporary solution
-        for compD in subunits:
-            c = Subunit(compD["name"],self)
-            c.deserialize(compD)
+        dataItems = _dict.get("data")
+        
+        #first, load all Items that might appear in a mapping later on
+        for subD in subunits:
+            c = Subunit(subD["name"],self)
+            c.deserialize(subD)
             self.addItem(c)
+        if subcomplexes:
+            for subCD in subcomplexes:
+                s = Subcomplex(config=self)
+                s.deserialize(subCD)
+                self.addItem(s)
+        #then, load DataItems
         for dataD in dataItems:
+            #SimpleDataItems, no file references
             if "data" in dataD:
                 d = classDir[dataD["type"]]\
                     (name=dataD["name"],config=self,data=dataD["data"])
+            #load DataItems in old format, deprecate at some point
             elif "resource" in dataD:
                 paths = [os.path.join(self.root, r) for r in dataD["resource"]]
                 fileGroup = FileGroup(paths)
-                d = classDir[dataD["type"]]\
-                    (name=dataD["name"],\
-                     config=self,\
-                     fileGroup=fileGroup,\
-                     mapping=dataD["mapping"])
+                dataD["fileGroup"] = fileGroup.serialize()
+                d = classDir[dataD["type"]](config=self)
+                d.deserialize(dataD)
+            #load DataItems in new format
             elif "fileGroup" in dataD:
                 d = classDir[dataD["type"]](config=self)
                 d.deserialize(dataD)
             self.addItem(d)
         self.domains = self.getDomains()
-        if subcomplexes:
-            for subD in subcomplexes:
-                s = Subcomplex(config=self)
-                s.deserialize(subD)
-                self.addItem(s)
+    #KILL IT! KILL IT WITH FIRE!
     def loadFromStructure(self, m):
         def getAddedBySeq(newS, m):
             for comp in self.getSubunits():
