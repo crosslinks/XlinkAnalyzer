@@ -99,6 +99,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         chimera.triggers.addTrigger('activeDataChanged')
         chimera.triggers.addTrigger('afterAllUpdate')
 
+        chimera.triggers.addTrigger('component shown/hidden')
+
         self._handlers = []
 
         ModelessDialog.__init__(self, **kw)
@@ -116,6 +118,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         chimera.triggers.deleteTrigger('lengthThresholdChanged')
         chimera.triggers.deleteTrigger('activeDataChanged')
         chimera.triggers.deleteTrigger('afterAllUpdate')
+
+        chimera.triggers.deleteTrigger('component shown/hidden')
 
     def _deleteHandlers(self):
         if not self._handlers:
@@ -1047,7 +1051,11 @@ class SetupFrame(TabFrame):
         label.grid(row=1, column=4, sticky="nsw", padx=1, pady=1)
 
         for i,p in enumerate(paths):
-            b = Button(self,text=p,command=lambda p=p:self.onQuickLoad(p))
+            if len(p) > 80:
+                text = p[:32] + '...' + p[-45:]
+            else:
+                text = p
+            b = Button(self,text=text,command=lambda p=p:self.onQuickLoad(p))
             b.grid(row=i+2,column=4,sticky="W",**layout)
             self.quickLoad.append(b)
 
@@ -1164,7 +1172,7 @@ class SubunitsTabFrame(TabFrame):
     def __init__(self, master,*args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
         config = getConfig()
-        self.table = ComponentTable(self,config)  # YES Keep ComponentTable name!
+        self.table = ComponentTable(self,config)
         self.table.columnconfigure(0,minsize=300)
         self.table.grid(sticky="nesw",row=0,column=0)
         self.grid(sticky="nesw")
@@ -1930,19 +1938,17 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
-class ComponentTable(Frame):   # YES Keep ComponentTable name!
+class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
 
-        c = Subunit(config)
-        c.name = "Kai"
-
         self.config = config
+        self._allComponents = []
 
-        self.activeComponents = []  # YES Keep *component* name!
-        self.mover = xmove.ComponentMover()  # YES Keep *component* name!
+        self.activeComponents = []
+        self.mover = xmove.ComponentMover()
         self.mover.ctable = self
-        self.mover.mode = xmove.COMPONENT_MOVEMENT  # YES Keep *component* name!
+        self.mover.mode = xmove.COMPONENT_MOVEMENT
 
         curRow = 0
         self.modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
@@ -2039,13 +2045,36 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
         self.table.launch()
         self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
 
+        self._addHandlers()
+
+    def _addHandlers(self):
+        self._handlers = []
+        handler = chimera.triggers.addHandler('component shown/hidden', self.onCompShowChange, None)
+        self._handlers.append((chimera.triggers, 'component shown/hidden', handler))
+
+    def destroy(self):
+        chimera.openModels.deleteRemoveHandler(self.onCompShowChange)
+        Frame.destroy(self)
+
+    def onCompShowChange(self, trigger, userData, comp):
+        self.getActiveModels()
+        for model in self.models:
+            if comp.show:
+                model.show(comp)
+            else:
+                model.hide(comp)
+
     def reload(self):
+        self._allComponents = []
         items = self.choices["Subunits"]()
+        self._allComponents.extend(items)
         if self.domVar.get():
             items = sum([[sub] + sub.domains for sub in items],[])
         items = items + self.choices["Subcomplexes"]()
+        [self._allComponents.append(el) for el in items if el not in self._allComponents]
         if self.chainVar.get():
             items = sum([item.getChains() for item in items],[])
+            [self._allComponents.append(el) for el in items if el not in self._allComponents]
         self.table.setData(items)
         self.table.refresh()
 
@@ -2078,12 +2107,8 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
     def onShow(self):
         for item in self.table.selected():
             item.show = True
-        self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.show(comp)
+        self.table.refresh()
 
     def onShowOnly(self):
         for item in self.table.data:
@@ -2092,33 +2117,17 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
             item.show = True
         self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.showOnly(comp)
-
     def onHide(self):
         for item in self.table.selected():
             item.show = False
-        self.table.refresh()
 
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.hide(comp)
+        self.table.refresh()
 
     def onShowAll(self):
-        for item in self.table.data:
+        for item in self._allComponents:
             item.show = True
 
-        for item in self.table.selected():
-            item.show = True
         self.table.refresh()
-
-        self.getActiveModels()
-        for model in self.models:
-            for comp in self.table.selected():
-                model.showAll()
 
     def onSelect(self):
         self.getActiveModels()
@@ -2153,13 +2162,13 @@ class ComponentTable(Frame):   # YES Keep ComponentTable name!
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):  # YES Keep *component* name!
+    def getActiveComponents(self):
         return [item for item in self.table.data if item.active]
 
     def getCurrentSelections(self):
         sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:  # YES Keep *component* name!
-            for comp in self.getActiveComponents():  # YES Keep *component* name!
+        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
+            for comp in self.getActiveComponents():
                 sels.append(comp.getSelection())
 
         return sels
