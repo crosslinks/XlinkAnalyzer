@@ -655,6 +655,12 @@ class Subset(object):
     def getElements(self):
         return self.items
     
+    def serialize(self):
+        _list = []
+        for item in self:
+            _list.append(str(item))
+        return _list
+    
     def add(self,v):
         if self.getElements:
             self.items = self.getElements()
@@ -706,6 +712,12 @@ class Mapping(object):
     
     def getElements(self):
         return self.dataItem.getElements()
+    
+    def serialize(self):
+        _dict = {}
+        for k in self.keys():
+            _dict[k] = self[k].serialize()
+        return _dict
     
     def isEmpty(self):
         return not bool(len(self.getElements()))
@@ -791,6 +803,7 @@ class DataItem(Item):
     def serialize(self):
         _dict = super(DataItem,self).serialize()
         _dict["fileGroup"] = self.fileGroup.serialize()
+        _dict["mapping"] = self.mapping.serialize()
         if "data" in _dict:
             _dict.pop("data")
         return _dict
