@@ -683,6 +683,9 @@ class Mapping(object):
             ret += "\t %s --> \t %s\n"%(key,self[key])
         return ret
     
+    def __len__(self):
+        return reduce(lambda x,y: x+int(len(y)>0),self.mapping.values(),0)
+    
     def __contains__(self,key):
         return self.mapping.__contains__(key)
     
@@ -907,6 +910,10 @@ class SequenceItem(DataItem):
     def getElements(self):
         return self.config.getSubunits()
 
+    def keys(self):
+        self.updateData()
+        return self.sequences.keys()
+    
 
 class ConsurfItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
@@ -1396,11 +1403,14 @@ class SubunitMatcher(object):
 def isXlinkItem(item):
     return hasattr(item, 'xQuestNames')
 
+import sys
 if __name__ == "__main__":
-    if True:
-        import numpy
+    a = sys.argv[1]
+    if a == 'stuff':
         config = Assembly()
         resMngr = ResourceManager(config)
         resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
         d=config.getDomains()[0]
         print d.explore(Domain)
+    elif a=='mapping':
+        pass

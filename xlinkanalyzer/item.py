@@ -177,7 +177,12 @@ class MapFrame(Frame):
         self.mapButton = Button(self,text="Map",command=self.popUp)
         self.mapButton.grid()
         self.grid()
-
+    
+    def formatKey(self,key):
+        if len(key) > 60:
+            key = key[:21] + '...' + key[-19:]
+        return key
+    
     def popUp(self):
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
@@ -200,7 +205,7 @@ class MapFrame(Frame):
     def buildList(self):
         c = 0
         for i,key in enumerate(self.mapping.keys()):
-            Label(self.listFrame.interior(),text=key)\
+            Label(self.listFrame.interior(),text=self.formatKey(key))\
                  .grid(row=i+c,column=0,pady=1,padx=3)
             ssf = SubsetFrame(self.listFrame.interior(),self.mapping[key])
             self.subsetframes[key] = ssf
