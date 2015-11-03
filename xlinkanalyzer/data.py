@@ -749,7 +749,7 @@ class DataItem(Item):
         return self.name
 
     def __getitem__(self,key):
-        if self.mapping.get(key):
+        if key in self.mapping:
             return self.mapping[key][0]
         else:
             return None
