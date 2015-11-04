@@ -2,7 +2,7 @@ import json
 import os
 from copy import deepcopy
 from collections import deque, defaultdict
-from weakref import WeakSet,ref
+from weakref import WeakSet,proxy
 import itertools
 import re
 
@@ -643,6 +643,7 @@ class Subset(object):
     
     def __getitem__(self,i):
         tmp = self.chosen.copy()
+        ret = []
         ret = self.chosen.pop(i)
         self.chosen = tmp
         return ret
@@ -699,9 +700,11 @@ class Mapping(object):
             self.mapping[key] = Subset(self.getElements(),chosen=value,getElements=self.getElements)
         
     def __getitem__(self,key):
+        ret = []
         if not key in self.mapping:
-            return Subset(self.getElements(),chosen=None,getElements=self.getElements)
+            return ret
         else:
+            ret = [proxy(wr) for wr in self.mapping[key]]
             return self.mapping[key]
 
     def keys(self):
