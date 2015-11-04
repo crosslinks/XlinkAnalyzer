@@ -698,7 +698,7 @@ class Mapping(object):
             return ret
         else:
             ret = [proxy(wr) for wr in self.mapping[key]]
-            return self.mapping[key]
+            return ret
 
     def keys(self):
         return self.dataItem.keys()
