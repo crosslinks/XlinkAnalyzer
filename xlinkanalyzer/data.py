@@ -641,13 +641,6 @@ class Subset(object):
     def __contains__(self,i):
         return i in self.chosen
     
-    def __getitem__(self,i):
-        tmp = self.chosen.copy()
-        ret = []
-        ret = self.chosen.pop(i)
-        self.chosen = tmp
-        return ret
-    
     def setChosen(self,items):
         if self.getElements:
             self.items = self.getElements()
