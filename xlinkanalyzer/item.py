@@ -207,7 +207,7 @@ class MapFrame(Frame):
         for i,key in enumerate(self.mapping.keys()):
             Label(self.listFrame.interior(),text=self.formatKey(key))\
                  .grid(row=i+c,column=0,pady=1,padx=3)
-            ssf = SubsetFrame(self.listFrame.interior(),self.mapping[key])
+            ssf = SubsetFrame(self.listFrame.interior(),self.mapping.getSubset(key))
             self.subsetframes[key] = ssf
             ssf.grid(sticky="w",row=i,column=1)
 
