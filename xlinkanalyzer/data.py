@@ -1206,12 +1206,12 @@ class Assembly(Item):
         for item in self.getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
             for seqName, seq in item.sequences.iteritems():
                 try:
-                    compNames = item.mapping[seqName]
+                    comps = item.mapping[seqName]
                 except KeyError:
                     pass
                 else:
-                    for compName in compNames:
-                        sequence[compName] = str(seq)
+                    for comp in comps:
+                        sequence[comp.name] = str(seq)
         return sequence
 
     def getDomains(self,name=None):
