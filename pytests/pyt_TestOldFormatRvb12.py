@@ -15,3 +15,6 @@ class TestXla_Rvb12_old_format(XlaGuiTests.XlaBaseTest):
         mPaths = ['Rvb12/yRvb12.hexamer.pdb']
         cPath = 'Rvb12/Rvb12_old_format.json'
         super(TestXla_Rvb12_old_format, self).setUp(mPaths, cPath)
+
+    def testLoad(self):
+        pass
