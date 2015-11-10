@@ -763,13 +763,13 @@ class XlinkDataMgr(DataMgr):
         for xlinkSet, xlinkDataSet in zip(xlinkSetsCopies, xlinkDataSets):
             for xlink in xlinkSet.data:
                 if xlink['Protein1'] in xlinkDataSet:
-                    comp = xlinkDataSet[xlink['Protein1']]
-                    if comp:
-                        xlink['Protein1'] = comp.name
+                    comps = xlinkDataSet[xlink['Protein1']]
+                    if comps:
+                        xlink['Protein1'] = comps[0].name
                 if xlink['Protein2'] in xlinkDataSet:
-                    comp = xlinkDataSet[xlink['Protein2']]
-                    if comp:
-                        xlink['Protein2'] = comp.name
+                    comps= xlinkDataSet[xlink['Protein2']]
+                    if comps:
+                        xlink['Protein2'] = comps[0].name
 
         if xlinkSetsCopies:
             xlinksSetsMerged = sum(xlinkSetsCopies)
