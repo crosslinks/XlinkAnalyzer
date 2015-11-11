@@ -862,7 +862,7 @@ class XQuestItem(DataItem):
                 if name not in self.mapping:
                     guess = self.getMappingDefaults(name)
                     if guess is not None:
-                        self.mapping[name] = [guess.name]
+                        self.mapping[name] = [guess]
                     else:
                         self.mapping[name] = []
 
