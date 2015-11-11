@@ -699,6 +699,7 @@ class Mapping(object):
         else:
             ret = [proxy(wr) for wr in self.mapping[key]]
             return ret
+        
     def getSubset(self,key):
         return self.mapping[key]
 
@@ -717,7 +718,7 @@ class Mapping(object):
     def serialize(self):
         _dict = {}
         for k in self.keys():
-            _dict[k] = self[k].serialize()
+            _dict[k] = self.getSubset(k).serialize()
         return _dict
     
     def isEmpty(self):
@@ -796,7 +797,8 @@ class DataItem(Item):
             self.mapping = Mapping(self)
             for k,v in _dict["mapping"].items():
                 #TODO: this depends on the mapped object 
-                self.mapping[k] = [self.config.getSubunitByName(name) for name in v]
+                subUnits = [self.config.getSubunitByName(name) for name in v if self.config.getSubunitByName(name) is not None]
+                self.mapping[k] = subUnits
             _dict.pop("mapping")
         super(DataItem,self).deserialize(_dict)
         self.updateData()
