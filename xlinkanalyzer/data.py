@@ -665,7 +665,7 @@ class Subset(object):
         if v in self.items:
             self.chosen = self.chosen.difference(WeakSet([v]))
             
-class Mapping(object):    
+class Mapping(Item):    
     def __init__(self,dataItem):
         self.mapping = {}
         self.dataItem = dataItem
@@ -709,6 +709,11 @@ class Mapping(object):
     def values(self):
         return self.mapping.values()
     
+    def copyFrom(self,other):
+        for key in other:
+            if key in self:
+                self[key] = other.getSubset(key)
+    
     def items(self):
         return self.mapping.items()
     
@@ -737,15 +742,15 @@ class DataItem(Item):
         self.active = True
 
     def __str__(self):
-        s = "DataItem: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Type\t%s\n\
-             Files:\t%s\n"%(self.name,self.type,self.fileGroup)
-        return str(s)
+        return self.name
 
     def __repr__(self):
-        return self.name
+        s = "DataItem: \n \
+        -------------------------\n\
+        Name:\t%s\n\
+        Type\t%s\n\
+        Files:\t%s\n"%(self.name,self.type,self.fileGroup)
+        return str(s)
 
     def __getitem__(self,key):
         if key in self.mapping:
