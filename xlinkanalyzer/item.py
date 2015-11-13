@@ -167,12 +167,14 @@ class SubsetFrame(Frame):
         self.initFlag = False
         
 class MapFrame(Frame):
-    def __init__(self,parent,mapping,active=False,*args,**kwargs):
+    def __init__(self,parent,mapping,active=False,copy=None,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         self.active = active
         self.mapping = mapping
         self.mapVar = StringVar(self)
         self.mapVar.trace("w",lambda a,b,c:self.copyMapping())
+        self.copy = copy
+        self.similars = self.getSimilarItems()
         self.subsetframes = {}
 
         if self.mapping.isEmpty():
@@ -206,8 +208,17 @@ class MapFrame(Frame):
         Button(self.frame,text="Save",command=self.onSave)\
                .grid(sticky='W',row=2,column=0)
 
+        Label(self.frame,text="Copy From: ").grid(sticky='W',row=2,column=1)
+        OptionMenu(self.frame,self.mapVar,*self.similars.keys()).grid(sticky='W',row=2,column=2)
+
         self.frame.pack()
         self.frame.update()
+        
+    def getSimilarItems(self):
+        ret = {"":None}
+        if self.copy:
+            ret = dict([(str(i),i) for i in self.mapping.explore(self.copy.__class__)])
+        return ret
 
     def buildList(self):
         c = 0
@@ -226,27 +237,9 @@ class MapFrame(Frame):
         chimera.triggers.activateTrigger('configUpdated', None)
         
     def copyMapping(self):
-        key = self.mapVar.get()
-        mapping = self.mappings[key]
-        for name in self.mapFrom:
-            if name in mapping:
-                self.mapDict[name] = mapping[name]
+        copyFrom = self.similars[self.mapVar.get()].mapping
+        self.mapping.copyFrom(copyFrom)
         self.buildList()
-        
-if __name__ == "__main__":
-    from data import Item,DataItem
-    
-    
-    
-    l = [Item(name="Item "+str(i)) for i in range(5)]
-    d = DataItem()
-    d.getElements = lambda _l =l:l
-    d.keys = lambda: [str(i) for i in range(5)]
-    
-    root = Tk()
-    m = Mapping(d)
-    mf = MapFrame(root,m)
-    mf.grid()
     
 class ItemFrame(LabelFrame):
     def __init__(self,parent,data,active=False,listFrame=None,*args,**kwargs):
@@ -455,7 +448,7 @@ class ItemFrame(LabelFrame):
 
             elif _UIClass == MapFrame and not self.active:
                 _mapping = _data
-                _mapFrame = MapFrame(self,_data,True)
+                _mapFrame = MapFrame(self,_data,True,self.data)
                 self.fields[k] = (_data,_mapFrame,None,None)
 
             elif _UIClass == ItemList and not self.active:
