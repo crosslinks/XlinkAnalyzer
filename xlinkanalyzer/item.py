@@ -110,11 +110,12 @@ class MenuFrame(Frame):
             self.var.set(item)
             
 class SubsetFrame(Frame):
-    def __init__(self,parent,subset,active=False,*args,**kwargs):
+    def __init__(self,parent,subset,active=False,limit=None,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
         self.subset = subset
         self.menus = []
         self.initFlag = False
+        self.limit = limit
         self.synchronize(subset)
         self.grid()
         
@@ -149,9 +150,15 @@ class SubsetFrame(Frame):
                 if s not in [m.get() for m in self.menus]:
                     self.subset.remove(s)
         if add:
-            m = MenuFrame(self,self.subset.getElements(),self.onChoice)
-            m.grid(sticky="w",row=0,column=len(self.subset)+1)
-            self.menus.append(m)
+            if self.limit:
+                if not (len(self.subset) >= self.limit):
+                    m = MenuFrame(self,self.subset.getElements(),self.onChoice)
+                    m.grid(sticky="w",row=0,column=len(self.subset)+1)
+                    self.menus.append(m)
+            else:
+                m = MenuFrame(self,self.subset.getElements(),self.onChoice)
+                m.grid(sticky="w",row=0,column=len(self.subset)+1)
+                self.menus.append(m)
             
     def onChoice(self,item):
         self.subset.add(item)
@@ -207,7 +214,8 @@ class MapFrame(Frame):
         for i,key in enumerate(self.mapping.keys()):
             Label(self.listFrame.interior(),text=self.formatKey(key))\
                  .grid(row=i+c,column=0,pady=1,padx=3)
-            ssf = SubsetFrame(self.listFrame.interior(),self.mapping.getSubset(key))
+            #TODO: Change in 1.2
+            ssf = SubsetFrame(self.listFrame.interior(),self.mapping.getSubset(key),limit=1)
             self.subsetframes[key] = ssf
             ssf.grid(sticky="w",row=i,column=1)
 
