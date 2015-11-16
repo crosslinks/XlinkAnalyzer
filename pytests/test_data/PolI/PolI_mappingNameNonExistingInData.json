@@ -1,9 +1,7 @@
 {
     "data": [
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
@@ -37,7 +35,7 @@
                 "sp|P50106|RPA14_YEAST": [
                     "A14"
                 ],
-                "sp|Q01080|RPA49_YEAST": [
+                "fuck": [
                     "A49"
                 ]
             },
@@ -45,9 +43,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_2_Inter.xls",
@@ -101,9 +97,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_3_Inter.xls",
@@ -157,9 +151,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_4_Inter.xls",
@@ -216,9 +208,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_5_Inter.xls",
@@ -275,9 +265,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_6_Inter.xls",
@@ -334,9 +322,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_a_Inter.xls",
@@ -390,9 +376,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_b_Inter.xls",
@@ -449,9 +433,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_c_Inter.xls",
@@ -464,7 +446,7 @@
                 "sp|P07703|RPAC1_YEAST": [
                     "AC40"
                 ],
-                "sp|P10964|RPA1_YEAST": [
+                "aa sp|P10964|RPA1_YEAST": [
                     "A190"
                 ],
                 "sp|P20434|RPAB1_YEAST": [
@@ -505,36 +487,61 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "PolI_sequences.fasta"
                 ]
             },
-            "mapping": {},
+            "mapping": {
+                "dupa sp|P07703|RPAC1_YEAST DNA-directed RNA polymerases I and III subunit RPAC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC40 PE=1 SV=1": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST DNA-directed RNA polymerase I subunit RPA190 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA190 PE=1 SV=2": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB5 PE=1 SV=1": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPO26 PE=1 SV=1": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC3 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB8 PE=1 SV=1": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST DNA-directed RNA polymerase I subunit RPA135 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA135 PE=1 SV=1": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC5 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB10 PE=1 SV=2": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST DNA-directed RNA polymerases I and III subunit RPAC2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC19 PE=1 SV=1": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST DNA-directed RNA polymerase I subunit RPA12 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA12 PE=1 SV=1": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC4 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC10 PE=1 SV=1": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST DNA-directed RNA polymerase I subunit RPA43 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA43 PE=1 SV=2": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST DNA-directed RNA polymerase I subunit RPA34 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA34 PE=1 SV=1": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST DNA-directed RNA polymerase I subunit RPA14 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA14 PE=1 SV=1": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST DNA-directed RNA polymerase I subunit RPA49 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA49 PE=1 SV=2": [
+                    "A49"
+                ]
+            },
             "name": "sequences",
             "type": "sequences"
         }
     ],
-    "subcomplexes": [
-        {
-            "color": [
-                0.8148148148148148,
-                0.6296296296296297,
-                0.0,
-                1.0
-            ],
-            "defaults": {},
-            "items": [
-                "A135",
-                "testdom"
-            ],
-            "name": "testsubcomplex",
-            "type": "item"
-        }
-    ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -546,30 +553,7 @@
                 0.745,
                 1.0
             ],
-            "defaults": {},
-            "domains": [
-                {
-                    "_chainIds": [],
-                    "chainIds": [],
-                    "chains": [],
-                    "color": [
-                        0.0,
-                        0.6666666666666666,
-                        0.0,
-                        1.0
-                    ],
-                    "defaults": {},
-                    "name": "testdom",
-                    "ranges": [
-                        [
-                            1,
-                            100
-                        ]
-                    ],
-                    "type": "item"
-                }
-            ],
-            "info": {},
+            "domains": [],
             "name": "A190",
             "selection": ":.A",
             "sequence": "",
@@ -585,9 +569,7 @@
                 0.65,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A135",
             "selection": ":.B",
             "sequence": "",
@@ -603,9 +585,7 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "AC40",
             "selection": ":.C",
             "sequence": "",
@@ -621,9 +601,7 @@
                 0.5,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A14",
             "selection": ":.D",
             "sequence": "",
@@ -639,9 +617,7 @@
                 0.5647058823529412,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "ABC27",
             "selection": ":.E",
             "sequence": "",
@@ -657,9 +633,7 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "ABC23",
             "selection": ":.F",
             "sequence": "",
@@ -675,9 +649,7 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A43",
             "selection": ":.G",
             "sequence": "",
@@ -693,9 +665,7 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "ABC14.5",
             "selection": ":.H",
             "sequence": "",
@@ -711,9 +681,7 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A12",
             "selection": ":.I",
             "sequence": "",
@@ -729,9 +697,7 @@
                 0.5,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "ABC10beta",
             "selection": ":.J",
             "sequence": "",
@@ -747,9 +713,7 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "AC19",
             "selection": ":.K",
             "sequence": "",
@@ -765,9 +729,7 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "ABC10alpha",
             "selection": ":.L",
             "sequence": "",
@@ -783,9 +745,7 @@
                 0.6,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A49",
             "selection": ":.M",
             "sequence": "",
@@ -801,9 +761,7 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
-            "info": {},
             "name": "A34.5",
             "selection": ":.N",
             "sequence": "",
