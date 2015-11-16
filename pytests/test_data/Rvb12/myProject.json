@@ -1,81 +1,41 @@
 {
     "data": [
         {
-            "active": true,
-            "informed": false,
+            "_active": true,
+            "defaults": {},
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
             "mapping": {
-                "Act": [
-                    ""
-                ],
-                "Arp4": [
-                    ""
-                ],
-                "Arp5": [
-                    ""
-                ],
-                "Arp8": [
-                    ""
-                ],
-                "Ies1": [
-                    ""
-                ],
-                "Ies2": [
-                    ""
-                ],
-                "Ies3": [
-                    ""
-                ],
-                "Ies4": [
-                    ""
-                ],
-                "Ies5": [
-                    ""
-                ],
-                "Ies6": [
-                    ""
-                ],
-                "Ino80": [
-                    ""
-                ],
-                "Nhp10": [
-                    ""
-                ],
+                "Act": [],
+                "Arp4": [],
+                "Arp5": [],
+                "Arp8": [],
+                "Ies1": [],
+                "Ies2": [],
+                "Ies3": [],
+                "Ies4": [],
+                "Ies5": [],
+                "Ies6": [],
+                "Ino80": [],
+                "Nhp10": [],
                 "Rvb1": [
                     "Rvb1"
                 ],
                 "Rvb2": [
-                    "Rvb2"
+                    "Rvb1"
                 ],
-                "Taf14": [
-                    ""
-                ]
+                "Taf14": []
             },
-            "name": "xlinks",
-            "resource": [
-                "xlinks/inter.csv",
-                "xlinks/intra.csv",
-                "xlinks/monolinks.csv"
-            ],
-            "type": "xquest",
-            "xQuestNames": [
-                "Ies6",
-                "Ies5",
-                "Ies4",
-                "Ies3",
-                "Ino80",
-                "Ies1",
-                "Ies2",
-                "Rvb2",
-                "Nhp10",
-                "Rvb1",
-                "Arp8",
-                "Act",
-                "Taf14",
-                "Arp5",
-                "Arp4"
-            ]
+            "name": "x",
+            "type": "xquest"
         }
     ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -83,23 +43,18 @@
                 "C",
                 "E"
             ],
-            "chainToComponent": {
-                "A": "Rvb1",
-                "C": "Rvb1",
-                "E": "Rvb1"
-            },
             "color": [
                 0.0,
-                0.6666666666666666,
+                0.8,
                 0.0,
                 1.0
             ],
-            "componentToChain": {},
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "Rvb1",
             "selection": ":.A,.C,.E",
-            "sequence": "",
-            "type": "component"
+            "type": "subunit"
         },
         {
             "chainIds": [
@@ -107,24 +62,19 @@
                 "D",
                 "F"
             ],
-            "chainToComponent": {
-                "B": "Rvb2",
-                "D": "Rvb2",
-                "F": "Rvb2"
-            },
             "color": [
-                0.39215686274509803,
-                0.5843137254901961,
-                0.9294117647058824,
+                0.0,
+                0.76,
+                0.88,
                 1.0
             ],
-            "componentToChain": {},
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "Rvb2",
             "selection": ":.B,.D,.F",
-            "sequence": "",
-            "type": "component"
+            "type": "subunit"
         }
     ],
-    "xlinkanalyzerVersion": "1.0"
+    "xlinkanalyzerVersion": "1.1"
 }
