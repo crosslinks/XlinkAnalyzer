@@ -701,7 +701,10 @@ class Mapping(Item):
             return ret
         
     def getSubset(self,key):
-        return self.mapping[key]
+        if key in self:
+            return self.mapping[key]
+        else:
+            return Subset([])
 
     def keys(self):
         return self.dataItem.keys()
