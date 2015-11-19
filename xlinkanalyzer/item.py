@@ -130,10 +130,14 @@ class SubsetFrame(Frame):
                 self.menus.append(m)
         else:
             for m in self.menus:
-                if m.delete:
+                if m.delete and len(self.menus)>1:
                     self.menus.remove(m)
                     m.destroy()
                     add = False
+                else:
+                    self.menus.remove(m)
+                    m.destroy()
+                    add = True
             double = []
             for i in range(len(self.menus)):
                 m = self.menus[i]
