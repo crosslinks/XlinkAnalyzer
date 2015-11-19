@@ -201,7 +201,6 @@ class MapFrame(Frame):
         self.listFrame = ScrolledFrame(self.frame)
         self.similars = self.getSimilarItems()
       
-
         row = 0
         Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
         Label(self.frame,text="To: ").grid(row=row,column=2,sticky="W")
