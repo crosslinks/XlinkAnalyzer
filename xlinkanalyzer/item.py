@@ -178,7 +178,6 @@ class MapFrame(Frame):
         self.mapVar = StringVar(self)
         self.mapVar.trace("w",lambda a,b,c:self.copyMapping())
         self.copy = copy
-        self.similars = self.getSimilarItems()
         self.subsetframes = {}
 
         if self.mapping.isEmpty():
@@ -200,6 +199,8 @@ class MapFrame(Frame):
         self.pop = Toplevel()
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = ScrolledFrame(self.frame)
+        self.similars = self.getSimilarItems()
+      
 
         row = 0
         Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
