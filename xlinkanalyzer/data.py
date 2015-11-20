@@ -624,7 +624,7 @@ class FileGroup(object):
         self.files = []
 
 class Subset(object):
-    def __init__(self,items,chosen=None,getElements=None):
+    def __init__(self,items,chosen=None,getElements=lambda:[]):
         self.items = WeakSet(items)
         self.getElements = getElements
         self.chosen = WeakSet(chosen).intersection(WeakSet(items))

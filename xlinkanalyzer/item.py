@@ -134,7 +134,7 @@ class SubsetFrame(Frame):
                     self.menus.remove(m)
                     m.destroy()
                     add = False
-                else:
+                elif m.delete:
                     self.menus.remove(m)
                     m.destroy()
                     add = True
