@@ -967,10 +967,12 @@ class XlinkDataMgr(DataMgr):
         good = []
         bad = []
         for obj, f in self.iter_obj_xlinks():
+            xlinked_to_comp = None
+            xlinked_to = None
             subunit = self.model.config.getSubunitByChain(get_chain_for_chimera_obj(obj))
 
             # xlinked_subunits = list(data_interface.get_xlinked_components(f))
-            xlinked_subunits = [pyxlinks.get_protein(f, 1), pyxlinks.get_protein(f, 2)] #xlinks return by self.iter_obj_xlinks are renamed to subunit names already
+            # xlinked_subunits = [pyxlinks.get_protein(f, 1), pyxlinks.get_protein(f, 2)] #xlinks return by self.iter_obj_xlinks are renamed to subunit names already
 
             prot1 = pyxlinks.get_protein(f, 1)
             pos1 = pyxlinks.get_AbsPos(f, 1)
@@ -995,12 +997,16 @@ class XlinkDataMgr(DataMgr):
                 if not to.contains(xlinked_to_comp.name, posTo):
                     bad.append([obj, xlinked_to])
                     continue
+              
+            if to is not None and to.name != xlinked_to:
+                continue
 
             if fromComp is not None and fromComp != subunit:
                 bad.append([obj, xlinked_to])
                 continue
 
-            good.append([obj, xlinked_to])
+            if xlinked_to is not None:
+                good.append([obj, xlinked_to])
 
         if uncolorOthers:
             for obj, xlinked_to in bad:
