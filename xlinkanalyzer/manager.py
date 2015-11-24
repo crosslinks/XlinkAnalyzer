@@ -991,7 +991,7 @@ class XlinkDataMgr(DataMgr):
                 bad.append([obj, xlinked_to])
                 continue
 
-            if to is not None:
+            if to is not None and xlinked_to_comp is not None:
                 if not to.contains(xlinked_to_comp.name, posTo):
                     bad.append([obj, xlinked_to])
                     continue
