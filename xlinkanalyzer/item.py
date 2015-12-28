@@ -200,11 +200,10 @@ class MapFrame(Frame):
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = ScrolledFrame(self.frame)
         self.similars = self.getSimilarItems()
-      
+        
         row = 0
         Label(self.frame,text="From: ").grid(row=row,column=0,sticky="W")
         Label(self.frame,text="To: ").grid(row=row,column=2,sticky="W")
-
 
         self.buildList()
         self.listFrame.grid(sticky='W', row=1,column=0,columnspan=4)
@@ -221,7 +220,7 @@ class MapFrame(Frame):
     def getSimilarItems(self):
         ret = {"":None}
         if self.copy:
-            ret = dict([(str(i),i) for i in self.mapping.explore(self.copy.__class__)])
+            ret = dict([(str(i),i) for i in self.mapping.getCopySources()])
         return ret
 
     def buildList(self):

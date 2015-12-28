@@ -1,7 +1,9 @@
 {
     "data": [
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
@@ -43,7 +45,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_2_Inter.xls",
@@ -97,7 +101,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_3_Inter.xls",
@@ -151,7 +157,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_4_Inter.xls",
@@ -208,7 +216,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_5_Inter.xls",
@@ -265,7 +275,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_6_Inter.xls",
@@ -322,7 +334,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_a_Inter.xls",
@@ -376,7 +390,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_b_Inter.xls",
@@ -433,7 +449,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_c_Inter.xls",
@@ -487,7 +505,9 @@
             "type": "xquest"
         },
         {
+            "_active": true,
             "active": true,
+            "defaults": {},
             "fileGroup": {
                 "files": [
                     "PolI_sequences.fasta"
@@ -549,11 +569,13 @@
                 0.0,
                 1.0
             ],
+            "defaults": {},
             "items": [
                 "A135",
                 "testdom"
             ],
-            "name": "testsubcomplex"
+            "name": "testsubcomplex",
+            "type": "item"
         }
     ],
     "subunits": [
@@ -567,15 +589,19 @@
                 0.745,
                 1.0
             ],
+            "defaults": {},
             "domains": [
                 {
                     "_chainIds": [],
+                    "chainIds": [],
+                    "chains": [],
                     "color": [
                         0.0,
                         0.6666666666666666,
                         0.0,
                         1.0
                     ],
+                    "defaults": {},
                     "name": "testdom",
                     "ranges": [
                         [
@@ -586,6 +612,7 @@
                     "type": "item"
                 }
             ],
+            "info": {},
             "name": "A190",
             "selection": ":.A",
             "sequence": "",
@@ -601,7 +628,9 @@
                 0.65,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A135",
             "selection": ":.B",
             "sequence": "",
@@ -617,7 +646,9 @@
                 0.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "AC40",
             "selection": ":.C",
             "sequence": "",
@@ -633,7 +664,9 @@
                 0.5,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A14",
             "selection": ":.D",
             "sequence": "",
@@ -649,7 +682,9 @@
                 0.5647058823529412,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "ABC27",
             "selection": ":.E",
             "sequence": "",
@@ -665,7 +700,9 @@
                 1.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "ABC23",
             "selection": ":.F",
             "sequence": "",
@@ -681,7 +718,9 @@
                 1.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A43",
             "selection": ":.G",
             "sequence": "",
@@ -697,7 +736,9 @@
                 0.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "ABC14.5",
             "selection": ":.H",
             "sequence": "",
@@ -713,7 +754,9 @@
                 0.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A12",
             "selection": ":.I",
             "sequence": "",
@@ -729,7 +772,9 @@
                 0.5,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "ABC10beta",
             "selection": ":.J",
             "sequence": "",
@@ -745,7 +790,9 @@
                 0.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "AC19",
             "selection": ":.K",
             "sequence": "",
@@ -761,7 +808,9 @@
                 1.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "ABC10alpha",
             "selection": ":.L",
             "sequence": "",
@@ -777,7 +826,9 @@
                 0.6,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A49",
             "selection": ":.M",
             "sequence": "",
@@ -793,7 +844,9 @@
                 1.0,
                 1.0
             ],
+            "defaults": {},
             "domains": [],
+            "info": {},
             "name": "A34.5",
             "selection": ":.N",
             "sequence": "",

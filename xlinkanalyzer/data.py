@@ -3,6 +3,7 @@ import os
 from copy import deepcopy
 from collections import deque, defaultdict
 from weakref import WeakSet,proxy
+from _weakref import ProxyType
 import itertools
 import re
 
@@ -19,6 +20,7 @@ import xlinkanalyzer
 from xlinkanalyzer import minify_json
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import utils as xutils
+
 
 class Item(object):
     SHOW = ["name"]
@@ -70,40 +72,10 @@ class Item(object):
             else:
                 self.__dict__[key] = value
 
-
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-    def explore(self,_class,item=None):
-        if item is None:
-            item = self
-        visited = set()
-        to_crawl = deque([item])
-        while to_crawl:
-            current = to_crawl.popleft()
-            if current in visited:
-                continue
-            visited.add(current)
-            node_children = set(current.flatten())
-            to_crawl.extend(node_children - visited)
-        visited = [v for v in visited if (isinstance(v,_class) and not v.fake)]
-        return list(visited)
-
-    def flatten(self,items = []):
-        for obj in self.__dict__.values():
-            if type(obj) == dict:
-                for v in obj.values():
-                    if isinstance(v,Item):
-                        items.append(v)
-            elif type(obj) == list:
-                for v in obj:
-                    if isinstance(v,Item):
-                        items.append(v)
-            else:
-                if isinstance(obj,Item):
-                    items.append(obj)
-        return items
-
+    
 class Chain(Item):
     def __init__(self,_id,item,*args,**kwargs):
         super(Chain,self).__init__(self,*args,**kwargs)
@@ -625,9 +597,9 @@ class FileGroup(object):
 
 class Subset(object):
     def __init__(self,items,chosen=None,getElements=lambda:[]):
-        self.items = WeakSet(items)
+        self.items = items
         self.getElements = getElements
-        self.chosen = WeakSet(chosen).intersection(WeakSet(items))
+        self.chosen = self.intersect(chosen, items)
         
     def __str__(self):
         return list.__str__([i for i in self.chosen])
@@ -640,6 +612,13 @@ class Subset(object):
     
     def __contains__(self,i):
         return i in self.chosen
+    
+    def intersect(self,l1,l2):
+        lret = []
+        for el in l1:
+            if el in l2:
+                lret.append(el)
+        return lret
     
     def setChosen(self,items):
         if self.getElements:
@@ -658,17 +637,18 @@ class Subset(object):
     def add(self,v):
         if self.getElements:
             self.items = self.getElements()
-        if v in self.items:
-            self.chosen = self.chosen.union(WeakSet([v]))
+        if v in self.items and not v in self.chosen:
+            self.chosen.append(v)
     
     def remove(self,v):
         if v in self.items:
-            self.chosen = self.chosen.difference(WeakSet([v]))
+            self.chosen = self.chosen.remove(v)
             
 class Mapping(Item):    
     def __init__(self,dataItem):
         self.mapping = {}
         self.dataItem = dataItem
+        self.name = "Mapping for %s"%(dataItem.name)
     
     def __str__(self,*args,**kwargs):
         ret = ""
@@ -697,8 +677,7 @@ class Mapping(Item):
         if not key in self.mapping:
             return ret
         else:
-            ret = [proxy(wr) for wr in self.mapping[key]]
-            return ret
+            return self.mapping[key]
         
     def getSubset(self,key):
         if key in self:
@@ -734,6 +713,9 @@ class Mapping(Item):
     
     def isExhausted(self,key):
         return not bool(WeakSet(self.getElements()).difference(WeakSet(self[key])))
+    
+    def getCopySources(self):
+        return self.dataItem.config.getDataItems(self.dataItem.type)
 
 class DataItem(Item):
     SHOW = ["name","fileGroup","mapping"]
@@ -852,6 +834,7 @@ class XQuestItem(DataItem):
 
     def __deepycopy__(self,x):
         super(XQuestItem).__deepcopy__(self)
+        print "copied! "+self.name
 
     def updateData(self):
         if self.resourcePaths():
@@ -1174,21 +1157,21 @@ class Assembly(Item):
     def getSubunitByName(self,name):
         candidates = [c for c in self.getSubunits() if c.name==name]
         if candidates:
-            return candidates[0]
+            return self.proxify(candidates[0])
         else:
             return None
 
     def getSubunits(self):
-        return self.subunits
+        return self.proxify(self.subunits)
 
     def getSubunitNames(self):
         return [i.name for i in self.subunits]
 
     def getDataItems(self,_type = None):
         if not _type:
-            return [dI for dI in self.dataItems]
+            return self.proxify(self.dataItems)
         else:
-            typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
+            typeDataItems = self.proxify([dI for dI in self.dataItems if dI.type == _type])
             return typeDataItems
 
     def getSubunitColors(self,name=None):
@@ -1228,33 +1211,33 @@ class Assembly(Item):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return compL[0].domains
+                return self.proxify([d for d in compL[0].domains])
             else:
                 return None
         else:
             ret = sum([c.domains for c in self.getSubunits()],[])
             for d in ret:
                 d.config = self
-            return ret
+            return self.proxify([d for d in ret])
 
     def getDomainByName(self,name):
         allDomains = self.getDomains()
         if allDomains:
             candidates = [d for d in allDomains if d.name == name]
             if candidates:
-                return candidates[0]
+                return self.proxify(candidates[0])
             else:
                 return None
         else:
             return None
 
     def getSubcomplexes(self):
-        return self.subcomplexes
+        return self.proxify([s for s in self.subcomplexes])
 
     def getSubcomplexByName(self,name):
         for subcomp in self.subcomplexes:
             if subcomp.name == name:
-                return subcomp
+                return self.proxify(subcomp)
 
     def getChainIdsBySubunitName(self,name=None):
         if name:
@@ -1288,7 +1271,23 @@ class Assembly(Item):
         else:
             #this might return an empty dict
             return self.chainToSubunit
-
+    
+    def proxify(self,arg):
+        if type(arg) == list:
+            ret = []
+            for obj in arg:
+                if type(obj) == ProxyType:
+                    ret.append(obj)
+                else:
+                    ret.append(proxy(obj))
+        else:
+            ret = None
+            if type(arg) == ProxyType:
+                    ret = arg
+            else:
+                ret = proxy(arg)
+        return ret
+    
     def serialize(self):
         _dict = {}
         _dict["xlinkanalyzerVersion"] = xlinkanalyzer.__version__
@@ -1298,7 +1297,7 @@ class Assembly(Item):
         return _dict
 
     def dataItems(self):
-        return self.dataItems
+        return self.proxify(self.dataItems)
 
     def getPyxlinksConfig(self):
         '''
