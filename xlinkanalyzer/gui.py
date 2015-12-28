@@ -29,7 +29,8 @@ import tkMessageBox
 from Pmw import ScrolledFrame, EntryField
 
 from Tkinter import Toplevel,LabelFrame,Button,StringVar,Entry,\
-                    OptionMenu,Label,Frame, TclError, Checkbutton, IntVar
+                    OptionMenu,Label,Frame, TclError, Checkbutton, IntVar,\
+    BooleanVar
 import ttk
 import pyxlinks
 
@@ -49,6 +50,10 @@ from xlinkanalyzer import move as xmove
 ###########
 
 from item import ItemList
+from __builtin__ import True
+from _weakref import proxy
+from collections import OrderedDict
+from compiler.pyassem import getArgCount
 
 DEBUG_MODE = False
 DEV = True
@@ -1936,7 +1941,6 @@ class InteractingResiMgrTabFrame(TabFrame):
             if hasattr(mgr, 'colorInteractingResi'):
                 mgr.colorInteractingResi(fromComp,to=toComp,hide_others=False)
 
-from CGLtk.Table import SortableTable
 
 class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
@@ -1960,12 +1964,12 @@ class ComponentTable(Frame):
         self.chainVar.trace("w",lambda x,y,z: self.reload())
         self.showChains = Checkbutton(self, text="Show Chains", \
                                             variable=self.chainVar)
-        self.showChains.grid(row=curRow,column=1)
+        self.showChains.grid(sticky="w",row=curRow,column=0)
 
         self.domVar = IntVar(self)
         self.domVar.trace("w", lambda x,y,z: self.reload())
         self.showDoms = Checkbutton(self,text="Show Domains",variable=self.domVar)
-        self.showDoms.grid(row=curRow,column=2)
+        self.showDoms.grid(sticky="w",row=curRow,column=1)
         
         curRow = curRow + 1
         self.activate = Button(self,text="Activate", \
@@ -2036,14 +2040,13 @@ class ComponentTable(Frame):
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
 
-        self.table = SortableTable(self, allowUserSorting=False)
-        self.table.addColumn("Active", "active",format=bool)
-        self.table.addColumn("Show", "show",format=bool)
-        self.table.addColumn("Symmetrical", "sym",format=bool)
-        self.table.addColumn("Name","name")
-        self.table.setData([])
-        self.table.launch()
-        self.table.grid(sticky="wens",column=0,columnspan=2,row=2,rowspan=curRow)
+        self.table = TableFrame(self, [])
+        self.table.addColumn("Active", "active",bool)
+        self.table.addColumn("Show", "show",bool)
+        self.table.addColumn("Symmetrical", "sym",bool)
+        self.table.addColumn("Name","name",str,"color")
+        self.table.scrolledFrame.grid()
+        self.table.grid(sticky="wens",column=0,columnspan=3,row=2,rowspan=curRow)
 
         self._addHandlers()
 
@@ -2076,7 +2079,7 @@ class ComponentTable(Frame):
             items = sum([item.getChains() for item in items],[])
             [self._allComponents.append(el) for el in items if el not in self._allComponents]
         self.table.setData(items)
-        self.table.refresh()
+        self.table.build()
 
     def getActiveModels(self):
         self.models = xlinkanalyzer.get_gui().modelSelect.getActiveModels()
@@ -2107,7 +2110,6 @@ class ComponentTable(Frame):
     def onShow(self):
         for item in self.table.selected():
             item.show = True
-
         self.table.refresh()
 
     def onShowOnly(self):
@@ -2120,7 +2122,6 @@ class ComponentTable(Frame):
     def onHide(self):
         for item in self.table.selected():
             item.show = False
-
         self.table.refresh()
 
     def onShowAll(self):
@@ -2304,3 +2305,207 @@ class ConsurfMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'defConsurfColors'):
                 mgr.color(subName)
+
+
+class TableFrame(Frame):
+    def __init__(self,parent,data=None,*args,**kwargs):
+        Frame.__init__(self,parent,*args,**kwargs)
+        self.frames = []
+        self.widgets = []
+        self.vars = []
+        self.vtoggle = False
+        self.data = data
+        self.columns = OrderedDict([])
+        
+        self.activeOptions = {"bg":"blue"}
+        self.passiveOptions = {"bg":"white"}
+        self.cellOptions = {"padx":5,"pady":2}
+        
+        options = {"horizflex":"expand"}
+        self.scrolledFrame = ScrolledFrame(self,**options)
+        
+        self.activeOld=[]
+        self.activeNew=[]
+        self.toggle = "activate"
+        self.r = parent.winfo_toplevel()
+        
+        self.r.bind_class("fclick", "<Button-1>",self.frameClick)
+        self.r.bind_class("fenter","<B1-Motion>",self.frameMotion)
+        self.r.bind_class("frelease","<ButtonRelease-1>",self.frameRelease)
+        
+        self.build()
+        self.scrolledFrame.grid()
+        self.grid()
+          
+    def triplet(self,rgb, lettercase="x"):
+        rgb = [(int)(255*i) for i in rgb]
+        return "#"+format(rgb[0]<<16 | rgb[1]<<8 | rgb[2], '06'+lettercase)
+    
+    def addColumn(self,title,name,_type,color=None):
+        self.columns[name]=[_type,None,title]
+        if color is not None:
+            self.columns[name][1] = color
+    
+    def selected(self):
+        return [self.data[i] for i in range(len(self.data)) if i in self.activeOld]
+    
+    def onChange(self,vI,i,k):
+        setattr(i, k, bool(self.vars[vI].get()))
+        
+    def setData(self,c):
+        self.data = c
+        
+    def refresh(self):
+        cnum = len(self.columns)
+        for i,item in enumerate(self.data):
+            for c,key in enumerate(self.columns.keys()):
+                j = i*cnum+c
+                self.setCheck(self.widgets[j], getattr(item, key))
+    
+    def setCheck(self,check,val):
+        if isinstance(check,Checkbutton):
+            if val:
+                check.select()
+            else:
+                check.deselect()
+    
+    def build(self):
+        self.vars = []
+        self.widgets = []
+        self.frames = []
+        self.vtoggle = []
+        
+        offset=0
+
+        scf = self.scrolledFrame.interior()
+     
+        for i,v in enumerate(self.columns.values()):
+            title = v[2]
+            Label(scf,text=title,**self.cellOptions).grid(sticky="w",column=i,row=offset) 
+         
+        offset +=1
+        
+        varI = 0
+        for i,item in enumerate(self.data):
+            i += offset #geometrical
+            for c,k in enumerate(self.columns.keys()):
+                f = Frame(scf,**self.cellOptions)
+                if self.columns[k][0] == bool:
+                    var = BooleanVar(self.r)
+                    self.vars.append(var)
+                    var.trace("w",lambda x,y,z,v=varI,i=item,key=k: self.onChange(v,i,key))
+                    var.set(getattr(item, k))
+                    check = Checkbutton(f,variable=var)
+                    self.widgets.append(check)
+                    check.grid()
+                elif self.columns[k][0] == str:
+                    color = 'black'
+                    #dummy var for consistency
+                    var = BooleanVar(self.r)
+                    self.vars.append(var)
+                    if self.columns[k][1]:
+                        color = getattr(item, self.columns[k][1])
+                        if type(color) == MaterialColor:
+                            color = self.triplet(color.rgba()[:3]);
+                    label = Label(f,text=getattr(item, k),fg = color, width=50,anchor="w")#hacky 
+                    label.grid()
+                    self.widgets.append(label)
+                varI+=1
+                f.grid(sticky="nesw",row=i,column=c)
+                self.frames.append(f)
+        
+        self.retag("fclick",self.frames+[w for w in self.widgets if isinstance(w, Label)])
+        self.retag("fenter",self.frames+self.widgets)
+        self.retag("frelease",self.frames+[w for w in self.widgets if isinstance(w, Label)])
+        
+    
+    def colorFrameAndChildren(self,row,options):
+        c = len(self.columns)
+        for frame in self.frames[row*c:(row+1)*c]:
+            frame.config(**options)
+            for c in frame.winfo_children():
+                c.config(**options)
+        
+    def frameClick(self,event):
+        self.activeNew = []
+        #must be cleaner. assumes hovering over a child of frame
+        row = self.getRow(event)
+        if row is not None:
+            self.toggle = "activate" if not row in self.activeOld else "inactivate"
+            if self.toggle == "activate":
+                self.activeNew.append(row)
+                self.colorFrameAndChildren(row,self.activeOptions)
+            else:
+                self.activeOld.remove(row)
+                self.colorFrameAndChildren(row,self.passiveOptions)
+                        
+    def getRow(self,event):
+        row = None
+        child = [w for w in self.frames+self.widgets if id(self.r.winfo_containing(event.x_root, event.y_root))==id(w)]
+        if child:
+            child = child[0]
+            c = len(self.columns)
+            if child in self.frames:
+                row = self.frames.index(child)/c
+            elif child in self.widgets:
+                c = len(self.columns)
+                row = self.widgets.index(child)/c
+        return row
+ 
+    def frameRelease(self,event):
+        self.activeOld += self.activeNew
+
+    def frameMotion(self,event):
+        row = self.getRow(event)
+        if self.toggle=="activate":
+            if not row in (self.activeOld+self.activeNew) and row:
+                self.activeNew.append(row)
+                self.colorFrameAndChildren(row, self.activeOptions)
+        else:
+            if row in self.activeOld and row:
+                self.activeOld.remove(row)
+                self.colorFrameAndChildren(row,self.passiveOptions)
+                    
+    def retag(self,tag,widgets):
+        for w in widgets:
+            w.bindtags((tag,)+w.bindtags())
+
+from Tkinter import Tk
+
+if __name__ == "__main__":
+    r = Tk()
+    s = Frame(r,width=500,height=500)
+    vl = []
+    
+    for i in range(5):
+        l = Label(s,text="l")
+        l.grid(row=0,column=i)
+    
+    o = 1
+    
+    for i in range(5):
+        for j in range(5):
+            f = Frame(s,bg="red")
+            v = BooleanVar(r)
+            c = Checkbutton(f,bg="red",var=v)
+            vl.append(v)
+            c.grid()
+            f.grid(sticky="nesw",row=i+o,column=j)
+            if j==4:
+                f.columnconfigure(j, weight=1)
+    
+    def all():
+        global vl
+        for v in vl:
+            v.set(True)
+            
+    
+    b = Button(r,text="Un",command=all)
+    s.grid()
+    
+    
+    b.grid(row=0,column=0)    
+    
+    
+
+    
