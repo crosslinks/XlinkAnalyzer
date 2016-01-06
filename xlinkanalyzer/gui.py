@@ -2317,7 +2317,7 @@ class TableFrame(Frame):
         self.data = data
         self.columns = OrderedDict([])
         
-        self.activeOptions = {"bg":"blue"}
+        self.activeOptions = {"bg":"#deeff5"}
         self.passiveOptions = {"bg":"white"}
         self.cellOptions = {"padx":5,"pady":2}
         
