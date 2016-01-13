@@ -598,7 +598,10 @@ class Subset(object):
     def __init__(self,items,chosen=None,getElements=lambda:[]):
         self.items = items
         self.getElements = getElements
-        self.chosen = self.intersect(chosen, items)
+        if chosen:
+            self.chosen = self.intersect(chosen, items)
+        else:
+            self.chosen = []
         
     def __str__(self):
         return list.__str__([i for i in self.chosen])
