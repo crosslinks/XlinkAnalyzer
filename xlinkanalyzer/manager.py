@@ -1595,8 +1595,8 @@ class XlinkDataMgr(DataMgr):
 
         xlink - xlink for which to get original xlinks
         """
-        comp1 = pyxlinks.get_protein(xlink, 1)
-        comp2 = pyxlinks.get_protein(xlink, 2)
+        comp1 = getConfig().getSubunitByName(pyxlinks.get_protein(xlink, 1))
+        comp2 = getConfig().getSubunitByName(pyxlinks.get_protein(xlink, 2))
         resi1 = pyxlinks.get_AbsPos(xlink, 1)
         resi2 = pyxlinks.get_AbsPos(xlink, 2)
 

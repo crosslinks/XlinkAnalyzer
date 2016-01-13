@@ -815,7 +815,7 @@ class DataItem(Item):
         return True if super(DataItem,self).validate() and allExist else False
 
     def getProteinsBySubunit(self,name):
-        return [k for k,v in self.mapping.items() if name in v]
+        return [k for k in self.mapping if name in self.mapping[k]]
 
     def getElements(self):
         return []
