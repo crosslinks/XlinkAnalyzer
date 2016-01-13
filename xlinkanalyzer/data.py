@@ -2,8 +2,7 @@ import json
 import os
 from copy import deepcopy
 from collections import deque, defaultdict
-from weakref import WeakSet,proxy
-from _weakref import ProxyType
+from weakref import WeakSet
 import itertools
 import re
 
@@ -612,6 +611,12 @@ class Subset(object):
     
     def __contains__(self,i):
         return i in self.chosen
+
+    def __getitem__(self,key):
+        try:
+            return self.chosen[key]
+        except TypeError:
+            raise TypeError('Subset indices must be integers')
     
     def intersect(self,l1,l2):
         lret = []
@@ -1157,28 +1162,28 @@ class Assembly(Item):
     def getSubunitByName(self,name):
         candidates = [c for c in self.getSubunits() if c.name==name]
         if candidates:
-            return self.proxify(candidates[0])
+            return candidates[0]
         else:
             return None
 
     def getSubunits(self):
-        return self.proxify(self.subunits)
+        return self.subunits
 
     def getSubunitNames(self):
         return [i.name for i in self.subunits]
 
     def getDataItems(self,_type = None):
         if not _type:
-            return self.proxify(self.dataItems)
+            return [dI for dI in self.dataItems]
         else:
-            typeDataItems = self.proxify([dI for dI in self.dataItems if dI.type == _type])
+            typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
             return typeDataItems
 
     def getSubunitColors(self,name=None):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return compL[0].color
+                return compL[0].domains
             else:
                 return None
         else:
@@ -1218,26 +1223,26 @@ class Assembly(Item):
             ret = sum([c.domains for c in self.getSubunits()],[])
             for d in ret:
                 d.config = self
-            return self.proxify([d for d in ret])
+            return ret
 
     def getDomainByName(self,name):
         allDomains = self.getDomains()
         if allDomains:
             candidates = [d for d in allDomains if d.name == name]
             if candidates:
-                return self.proxify(candidates[0])
+                return candidates[0]
             else:
                 return None
         else:
             return None
 
     def getSubcomplexes(self):
-        return self.proxify([s for s in self.subcomplexes])
+        return self.subcomplexes
 
     def getSubcomplexByName(self,name):
         for subcomp in self.subcomplexes:
             if subcomp.name == name:
-                return self.proxify(subcomp)
+                return subcomp
 
     def getChainIdsBySubunitName(self,name=None):
         if name:
@@ -1271,23 +1276,7 @@ class Assembly(Item):
         else:
             #this might return an empty dict
             return self.chainToSubunit
-    
-    def proxify(self,arg):
-        if type(arg) == list:
-            ret = []
-            for obj in arg:
-                if type(obj) == ProxyType:
-                    ret.append(obj)
-                else:
-                    ret.append(proxy(obj))
-        else:
-            ret = None
-            if type(arg) == ProxyType:
-                    ret = arg
-            else:
-                ret = proxy(arg)
-        return ret
-    
+   
     def serialize(self):
         _dict = {}
         _dict["xlinkanalyzerVersion"] = xlinkanalyzer.__version__
@@ -1297,7 +1286,7 @@ class Assembly(Item):
         return _dict
 
     def dataItems(self):
-        return self.proxify(self.dataItems)
+        return self.dataItems
 
     def getPyxlinksConfig(self):
         '''
