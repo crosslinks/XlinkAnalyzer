@@ -22,6 +22,9 @@ from chimera.tkoptions import ColorOption
 from data import FileGroup,Mapping,Subset
 from __builtin__ import True
 
+def is_mac():
+    return _platform == "darwin"
+
 class FileFrame(Frame):
     def __init__(self,parent,active=False,fileGroup=FileGroup(),\
                  *args,**kwargs):
@@ -902,3 +905,4 @@ if __name__ == "__main__":
         c = C()
         iL = ItemList(root,c,"oLL")
         iL.grid()
+
