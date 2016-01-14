@@ -1633,7 +1633,7 @@ class XlinkMgrTabFrame(TabFrame):
             self.showXlinksFromTabsmartModeBtn.var = self.smartMode
             self.showXlinksFromTabsmartModeBtn.grid(sticky='E', row=curRow, column=0)
 
-            Button(xlNotebook.page(showXlinksFromTabName), text="Configure", command=self.configureOligomeric)\
+            Button(xlNotebook.page(showXlinksFromTabName), text="Configure", command=self.configureOligomericShowXlinksFrom)\
                 .grid(sticky='W', row=curRow, column=1)
 
             curRow += 1
@@ -1674,7 +1674,7 @@ class XlinkMgrTabFrame(TabFrame):
 
             self.modelStatsTable.pack(fill='both')
 
-    def configureOligomeric(self):
+    def _configureOligomeric(self, command):
         menu = Toplevel()
         w = menu.winfo_screenwidth()
         h = menu.winfo_screenheight()
@@ -1689,13 +1689,19 @@ class XlinkMgrTabFrame(TabFrame):
 
         btn = Tkinter.Checkbutton(frame,
                                   variable=self.showFirstOnlyOliMode,
-                                  command=self.showAllXlinks)
+                                  command=command)
         btn.var = self.showFirstOnlyOliMode
         btn.grid(row=curRow, column=0)
         Label(frame, text='Show only first xlink').grid(row=curRow, column=1)
         curRow += 1
 
         frame.pack()
+
+    def configureOligomeric(self):
+        self._configureOligomeric(self.showAllXlinks)
+
+    def configureOligomericShowXlinksFrom(self):
+        self._configureOligomeric(self.showXlinksFrom)
 
     def displayDefault(self):
         self.getXlinkDataMgrs()
