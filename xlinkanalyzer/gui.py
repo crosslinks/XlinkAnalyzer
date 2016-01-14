@@ -2036,7 +2036,8 @@ class ComponentTable(Frame):
         self.table = SortableTable(self, allowUserSorting=False)
         self.table.addColumn("Active", "active",format=bool)
         self.table.addColumn("Show", "show",format=bool)
-        self.table.addColumn("Symmetrical", "sym",format=bool)
+        if DEV:
+            self.table.addColumn("Symmetrical", "sym",format=bool)
         self.table.addColumn("Name","name")
         self.table.setData([])
         self.table.launch()
