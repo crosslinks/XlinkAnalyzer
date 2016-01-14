@@ -140,8 +140,10 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         self.addTab('Data manager', DataMgrTabFrame)
 
         self.addTab('Xlinks', XlinkMgrTabFrame)
-        self.addTab('Consurf', ConsurfMgrTabFrame)
-        self.addTab('Interacting', InteractingResiMgrTabFrame)
+        if DEV:
+            self.addTab('Consurf', ConsurfMgrTabFrame)
+        if DEV:
+            self.addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.notebook.setnaturalsize()
 
