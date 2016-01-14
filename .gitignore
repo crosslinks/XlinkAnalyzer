@@ -1,3 +1,4 @@
 *~
 *.pyc
 .DS_Store
+examples/PolI/PolI_with_domains.json

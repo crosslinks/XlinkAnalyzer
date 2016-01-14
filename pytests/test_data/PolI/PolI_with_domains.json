@@ -1,0 +1,790 @@
+{
+    "data": [
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_1_Inter.xls",
+                    "xlinks/Pol1_1_Intra.xls",
+                    "xlinks/Pol1_1_Loop.xls",
+                    "xlinks/Pol1_1_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.05 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_2_Inter.xls",
+                    "xlinks/Pol1_2_Intra.xls",
+                    "xlinks/Pol1_2_Loop.xls",
+                    "xlinks/Pol1_2_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.2 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_3_Inter.xls",
+                    "xlinks/Pol1_3_Intra.xls",
+                    "xlinks/Pol1_3_Loop.xls",
+                    "xlinks/Pol1_3_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.5 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_4_Inter.xls",
+                    "xlinks/Pol1_4_Intra.xls",
+                    "xlinks/Pol1_4_Loop.xls",
+                    "xlinks/Pol1_4_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "2 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_5_Inter.xls",
+                    "xlinks/Pol1_5_Intra.xls",
+                    "xlinks/Pol1_5_Loop.xls",
+                    "xlinks/Pol1_5_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "5 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_6_Inter.xls",
+                    "xlinks/Pol1_6_Intra.xls",
+                    "xlinks/Pol1_6_Loop.xls",
+                    "xlinks/Pol1_6_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "10 mM X-linker, 30min at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_a_Inter.xls",
+                    "xlinks/Pol1_a_Intra.xls",
+                    "xlinks/Pol1_a_Loop.xls",
+                    "xlinks/Pol1_a_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.05 mM X-linker every 4 min for 10 times to 0.5 mM final, 40min total at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_b_Inter.xls",
+                    "xlinks/Pol1_b_Intra.xls",
+                    "xlinks/Pol1_b_Loop.xls",
+                    "xlinks/Pol1_b_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.2 mM X-linker every 4 min for 10 times to 2 mM final, 40min total at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_c_Inter.xls",
+                    "xlinks/Pol1_c_Intra.xls",
+                    "xlinks/Pol1_c_Loop.xls",
+                    "xlinks/Pol1_c_Mono.xls"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST": [
+                    "ABC23"
+                ],
+                "sp|P22138|RPA2_YEAST": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST": [
+                    "A49"
+                ]
+            },
+            "name": "0.5 mM X-linker every 10 min for 4 times to 2 mM final, 40min total at 37 C",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "PolI_sequences.fasta"
+                ]
+            },
+            "mapping": {
+                "sp|P07703|RPAC1_YEAST DNA-directed RNA polymerases I and III subunit RPAC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC40 PE=1 SV=1": [
+                    "AC40"
+                ],
+                "sp|P10964|RPA1_YEAST DNA-directed RNA polymerase I subunit RPA190 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA190 PE=1 SV=2": [
+                    "A190"
+                ],
+                "sp|P20434|RPAB1_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB5 PE=1 SV=1": [
+                    "ABC27"
+                ],
+                "sp|P20435|RPAB2_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPO26 PE=1 SV=1": [
+                    "ABC23"
+                ],
+                "sp|P20436|RPAB3_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC3 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB8 PE=1 SV=1": [
+                    "ABC14.5"
+                ],
+                "sp|P22138|RPA2_YEAST DNA-directed RNA polymerase I subunit RPA135 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA135 PE=1 SV=1": [
+                    "A135"
+                ],
+                "sp|P22139|RPAB5_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC5 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPB10 PE=1 SV=2": [
+                    "ABC10beta"
+                ],
+                "sp|P28000|RPAC2_YEAST DNA-directed RNA polymerases I and III subunit RPAC2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC19 PE=1 SV=1": [
+                    "AC19"
+                ],
+                "sp|P32529|RPA12_YEAST DNA-directed RNA polymerase I subunit RPA12 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA12 PE=1 SV=1": [
+                    "A12"
+                ],
+                "sp|P40422|RPAB4_YEAST DNA-directed RNA polymerases I, II, and III subunit RPABC4 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC10 PE=1 SV=1": [
+                    "ABC10alpha"
+                ],
+                "sp|P46669|RPA43_YEAST DNA-directed RNA polymerase I subunit RPA43 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA43 PE=1 SV=2": [
+                    "A43"
+                ],
+                "sp|P47006|RPA34_YEAST DNA-directed RNA polymerase I subunit RPA34 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA34 PE=1 SV=1": [
+                    "A34.5"
+                ],
+                "sp|P50106|RPA14_YEAST DNA-directed RNA polymerase I subunit RPA14 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA14 PE=1 SV=1": [
+                    "A14"
+                ],
+                "sp|Q01080|RPA49_YEAST DNA-directed RNA polymerase I subunit RPA49 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPA49 PE=1 SV=2": [
+                    "A49"
+                ]
+            },
+            "name": "sequences",
+            "type": "sequences"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.745,
+                0.745,
+                0.745,
+                1.0
+            ],
+            "domains": [],
+            "name": "A190",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.99,
+                0.82,
+                0.65,
+                1.0
+            ],
+            "domains": [],
+            "name": "A135",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "AC40",
+            "selection": ":.C",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "D"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.5,
+                1.0
+            ],
+            "domains": [],
+            "name": "A14",
+            "selection": ":.D",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "E"
+            ],
+            "color": [
+                0.8156862745098039,
+                0.12549019607843137,
+                0.5647058823529412,
+                1.0
+            ],
+            "domains": [],
+            "name": "ABC27",
+            "selection": ":.E",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "F"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "ABC23",
+            "selection": ":.F",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "color": [
+                0.0,
+                0.5,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "A43",
+            "selection": ":.G",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "H"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "ABC14.5",
+            "selection": ":.H",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "I"
+            ],
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "A12",
+            "selection": ":.I",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "color": [
+                0.5,
+                1.0,
+                0.5,
+                1.0
+            ],
+            "domains": [],
+            "name": "ABC10beta",
+            "selection": ":.J",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "K"
+            ],
+            "color": [
+                1.0,
+                0.6470588235294118,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "AC19",
+            "selection": ":.K",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "L"
+            ],
+            "color": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "ABC10alpha",
+            "selection": ":.L",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "M"
+            ],
+            "color": [
+                0.6,
+                0.1,
+                0.6,
+                1.0
+            ],
+            "domains": [
+                {
+                    "_chainIds": "",
+                    "color": [
+                        0.5450980392156862,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "name": "A49-tWH",
+                    "ranges": [
+                        [
+                            172,
+                            403
+                        ]
+                    ],
+                    "type": "item"
+                }
+            ],
+            "name": "A49",
+            "selection": ":.M",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "N"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "A34.5",
+            "selection": ":.N",
+            "sequence": "",
+            "type": "component"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

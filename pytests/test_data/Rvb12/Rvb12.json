@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
+            "mapping": {
+                "Rvb1": [
+                    "Rvb1"
+                ],
+                "Rvb2": [
+                    "Rvb2"
+                ]
+            },
+            "name": "x",
+            "type": "xquest"
+        },
+        {
+            "active": true,
+            "fileGroup": {
+                "files": [
+                    "sequences.yeast.fasta"
+                ]
+            },
+            "mapping": {
+                "sp|Q03940|RUVB1_YEAST RuvB-like protein 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB1 PE=1 SV=1": [
+                    "Rvb1"
+                ],
+                "sp|Q12464|RUVB2_YEAST RuvB-like protein 2 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB2 PE=1 SV=1": [
+                    "Rvb2"
+                ]
+            },
+            "name": "sequences",
+            "type": "sequences"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "C",
+                "E"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "Rvb1",
+            "selection": ":.A,.C,.E",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B",
+                "D",
+                "F"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "name": "Rvb2",
+            "selection": ":.B,.D,.F",
+            "type": "component"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

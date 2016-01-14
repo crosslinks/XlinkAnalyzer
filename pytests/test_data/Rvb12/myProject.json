@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "_active": true,
+            "defaults": {},
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
+            "mapping": {
+                "Act": [],
+                "Arp4": [],
+                "Arp5": [],
+                "Arp8": [],
+                "Ies1": [],
+                "Ies2": [],
+                "Ies3": [],
+                "Ies4": [],
+                "Ies5": [],
+                "Ies6": [],
+                "Ino80": [],
+                "Nhp10": [],
+                "Rvb1": [
+                    "Rvb1"
+                ],
+                "Rvb2": [
+                    "Rvb1"
+                ],
+                "Taf14": []
+            },
+            "name": "x",
+            "type": "xquest"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "C",
+                "E"
+            ],
+            "color": [
+                0.0,
+                0.8,
+                0.0,
+                1.0
+            ],
+            "defaults": {},
+            "domains": [],
+            "info": {},
+            "name": "Rvb1",
+            "selection": ":.A,.C,.E",
+            "type": "subunit"
+        },
+        {
+            "chainIds": [
+                "B",
+                "D",
+                "F"
+            ],
+            "color": [
+                0.0,
+                0.76,
+                0.88,
+                1.0
+            ],
+            "defaults": {},
+            "domains": [],
+            "info": {},
+            "name": "Rvb2",
+            "selection": ":.B,.D,.F",
+            "type": "subunit"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

@@ -1,37 +1,67 @@
 import json
-import sys
 import os
-from numpy import unique
-from sys import platform as _platform
+from copy import deepcopy
+from collections import deque, defaultdict
+from weakref import WeakSet
+import itertools
+import re
+
 
 import chimera
-import tkMessageBox
 import tkFileDialog
 import pyxlinks
-from os.path import relpath, exists, join, normpath, dirname
+from os.path import relpath, normpath, dirname, commonprefix, samefile
 from chimera import MaterialColor
 from MultAlignViewer.parsers import readFASTA
 from pyxlinks import XlinksSet
 
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
+from xlinkanalyzer import getConfig
+from xlinkanalyzer import utils as xutils
+
 
 class Item(object):
     SHOW = ["name"]
-    def __init__(self,name="",config=None):
+    _show = True
+    _active = True
+    def __init__(self,name="",config=None,fake=False,*args,**kwargs):
         self.type = "item"
         self.name = name
         self.config = config
+        self.fake = fake
+        self.sym = True
+        self.defaults = dict()
 
-    def commaList(self,l):
-        return reduce(lambda x,y: x+","+str(y),l,"")[1:]
+    @property
+    def show(self):
+        return self._show
 
-    def getList(self,commaString):
-        return [s.strip() for s in commaString.split(",")]
+    @show.setter
+    def show(self, val):
+        self._show = val
+        chimera.triggers.activateTrigger('component shown/hidden', self)
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+
+    def __getitem__(self,slice):
+        return self.__dict__
+
+    def __str__(self):
+        return self.name
 
     def serialize(self):
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
+        _dict.pop("fake")
+        _dict.pop("sym")
+
         return _dict
 
     def deserialize(self,_dict):
@@ -41,22 +71,44 @@ class Item(object):
             else:
                 self.__dict__[key] = value
 
-
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-class Component(Item):
+    
+class Chain(Item):
+    def __init__(self,_id,item,*args,**kwargs):
+        super(Chain,self).__init__(self,*args,**kwargs)
+        self.id = _id
+        self.item = item
+        self.name = item.name + " - Chain: " + _id
+        self.color = self.item.color
+
+        self.setSelection(':.'+_id)
+
+    def setSelection(self,sel):
+        self.selection = sel
+
+    def getSelection(self):
+        return self.selection
+
+class Subunit(Item):
     SHOW = ["name","chainIds","color"]
-    def __init__(self,name="",config=None):
-        Item.__init__(self,name,config)
-        self.type = "component"
+    def __init__(self,*args,**kwargs):
+        super(Subunit,self).__init__(*args,**kwargs)
+        self.type = "subunit"
         self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.chainIds = []
         self.selection = ""
-        self.chainToComponent = {}
-        self.componentToChain = {}
-        self.sequence = ""
+        self.chainToSubunit = {}
+        self.subunitToChain = {}
         self.domains = []
+        self.chains = []
+        self.info = {}
+
+    def getChains(self):
+        if not self.chains:
+            self.chains = [Chain(c,self,config=self.config) for c in self.chainIds]
+        return self.chains
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
@@ -70,36 +122,34 @@ class Component(Item):
 
     def setChainIds(self,ids):
         self.chainIds = ids
+        self.chains = [Chain(c,self,config=self.config) for c in self.chainIds]
 
-    def setSelection(self,sel):
+    def addChain(self, chainId):
+        if chainId not in self.chainIds:
+            self.chainIds.append(chainId)
+            self.chains.append(Chain(chainId,self,config=self.config))
+            self.setSelection()
+
+    def setSelection(self,sel=None):
+        if sel is None:
+            sel = self.createSubunitSelectionFromChains()
         self.selection = sel
 
-    def setChainToComponent(self,mapping):
-        self.chainToComponent = mapping
+    def getSelection(self):
+        return self.createSubunitSelectionFromChains()
 
-    def createChainToComponentFromChainIds(self, chainIds):
-        return dict([(chain, self.name) for chain in chainIds])
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        out = defaultdict(list)
+        for chainId in self.chainIds:
+            out[chainId].append([':.{0}'.format(chainId)])
 
-    def createComponentSelectionFromChains(self, chainIds):
+        return out
+
+    def createSubunitSelectionFromChains(self, chainIds = None):
+        if chainIds is None:
+            chainIds = self.chainIds
         return ':'+','.join(['.'+s for s in chainIds])
-
-    def setComponentToChain(self,mapping):
-        self.componentToChain = mapping
-
-    def setDomains(self,domains):
-        self.domains = domains
-
-    def setSequence(self,seq):
-        self.sequence = seq
-
-    def readJson(self,filename):
-        """
-        Reads JsonFile to JsonObject (Dict/Lists)
-        """
-
-        with open(filename) as f:
-            data = self.convert(json.loads(minify_json.json_minify(f.read())))
-        return data
 
     def convert(self,_input):
         """
@@ -116,9 +166,15 @@ class Component(Item):
             return _input
 
     def serialize(self):
-        _dict = super(Component,self).serialize()
+        _dict = super(Subunit,self).serialize()
         _dict["color"] = self.color.rgba()
         _dict["domains"] = [d.serialize() for d in self.domains]
+        if "chainToSubunit" in _dict:
+            _dict.pop("chainToSubunit")
+        if "subunitToChain" in _dict:
+            _dict.pop("subunitToChain")
+        if "chains" in _dict:
+            _dict.pop("chains")
         return _dict
 
     def deserialize(self,_dict):
@@ -133,56 +189,125 @@ class Component(Item):
                     d.subunit=self
                     self.domains.append(d)
             _dict.pop("domains")
-        super(Component,self).deserialize(_dict)
+        super(Subunit,self).deserialize(_dict)
 
     def contains(self, compName, resiId):
         return compName == self.name
 
-    def __str__(self):
-        s = "Component: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Color:\t%s\n\
-             Chains:\t%s\n"%(self.name,self.color.rgba(),self.chainIds)
-        return str(s)
-
     def __repr__(self):
-        return self.__str__()
+        return self.name
 
-class Domain(object):
-    def __init__(self,name="",\
-                      config=None,\
-                      subunit=None,\
-                      ranges=[[]],\
-                      color=MaterialColor(*[1.0,1.0,1.0,0.0]),\
-                      chains=[]):
-        self.name = name
-        self.config = config
-        self.subunit = subunit
-        self.ranges = self.parse(ranges)
-        self.color = color
-        self.chainIds = chains
-
-        #all this could easily be avoided by following conventions
-        self.SHOW = ["name","subunit","ranges","color"]
-        self.TOSTRING = dict([("ranges",self.rangeString),\
-                                ("subunit",lambda x:x.name)])
-        self.FROMSTRING = dict([("ranges",self.parse),\
-                                ("subunit",self.getComponentByName)])
+    def __str__(self):
+        return self.name
 
     def __deepcopy__(self,x):
-        return Domain(name=self.name,config=self.config,subunit=self.subunit,\
-                      ranges=self.ranges,color=self.color,chains=self.chainIds)
+        subunitCopy =Subunit(name=self.name,config=self.config)
+        subunitCopy.setColor(self.color)
+        subunitCopy.setChainIds(self.chainIds)
+        genSelection = self.createSubunitSelectionFromChains()
+        subunitCopy.setSelection(genSelection)
+        return subunitCopy
+
+    def chainIdsToString(self,chainIds=None):
+        if chainIds is None:
+            chainIds = self.chainIds
+        return reduce(lambda x,y: str(x)+str(y)+",",chainIds,"")[:-1]
+
+    def parseChainIds(self,chainIdsS):
+        ret = [s for s in chainIdsS.split(",")]
+        self.selection =':'+','.join(['.'+s for s in ret])
+        return ret
+
+    def getChildren(self):
+        return self.domains + self.getChains()
+
+    @Item.show.setter
+    def show(self, val):
+        self._show = val
+        for child in self.getChildren():
+            child._show = val # _show to not to activate children's triggers
+
+        chimera.triggers.activateTrigger('component shown/hidden', self)
+
+    @Item.active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChildren():
+            child._active = val
+
+class Domain(Item):
+    SHOW = ["name","subunit","ranges","color"]
+    def __init__(self,subunit=None,ranges=[[]],\
+                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),chainIds=[],**kwargs):
+        super(Domain,self).__init__(**kwargs)
+        self.subunit = subunit
+        self.ranges = self.parseRanges(ranges)
+        self.color = color
+        self.chainIds = chainIds
+        self.chains = []
+        
+    def __deepcopy__(self,x):
+        r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
+                      ranges=self.ranges,color=self.color,\
+                      chainIds=self.chainIds)
+        return r
 
     def __eq__(self,other):
-        if other.name == self.name and other.subunit == self.subunit\
-        and other.ranges == self.ranges and other.color == self.color\
-        and other.chainIds == self.chainIds:
-            return True
+        if isinstance(other,self.__class__):
+            if other.name == self.name and other.subunit == self.subunit\
+            and other.ranges == self.ranges and other.color == self.color\
+            and other.chainIds == self.chainIds:
+                return True
+            else:
+                return False
         else:
             return False
 
-    def parse(self,rangeS):
+    def getChains(self):
+        selsChains = self.getSelectionsByChain()
+        if not self.chains:
+            self.chains = [Chain(c,self,config=self.config) \
+                           for c in self.subunit.chainIds]
+
+            for c in self.chains:
+                sels = [s[0] for s in selsChains[c.id]]
+                c.setSelection(','.join([sel[1:] for sel in sels]))
+        return self.chains
+
+    def getSelection(self):
+        '''Get selection that acts on all chains of the corresponding subunit'''
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        forString = []
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            forString.append('{0}.{1}'.format(oneRange, chainId))
+
+        return ':' + ','.join(forString)
+
+    def getSelectionsByChain(self):
+        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        rStrings = []
+        for oneRange in self.ranges:
+            if len(oneRange) == 1:
+                rStrings.append(str(oneRange[0]))
+            elif len(oneRange) == 2:
+                rStrings.append('{0}-{1}'.format(oneRange[0], oneRange[1]))
+
+        out = defaultdict(list)
+        for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
+            out[chainId].append([':{0}.{1}'.format(oneRange,chainId)])
+
+        return out
+
+    def subunitToString(self,subunit):
+        return subunit.name
+
+    def parseRanges(self,rangeS):
         ret = []
         if rangeS and type(rangeS) == str:
             ret = [s.split("-") for s in rangeS.split(",")]
@@ -191,18 +316,18 @@ class Domain(object):
             ret = rangeS
         return ret
 
-    def getComponentByName(self,name):
-        comp = self.config.getComponentByName(name)
+    def parseSubunit(self,name):
+        comp = self.config.getSubunitByName(name)
         self.moveDomain(comp)
         return comp
 
-    def moveDomain(self,newComponent):
+    def moveDomain(self,newSubunit):
         domains = self.subunit.domains
         if self in domains:
             domains.pop(domains.index(self))
-        newComponent.domains.append(self)
+        newSubunit.domains.append(self)
 
-    def rangeString(self,rlist=None):
+    def rangesToString(self,rlist=None):
         if rlist:
             if rlist[0]:
                 return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
@@ -216,20 +341,10 @@ class Domain(object):
             else:
                 return ""
 
-    def getChainIds(self):
-        if self.chainIds is None:
-            return self.comp.chainIds
-        else:
-            return self.chainIds
-
     def serialize(self):
-        _dict = dict([(k,v) for k,v in self.__dict__.items()])
+        _dict = super(Domain,self).serialize()
         _dict["color"] = self.color.rgba()
-        _dict.pop("config")
         _dict.pop("subunit")
-        _dict.pop("SHOW")
-        _dict.pop("FROMSTRING")
-        _dict.pop("TOSTRING")
         return _dict
 
     def deserialize(self,_dict):
@@ -237,7 +352,11 @@ class Domain(object):
         if "subunit" in _dict:
             _dict.pop("subunit")
         for key,value in _dict.items():
-            self.__dict__[key] = value
+            if key == "chainIds":
+                self.__dict__["_chainIds"] = value
+            else:
+                self.__dict__[key] = value
+
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])
 
@@ -263,12 +382,12 @@ class Domain(object):
              Name:\t%s\n\
              Color:\t%s\n\
              Ranges:\t%s\n\
-             Subununit:\t%s\n"%(self.name,self.color.rgba(),\
-                                self.rangeString(),subName)
+             Subunit:\t%s\n"%(self.name,self.color.rgba(),\
+                                self.rangesToString(),subName)
         return str(s)
 
     def __repr__(self):
-        return self.__str__()
+        return self.name
 
     def validate(self):
         #TODO: Extend this
@@ -277,24 +396,92 @@ class Domain(object):
             ret = False
         return ret
 
-class Subcomplex(object):
-    def __init__(self,name,config,color=None):
-        self.name = name
-        self.color = color
+class Subcomplex(Item):
+    SHOW = ["name","color","items"]
+    def __init__(self,config,fake=False):
+        super(Subcomplex,self).__init__(config=config)
+        self.name = ""
+        self.color = MaterialColor(*[1.0,1.0,1.0,0.0])
         self.config = config
-        self.domains = []
+        self.items = []
+        self.dataMap = dict([("items",\
+            [Domain(config=self.config,fake=True),\
+             Subunit(config=self.config,fake=True)])])
 
-    def addDomain(self,_struc):
-        if isinstance(_struc,Domain):
-            self.domains.append(struc)
+    def setColor(self,colorCfg):
+        color = chimera.MaterialColor(*[0.0]*4)
+        if isinstance(colorCfg, basestring):
+            color = chimera.colorTable.getColorByName(colorCfg)
+        elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
+            color = chimera.MaterialColor(*[x for x in colorCfg])
+        else:
+            color = colorCfg
+        self.color = color
 
+    def __deepcopy__(self,x):
+        copy = Subcomplex(self.config)
+        copy.setColor(self.color)
+        copy.name = self.name
+        [copy.append(ss) for ss in self.items]
+        return copy
+
+    def addItem(self,item):
+        if isinstance(item,Domain) or isinstance(item,Subunit):
+            self.items.append(item)
+
+    def serialize(self):
+        _dict = super(Subcomplex,self).serialize()
+        _dict.pop("dataMap")
+        _dict["items"] = [item.name for item in self.items]
+        _dict["color"] = self.color.rgba()
+        return _dict
+
+    def getChains(self):
+        return []
+
+    def deserialize(self,_dict):
+        #CAVEAT: The other items have to been loaded before this
+        super(Subcomplex,self).deserialize(_dict)
+        if type(_dict["color"]) == list:
+            self.color = chimera.MaterialColor(*_dict["color"])
+            _dict.pop("color")
+        _iter =  [item for item in _dict["items"]]
+        _dict["items"] = []
+        for name in _iter:
+            domain = self.config.getDomainByName(name)
+            if domain:
+                self.items.append(domain)
+                self.items.remove(name)
+                continue
+            subunit = self.config.getSubunitByName(name)
+            if subunit:
+                self.items.append(subunit)
+                self.items.remove(name)
+
+    def getSelectionsByChain(self):
+        out = defaultdict(list)
+
+        for item in self.items:
+            for chainId, sel in item.getSelectionsByChain().iteritems():
+                out[chainId].extend(sel)
+
+        return out
+
+    def getSelection(self):
+        out = []
+        for item in self.items:
+            out.append(item.getSelection()[1:])
+
+        return ':{0}'.format(','.join(out))
 
 class SimpleDataItem(Item):
-    def __init__(self,name,config,data):
-        super(SimpleDataItem,self).__init__(name,config)
+    def __init__(self, data=None, **kwargs):
+        super(SimpleDataItem,self).__init__(**kwargs)
+
         self.type = "simpleData"
-        self.informed = False
-        self.data = data
+        if kwargs.get('data'):
+            self.data = kwargs.get('data')
+        self.active = True
 
     def __str__(self):
         s = "SimpleDataItem: \n \
@@ -307,50 +494,267 @@ class SimpleDataItem(Item):
     def __repr__(self):
         return self.__str__()
 
+    def __deepcopy__(self,x):
+        dataCopy = deepcopy(self.data)
+        itemCopy = type(self)(config=self.config,name=self.name,\
+                            data=dataCopy)
+        itemCopy.type = self.type
+        return itemCopy
+
 class InteractingResidueItem(SimpleDataItem):
-    def __init__(self,name,config,data=None):
-        super(InteractingResidueItem,self).__init__(name,config,data)
+    def __init__(self,**kwargs):
+        super(InteractingResidueItem,self).__init__(**kwargs)
+
         self.type = xlinkanalyzer.INTERACTING_RESI_DATA_TYPE
         self.active = True
         self.data = {}
-        if data:
-            self.data = data
+        if kwargs.get('data'):
+            self.data = kwargs.get('data')
 
     def deserialize(self):
         #mirror the old structure
         self.config = self.data
         self.active = True
 
-class DataItem(Item):
-    def __init__(self,name,config,resource,mapping=None):
-        super(DataItem,self).__init__(name,config)
-        self.type = "data"
-        self.mapping = mapping or {}
-        self.resource = resource
-        self.active = True
-        self.informed = False
+    def __deepycopy__(self,x):
+        super(InteractingResidueItem).__deepcopy__(self)
+
+
+class File(object):
+    def __init__(self,path=""):
+        self.path = path
 
     def __str__(self):
-        s = "DataItem: \n \
-             -------------------------\n\
-             Name:\t%s\n\
-             Type\t%s\n\
-             Files:\t%s\n"%(self.name,self.type,self.resource)
-        return str(s)
+        return self.path
 
     def __repr__(self):
         return self.__str__()
 
+    def getResourcePath(self):
+        path = self.path
+        # if not os.path.exists(path):
+        #     path = ""
+        return path
+
+    def serialize(self):
+        #Normalize just in case:
+        path = normpath(self.path)
+        root = normpath(getConfig().root)
+        if samefile(commonprefix([root, path]), root): #i.e. if is contained in the project dir
+            return relpath(path, root)
+        else:
+            return self.path
+
+    def validate(self):
+        return os.path.exists(self.path)
+
+class FileGroup(object):
+    def __init__(self,files=[]):
+        self.files=[]
+        map(self.addFile,files)
+
+    def __iter__(self):
+        for f in self.files:
+            yield f
+
+    def __str__(self):
+        return "".join([str(f)+"\n" for f in self.files])
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __deepcopy__(self,x):
+        return FileGroup(self.files)
+
+    def validate(self):
+        bools = [f.validate() for f in self.files]
+        return reduce(lambda x,y:x and y,bools,True)
+
+    def serialize(self):
+        # self.locate()
+        _dict = {}
+        _dict["files"] = [f.serialize() for f in self.files]
+        return _dict
+
+    def deserialize(self,_dict, root):
+        if "files" in _dict:
+            for f in _dict["files"]:
+                self.addFile(os.path.join(root, f))
+        # self.locate()
+
+    def addFile(self,_file):
+        if not isinstance(_file,File):
+            _file = File(_file)
+        self.files.append(_file)
+
+    def getResourcePaths(self):
+        # self.locate()
+        return [f.getResourcePath() for f in self.files]
+
+    def empty(self):
+        self.files = []
+
+class Subset(object):
+    def __init__(self,items,chosen=None,getElements=lambda:[]):
+        self.items = items
+        self.getElements = getElements
+        if chosen:
+            self.chosen = self.intersect(chosen, items)
+        else:
+            self.chosen = []
+        
+    def __str__(self):
+        return list.__str__([i for i in self.chosen])
+
+    def __iter__(self):
+        return self.chosen.__iter__()
+    
+    def __len__(self):
+        return len(self.chosen)
+    
+    def __contains__(self,i):
+        return i in self.chosen
+
+    def __getitem__(self,key):
+        try:
+            return self.chosen[key]
+        except TypeError:
+            raise TypeError('Subset indices must be integers')
+    
+    def intersect(self,l1,l2):
+        lret = []
+        for el in l1:
+            if el in l2:
+                lret.append(el)
+        return lret
+    
+    def setChosen(self,items):
+        if self.getElements:
+            self.items = self.getElements()
+        self.chosen = self.items.intersection(WeakSet(items))
+    
+    def getElements(self):
+        return self.items
+    
+    def serialize(self):
+        _list = []
+        for item in self:
+            _list.append(str(item))
+        return _list
+    
+    def add(self,v):
+        if self.getElements:
+            self.items = self.getElements()
+        if v in self.items and not v in self.chosen:
+            self.chosen.append(v)
+    
+    def remove(self,v):
+        if v in self.items:
+            self.chosen = self.chosen.remove(v)
+            
+class Mapping(Item):    
+    def __init__(self,dataItem):
+        self.mapping = {}
+        self.dataItem = dataItem
+        self.name = "Mapping for %s"%(dataItem.name)
+    
+    def __str__(self,*args,**kwargs):
+        ret = ""
+        ret += "Mapping of DataItem %s:\n" % (self.dataItem.name)
+        for key in self:
+            ret += "\t %s --> \t %s\n"%(key,self[key])
+        return ret
+    
+    def __len__(self):
+        return reduce(lambda x,y: x+int(len(y)>0),self.mapping.values(),0)
+    
+    def __contains__(self,key):
+        return self.mapping.__contains__(key)
+    
+    def __iter__(self):
+        return self.mapping.__iter__()
+    
+    def __setitem__(self,key,value):
+        if isinstance(value, Subset): 
+            self.mapping[key] = value
+        elif isinstance(value,list):
+            self.mapping[key] = Subset(self.getElements(),chosen=value,getElements=self.getElements)
+        
+    def __getitem__(self,key):
+        ret = []
+        if not key in self.mapping:
+            return ret
+        else:
+            return self.mapping[key]
+        
+    def getSubset(self,key):
+        if key in self:
+            return self.mapping[key]
+        else:
+            return Subset([])
+
+    def keys(self):
+        return self.dataItem.keys()
+    
+    def values(self):
+        return self.mapping.values()
+    
+    def copyFrom(self,other):
+        for key in other:
+            if key in self:
+                self[key] = other.getSubset(key)
+    
+    def items(self):
+        return self.mapping.items()
+    
+    def getElements(self):
+        return self.dataItem.getElements()
+    
+    def serialize(self):
+        _dict = {}
+        for k in self.keys():
+            _dict[k] = self.getSubset(k).serialize()
+        return _dict
+    
+    def isEmpty(self):
+        return not bool(len(self.getElements()))
+    
+    def isExhausted(self,key):
+        return not bool(WeakSet(self.getElements()).difference(WeakSet(self[key])))
+    
+    def getCopySources(self):
+        return self.dataItem.config.getDataItems(self.dataItem.type)
+
+class DataItem(Item):
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,fileGroup=FileGroup(),**kwargs):
+        super(DataItem,self).__init__(**kwargs)
+        self.type = "data"
+        self.mapping = Mapping(self)
+        self.fileGroup = fileGroup
+        self.active = True
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        s = "DataItem: \n \
+        -------------------------\n\
+        Name:\t%s\n\
+        Type\t%s\n\
+        Files:\t%s\n"%(self.name,self.type,self.fileGroup)
+        return str(s)
+
     def __getitem__(self,key):
         if key in self.mapping:
-            return self.mapping[key][0]
+            return self.mapping[key]
         else:
             return None
 
     def __setitem__(self,key,value):
         if type(value) != list:
             if key in self.mapping:
-                self.mapping[key].append(value)
+                self.mapping[key].add(value)
             else:
                 self.mapping[key]=[value]
         else:
@@ -359,72 +763,86 @@ class DataItem(Item):
     def __contains__(self,key):
         return key in self.mapping
 
+    def __deepcopy__(self,x):
+        fileGroupCopy = deepcopy(self.fileGroup)
+        itemCopy = type(self)(config=self.config,name=self.name,\
+                            fileGroup=fileGroupCopy)
+        itemCopy.type = self.type
+        return itemCopy
+
+    def hasMapping(self):
+        return bool(len(self.mapping))
+
     def updateData(self):
         pass
 
-    def locate(self):
-        formatedRes = []
-        locatedRes = []
-        missing = []
-        root = self.config.root
-        #check for windows paths in unix systems
-        for r in self.resource:
-            if '\\' in r and _platform == "linux" or _platform == "linux2":
-                formatedRes.append(r.replace('\\','/'))
-            else:
-                formatedRes.append(r)
-        for r in formatedRes:
-            if exists(r):
-                locatedRes.append(relpath(r,root))
-            elif exists(join(root,r)):
-                locatedRes.append(r)
-            else:
-                missing.append(r)
-        if missing and not self.informed:
-            title = "Missing Files"
-            fileList = reduce(lambda x,y: x+"%s\n"%(y),missing,"")
-            message = "These files could not be found:\n %s"%(fileList)
-            tkMessageBox.showinfo(title,message)
-            self.informed = True
-        self.resource = locatedRes
+    def keys(self):
+        return []
+
+    def parseFiles(self,filePaths):
+        map(self.fileGroup.addFile,filePaths)
 
     def resourcePaths(self):
-        self.locate()
-        paths = []
-        root = self.config.root
+        return [f.getResourcePath() for f in self.fileGroup]
 
-        for res in self.resource:
-            res = normpath(res)
-            path = normpath(join(root,res))
-            if os.path.exists(path):
-                paths.append(path)
-        return paths
+    def deserialize(self,_dict):
+        if "fileGroup" in _dict:
+            fileGroup = FileGroup()
+            fileGroup.deserialize(_dict["fileGroup"], self.config.root)
+            self.__dict__["fileGroup"] = fileGroup
+            _dict.pop("fileGroup")
+        if "mapping" in _dict:
+            self.mapping = Mapping(self)
+            for k,v in _dict["mapping"].items():
+                #TODO: this depends on the mapped object 
+                subUnits = [self.config.getSubunitByName(name) for name in v if self.config.getSubunitByName(name) is not None]
+                self.mapping[k] = subUnits
+            _dict.pop("mapping")
+        super(DataItem,self).deserialize(_dict)
+        self.updateData()
 
     def serialize(self):
-        self.locate()
         _dict = super(DataItem,self).serialize()
+        _dict["fileGroup"] = self.fileGroup.serialize()
+        _dict["mapping"] = self.mapping.serialize()
         if "data" in _dict:
             _dict.pop("data")
         return _dict
 
     def validate(self):
-        allExist = reduce(lambda x,y: x and y, [os.path.exists(resPath) \
-                          for resPath in self.resourcePaths()],True)
+        allExist = reduce(lambda x,y: x and y, \
+                          [f.validate() for f in self.files],True)
         return True if super(DataItem,self).validate() and allExist else False
 
-    def getProteinsByComponent(self,name):
-        return [k for k,v in self.mapping.items() if name in v]
+    def getProteinsBySubunit(self,name):
+        return [k for k in self.mapping if name in self.mapping[k]]
+
+    def getElements(self):
+        return []
+
+    def getMappingDefaults(self, text):
+        '''
+        Guess a subunit based on the name read from the data file.
+
+        @param text Name read from the data file (a key of self.mapping)
+
+        Return Subunit object or None.
+        '''
+        return SubunitMatcher(self.config).getSubunit(text)
 
 class XQuestItem(DataItem):
-    def __init__(self,name,config,resource,mapping=None):
-        super(XQuestItem,self).__init__(name,config,resource,mapping)
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,**kwargs):
+        super(XQuestItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
         self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
-        self.resource = resource
-        self.locate()
         self.updateData()
+
+    def __deepycopy__(self,x):
+        super(XQuestItem).__deepcopy__(self)
+        print "copied! "+self.name
 
     def updateData(self):
         if self.resourcePaths():
@@ -439,90 +857,249 @@ class XQuestItem(DataItem):
 
             self.xQuestNames = list(self.xlinksSets.get_protein_names())
 
+            for name in self.xQuestNames:
+                if name not in self.mapping:
+                    guess = self.getMappingDefaults(name)
+                    if guess is not None:
+                        self.mapping[name] = [guess]
+                    else:
+                        self.mapping[name] = []
+
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
         _dict.pop("xlinksSets")
+        _dict.pop("xQuestNames")
         return _dict
-
+    
+    def getElements(self):
+        return self.config.getSubunits()
+    
+    def keys(self):
+        self.updateData()
+        return self.xQuestNames
+    
+class XlinkAnalyzerItem(XQuestItem):
+    def __init__(self,*args,**kwargs):
+        super(XlinkAnalyzerItem,self).__init__(*args,**kwargs)
+        self.type = xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE
 
 class SequenceItem(DataItem):
-    def __init__(self,name,config,resource,mapping=None):
-        super(SequenceItem,self).__init__(name,config,resource,mapping)
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,**kwargs):
+        super(SequenceItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
         self.sequences = {}
         self.data = {}
-        for i,fileName in enumerate(self.resourcePaths()):
-            sequences = readFASTA.parse(fileName)[0]
-            for sequence in sequences:
-                self.sequences[sequence.name] = sequence
-        self.locate()
+
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                sequences = readFASTA.parse(fileName)[0]
+                for sequence in sequences:
+                    self.sequences[sequence.name] = sequence
 
     def serialize(self):
         _dict = super(SequenceItem,self).serialize()
         _dict.pop("sequences")
         return _dict
 
+    def getElements(self):
+        return self.config.getSubunits()
 
-class Assembly(object):
+    def keys(self):
+        self.updateData()
+        return self.sequences.keys()
+    
+
+class ConsurfItem(DataItem):
+    SHOW = ["name","fileGroup","mapping"]
+    def __init__(self,**kwargs):
+        super(ConsurfItem,self).__init__(**kwargs)
+        self.type = xlinkanalyzer.CONSURF_DATA_TYPE
+        self.data = {}
+        self.scores = {}
+        # self.locate()
+        self.updateData()
+
+    def updateData(self):
+        if self.resourcePaths():
+            for i,fileName in enumerate(self.resourcePaths()):
+                with open(fileName) as f:
+                    for line in f:
+                        lineData = line.split()
+                        if '/' in line:
+                            resiId = int(lineData[0])
+                            colorId = int(lineData[4].strip('*'))
+                            if colorId == 0:
+                                colorId = 10
+                            self.scores[resiId] = colorId
+
+    def serialize(self):
+        _dict = super(ConsurfItem,self).serialize()
+        _dict.pop("scores")
+        return _dict
+
+    def getMappingElements(self):
+        _from = ['unknown_protein']
+        _to = [s.name for s in self.config.subunits] if self.config.subunits\
+            else [""]
+        return [_from,_to]
+
+    def getGroupedByColor(self):
+        v = defaultdict(list)
+
+        for key, value in sorted(self.scores.iteritems()):
+            v[value].append(key)
+
+        return v
+
+
+class Assembly(Item):
     def __init__(self,frame=None):
+        super(Assembly,self).__init__()
         self.items = []
-        self.domains = []
+        self.subunits = []
         self.subcomplexes = []
+        self.dataItems = []
+        self.domains = []
         self.root = ""
         self.file = ""
-        self.state = "unsaved"
+        self.state = "changed"
         self.frame = frame
-        self.componentToChain = {}
-        self.chainToComponent = {}
-        self.proteinToChains = {}
+        self.subunitToChain = {}
+        self.chainToSubunit = {}
         self.chainToProtein = {}
-        self.componentToProtein = {}
 
-        self.dataMap = dict([("domains",Domain(config = self,subunit=Component(config=self)))])
+        self.dataMap = dict([\
+            ("domains",Domain(config = self,subunit=Subunit(config=self,fake=True),fake=True)),\
+            ("subunits",Subunit(config=self,fake=True)),\
+            ("subcomplexes",Subcomplex(config=self,fake=True)),\
+            ("dataItems",[SequenceItem(config=self,fake=True),\
+                          XQuestItem(config=self,fake=True),\
+                          XlinkAnalyzerItem(config=self,fake=True),\
+                          # InteractingResidueItem(config=self,fake=True),\
+                          ConsurfItem(config=self,fake=True)])])
 
     def __str__(self):
         s = ""
-        for item in self.items:
-            s += str(item)+"\n"
+        s += "Subunits:\n"+\
+             "---------------------\n"
+        for subunit in self.subunits:
+            s += str(subunit)+"\n"
+        s += "Data Items:\n"+\
+             "---------------------\n"
+        for dataItem in self.dataItems:
+            s += str(dataItem)+"\n"
         return s
 
     def __iter__(self):
-        for item in self.items:
+        _iter = self.subunits+self.dataItems
+        for item in _iter:
             yield item
 
     def __contains__(self,item):
+        _contains = self.subunits+self.dataItems
         return reduce(lambda x,y: x or y, [item == i for i\
-                                            in self.items],False)
+                                            in _contains],False)
 
     def __len__(self):
-        return len(self.items)
+        return len(self.subunits+self.dataItems)
+
+    def clear(self):
+        self.subunits = []
+        self.subcomplexes = []
+        self.dataItems = []
+        self.domains = []
+
+    def isEmpty(self):
+        return len(self.subunits+self.subcomplexes+self.dataItems+self.domains) == 0
+
 
     def loadFromDict(self,_dict):
+        self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
+                        (xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,XlinkAnalyzerItem),\
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
-                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,\
-                          InteractingResidueItem)])
-        components = _dict["subunits"]
-        dataItems = _dict["data"]
-        #TODO: this is a temporary solution
-
-        for compD in components:
-            c = Component(compD["name"],self)
-            c.deserialize(compD)
+                         (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
+                         (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
+        subunits = _dict.get("subunits")
+        subcomplexes = _dict.get("subcomplexes")
+        dataItems = _dict.get("data")
+        
+        #first, load all Items that might appear in a mapping later on
+        for subD in subunits:
+            c = Subunit(subD["name"],self)
+            c.deserialize(subD)
             self.addItem(c)
+        if subcomplexes:
+            for subCD in subcomplexes:
+                s = Subcomplex(config=self)
+                s.deserialize(subCD)
+                self.addItem(s)
+        #then, load DataItems
         for dataD in dataItems:
+            #SimpleDataItems, no file references
             if "data" in dataD:
                 d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["data"])
+                    (name=dataD["name"],config=self,data=dataD["data"])
+            #load DataItems in old format, deprecate at some point
             elif "resource" in dataD:
-                d = classDir[dataD["type"]]\
-                    (dataD["name"],self,dataD["resource"],dataD["mapping"])
-                #TODO: What does this achieve
-                d.serialize()
-            if not d.informed:
-                self.addItem(d)
+                paths = [os.path.join(self.root, r) for r in dataD["resource"]]
+                fileGroup = FileGroup(paths)
+                dataD["fileGroup"] = fileGroup.serialize()
+                d = classDir[dataD["type"]](config=self)
+                d.deserialize(dataD)
+            #load DataItems in new format
+            elif "fileGroup" in dataD:
+                d = classDir[dataD["type"]](config=self)
+                d.deserialize(dataD)
+            self.addItem(d)
+        self.domains = self.getDomains()
+    #KILL IT! KILL IT WITH FIRE!
+    def loadFromStructure(self, m):
+        def getAddedBySeq(newS, m):
+            for comp in self.getSubunits():
+                for chainId in comp.chainIds:
+                    for s in m.sequences():
+                        if s.chain == chainId:
+                            if xutils.areSequencesSame(newS, s):
+                                return comp.name                        
 
-        self.domains = self.getAllDomains()
+            return None
+
+        molId = 1
+        for s in m.sequences():
+            if s.hasProtein():
+                name = xutils.getSeqName(s)
+                if name is None:
+                    addedName = getAddedBySeq(s, m)
+                    if addedName is None:
+                        name = 'Mol{0}'.format(molId)
+                    else:
+                        name = addedName
+
+                oldSubunit = self.getSubunitByName(name)
+                if oldSubunit is None:
+                    molId = molId + 1
+
+                    c = Subunit(name,self)
+                    c.setChainIds([str(s.chain)])
+                    c.setSelection(c.createSubunitSelectionFromChains())
+                    c.color = xutils.getRandomColor()
+                    self.addItem(c)
+
+                    info = xutils.getDBrefInfo(s)
+                    if info is not None:
+                        for k, v in info.iteritems():
+                            if v not in (None, '') and c.info.get(k) is None:
+                                c.info[k] = info[k]
+
+                else:
+                    oldSubunit.addChain(str(s.chain))
+
 
     def convert(self,_input):
         """
@@ -542,8 +1119,8 @@ class Assembly(object):
     def getColor(self, name):
         #TODO: Try to simplify
         color = chimera.MaterialColor(*[0.0]*4)
-        if self.getComponentColors(name):
-            colorCfg = self.getComponentColors(name)
+        if self.getSubunitColors(name):
+            colorCfg = self.getSubunitColors(name)
             if isinstance(colorCfg, basestring):
                 color = chimera.colorTable.getColorByName(colorCfg)
             elif isinstance(colorCfg, tuple) or isinstance(colorCfg, list):
@@ -553,252 +1130,166 @@ class Assembly(object):
         return color
 
     def addItem(self,item):
-        if issubclass(item.__class__,Item):
-            self.items.append(item)
-        elif issubclass(item.__class__,Domain):
+        if isinstance(item,Subunit):
+            self.subunits.append(item)
+        elif isinstance(item,DataItem):
+            self.dataItems.append(item)
+        elif isinstance(item,SimpleDataItem):
+            self.dataItems.append(item)
+        elif isinstance(item,Domain):
             self.domains.append(item)
-            item.subunit.domains.append(item)
+        elif isinstance(item,Subcomplex):
+            self.subcomplexes.append(item)
         self.state = "changed"
 
     def deleteItem(self,item):
-        if issubclass(item.__class__,Item):
-            if item in self:
-                self.items.remove(item)
-        elif issubclass(item.__class__,Domain):
-            if [item==d for d in self.getAllDomains()]:
+        if isinstance(item,Subunit):
+            if item in self.subunits:
+                self.subunits.remove(item)
+        elif isinstance(item,DataItem):
+            if item in self.dataItems:
+                self.dataItems.remove(item)
+        elif isinstance(item,SimpleDataItem):
+            if item in self.dataItems:
+                self.dataItems.remove(item)
+        elif isinstance(item,Domain):
+            if [item==d for d in self.getDomains()]:
                 self.domains.remove(item)
             if item in item.subunit.domains:
                 item.subunit.domains.remove(item)
+        elif isinstance(item,Subcomplex):
+            if item in self.items:
+                self.items.remove(item)
         self.state = "changed"
 
-    def clear(self):
-        for item in self:
-            self.items.remove(item)
-
-    def getComponentByName(self,name):
-        candidates = [c for c in self.getComponents() if c.name==name]
+    def getSubunitByName(self,name):
+        candidates = [c for c in self.getSubunits() if c.name==name]
         if candidates:
             return candidates[0]
         else:
             return None
 
-    def getComponents(self):
-        return [i for i in self.items \
-                if isinstance(i,Component)]
+    def getSubunits(self):
+        return self.subunits
 
-    def getComponentNames(self):
-        return [i.name for i in self.items \
-                if isinstance(i,Component)]
+    def getSubunitNames(self):
+        return [i.name for i in self.subunits]
 
     def getDataItems(self,_type = None):
-        dataItems = [i for i in self.items \
-                     if (isinstance(i,DataItem) \
-                         or isinstance(i,SimpleDataItem))]
         if not _type:
-            return dataItems
+            return [dI for dI in self.dataItems]
         else:
-            typeDataItems = [dI for dI in dataItems if dI.type == _type]
+            typeDataItems = [dI for dI in self.dataItems if dI.type == _type]
             return typeDataItems
 
-    def getComponentColors(self,name=None):
+    def getSubunitColors(self,name=None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return compL[0].color
+                return compL[0].domains
             else:
                 return None
         else:
-            return dict([(i.name,i.color) for i in self.items\
-                     if isinstance(i,Component)])
+            return dict([(i.name,i.color) for i in self.subunits])
 
-    def getComponentChains(self,name=None):
+    def getSubunitSelections(self,name = None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
-            if compL:
-                return compL[0].chainIds
-            else:
-                return None
-        else:
-            return dict([(i.name,i.chainIds) for i in self.items\
-                     if isinstance(i,Component)])
-
-    def getComponentSelections(self,name = None):
-        if name:
-            compL = [i for i in self.getComponents() if i.name == name]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
                 return compL[0].selection
             else:
                 return None
         else:
-            return dict([(i.name,i.selection) for i in self.items\
-                     if isinstance(i,Component)])
-
-    def getComponentWithDomains(self):
-        ret = self.getComponents()
-        ret = [c for c in ret if len(c.domains)>0]
-        return ret
+            return dict([(i.name,i.selection) for i in self.subunits])
 
     def getSequences(self,key=None):
         sequence = {}
         for item in self.getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
             for seqName, seq in item.sequences.iteritems():
                 try:
-                    compNames = item.mapping[seqName]
+                    comps = item.mapping[seqName]
                 except KeyError:
                     pass
                 else:
-                    for compName in compNames:
-                        sequence[compName] = str(seq)
+                    for comp in comps:
+                        sequence[comp.name] = str(seq)
         return sequence
 
     def getDomains(self,name=None):
         if name:
-            compL = [i for i in self.items \
-                     if (isinstance(i,Component) and i.name == name)]
+            compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return compL[0].domains
+                return self.proxify([d for d in compL[0].domains])
             else:
                 return None
         else:
-            return dict([(i.name,i.domains) for i in self.items\
-                     if isinstance(i,Component)])
+            ret = sum([c.domains for c in self.getSubunits()],[])
+            for d in ret:
+                d.config = self
+            return ret
 
-    def getDomainNames(self):
-        ret = self.getAllDomains()
-        ret = [d.name for d in ret]
-        ret = list(unique(ret))
-        return ret
-
-    def getDomainByName(self):
-        ret = self.getAllDomains()
-        ret = [d.name for d in ret if d.name == name]
-        if ret:
-            return ret[0]
-        else:
-            return []
-
-    def getComponentOrDomain(self,name):
-        #TODO: Ambiguity!
-        ret = None
-        ret = self.getComponentByName(name)
-        if ret is not None:
-            ret = self.getDomainByName(name)
-        return ret
-
-    def getAllDomains(self):
-        ret = sum([c.domains for c in self.getComponents()],[])
-        return ret
-
-    def getChains(self):
-        chains = [c.chainIds for c in self.getComponents()\
-                  if c.chainIds is not None]
-        ret = reduce(lambda x,y:x+y,chains,[])
-        return ret
-
-    def getChainIdsByComponentName(self,name=None):
-        if name:
-            if name in self.componentToChain:
-                return self.componentToChain[name]
-            else:
-                comps = self.getComponents()
-                chainsList = [c.chainIds for c in comps if c.name == name]
-                if chainsList:
-                    chains = reduce(lambda x,y: x+y,chainsList,[])
-                    self.componentToChain[name] = chains
-                    return chains
-                else:
-                    raise KeyError
-        else:
-            return self.componentToChain
-
-    def getProteinByChain(self,chain):
-        if chain in self.chainToProtein:
-            return self.chainToProtein[chain]
-        else:
-            comps = self.getComponentNames()
-            dataItems = self.getDataItems()
-            candidates = [c for c in comps \
-                          if chain in self.getChainIdsByComponentName(c)]
-            dCandidates =[d for d in dataItems \
-                          if (set(candidates)&set(d.mapping.keys()))]
-            proteins = [d[candidates[0]] for d in dCandidates]
-            if proteins:
-                protein = proteins[0]
-                self.chainToProtein[chain] = protein
-                return protein
-            else:
-                return None
-
-    def getProteinByComponent(self,name=None):
-        if name in self.componentToProtein:
-            return self.componentToProtein[name]
-        else:
-            dataItems = self.getDataItems()
-            dataItems = [d for d in dataItems \
-                        if not d.type == xlinkanalyzer.INTERACTING_RESI_DATA_TYPE]
-            candidates = []
-            for d in dataItems:
-                for k,v in d.mapping.items():
-                    if name in v:
-                        candidates.append(k)
-            candidates = unique(candidates)
+    def getDomainByName(self,name):
+        allDomains = self.getDomains()
+        if allDomains:
+            candidates = [d for d in allDomains if d.name == name]
             if candidates:
-                componentName = candidates[0]
-                self.componentToProtein[name] = componentName
-                return componentName
+                return candidates[0]
             else:
                 return None
+        else:
+            return None
 
-    def getComponentByChain(self,chain=None):
-        #returns a Component NAME
-        if chain:
-            if chain in self.chainToComponent:
-                return self.chainToComponent[chain]
+    def getSubcomplexes(self):
+        return self.subcomplexes
+
+    def getSubcomplexByName(self,name):
+        for subcomp in self.subcomplexes:
+            if subcomp.name == name:
+                return subcomp
+
+    def getChainIdsBySubunitName(self,name=None):
+        if name:
+            comps = self.getSubunits()
+            chainsList = [c.chainIds for c in comps if c.name == name]
+            if chainsList:
+                chains = reduce(lambda x,y: x+y,chainsList,[])
+                self.subunitToChain[name] = chains
+                return chains
             else:
-                comps = self.getComponents()
+                raise KeyError
+        else:
+            for name in self.getSubunitNames():
+                self.getChainIdsBySubunitName(name)
+            return self.subunitToChain
+
+    def getSubunitByChain(self,chain=None):
+        #returns a Subunit NAME
+        if chain:
+            if chain in self.chainToSubunit:
+                return self.chainToSubunit[chain]
+            else:
+                comps = self.getSubunits()
                 candidates = [c for c in comps if chain in c.chainIds]
                 if candidates:
-                    component = candidates[0].name
-                    self.chainToComponent[chain] = component
-                    return component
+                    subunit = candidates[0].name
+                    self.chainToSubunit[chain] = subunit
+                    return subunit
                 else:
                     return None
         else:
             #this might return an empty dict
-            return self.chainToComponent
-
-    def getChainsByProtein(self,protein):
-        #this
-        if protein in self.proteinToChains:
-            return self.proteinToChains[protein]
-        dataItems = self.getDataItems()
-        kVPairs = reduce(lambda x,y:x+y,\
-                         [d.mapping.items() for d in dataItems],[])
-        chains = [v for (k,v) in kVPairs if k in protein]
-        chains = list(unique(reduce(lambda x,y: x+y, chains,[])))
-        if chains:
-            self.proteinToChains[protein] = chains
-            return chains
-        else:
-            raise KeyError
-
+            return self.chainToSubunit
+   
     def serialize(self):
         _dict = {}
-        _dict["xlinkanalyzerVersion"] = "1.0"
-        _dict["subunits"] = []
-        _dict["data"] = []
-        for item in self.items:
-            if type(item) == Component:
-                _dict["subunits"].append(item.serialize())
-            else:
-                _dict["data"].append(item.serialize())
+        _dict["xlinkanalyzerVersion"] = xlinkanalyzer.__version__
+        _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
+        _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
+        _dict["subcomplexes"] = [sub.serialize() for sub in self.subcomplexes]
         return _dict
 
     def dataItems(self):
-        return [item for item in self.items if item.type in \
-                [xlinkanalyzer.XQUEST_DATA_TYPE,xlinkanalyzer.SEQUENCES_DATA_TYPE]]
+        return self.dataItems
 
     def getPyxlinksConfig(self):
         '''
@@ -810,19 +1301,18 @@ class Assembly(object):
         '''
 
         cfg = pyxlinks.Config()
-        cfg.components = self.getComponentNames()
-        cfg.chain_to_comp = self.getComponentByChain()
-        cfg.component_chains = self.getChainIdsByComponentName()
+        cfg.components = self.getSubunitNames()  # KEEP cfg.components for pyxlinks compatibility !!!
+        cfg.chain_to_comp = self.getSubunitByChain()
+        cfg.component_chains = self.getChainIdsBySubunitName()  # KEEP cfg.component_chains for pyxlinks compatibility !!!
         cfg.data = self.getDataItems()
         cfg.cfg_filename = self.file
         cfg.sequences = self.getSequences()
 
         return cfg
 
-    def locate(self):
-        for item in self.items:
-            if  isinstance(item,DataItem):
-                item.locate()
+    # def locate(self):
+    #     for item in self.dataItems:
+    #         item.locate()
 
 class ResourceManager(object):
     def __init__(self,config):
@@ -839,10 +1329,14 @@ class ResourceManager(object):
         else:
             _file = self.config.file
         if _file:
-            self.config.locate()
+            # self.config.locate()
             self.dumpJson(_file)
             self.config.file = _file
             self.state = "unchanged"
+
+            return True
+        else:
+            return False
 
     def loadAssembly(self,parent,_file=None):
         if not _file:
@@ -857,6 +1351,7 @@ class ResourceManager(object):
                     self.config.frame.clear()
                 self.config.loadFromDict(data)
 
+        return _file
 
     def dumpJson(self,_file):
         with open(_file,'w') as f:
@@ -867,3 +1362,54 @@ class ResourceManager(object):
                     indent=4,\
                     separators=(',', ': ')))
             f.close()
+
+
+class SubunitMatcher(object):
+    def __init__(self, config):
+        self.config = config
+
+    def getSubunit(self, text):
+        subunits = self.config.getSubunits()
+        
+        for s in subunits:
+            if s.name.lower() == text.lower():
+                return s
+
+        acc = self._extractdbAccession(text)
+        for s in subunits:
+            s_acc = s.info.get('pdbx_db_accession')
+            if s_acc and s_acc == acc:
+                return s
+        
+
+    def _extractUniprotAccession(self, text):
+        uniprotAccRgxp = '[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}'
+
+        rgxp = '..\|({0})\|'.format(uniprotAccRgxp)
+        m = re.match(rgxp, text)
+        if m:
+            return m.groups()[0]
+        else:
+            m = re.match(uniprotAccRgxp, text)
+            if m:
+                return m.group()
+
+    def _extractdbAccession(self, text):
+        # TODO: looking for accessions of other databases
+        return self._extractUniprotAccession(text)
+
+
+def isXlinkItem(item):
+    return hasattr(item, 'xQuestNames')
+
+import sys
+if __name__ == "__main__":
+    a = sys.argv[1]
+    if a == 'stuff':
+        config = Assembly()
+        resMngr = ResourceManager(config)
+        resMngr.loadAssembly(None,"/home/kai/repos/XlinkAnalyzer/examples/PolI/PolI_with_domains.json")
+        d=config.getDomains()[0]
+        print d.explore(Domain)
+    elif a=='mapping':
+        pass
