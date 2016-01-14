@@ -1558,12 +1558,9 @@ class XlinkMgrTabFrame(TabFrame):
                 variable=self.smartMode,
                 command=self.onSmartModeChange)
             self.smartModeBtn.var = self.smartMode
-            if DEV:
-                self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
-                Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
-                    .grid(sticky='W', row=curRow, column=1)
-            else:
-                self.smartModeBtn.grid(row=curRow, columnspan=totalCols)
+            self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
+            Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
+                .grid(sticky='W', row=curRow, column=1)
 
             curRow += 1
 
