@@ -145,6 +145,32 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         self.notebook.setnaturalsize()
 
+        self.addMenuBar(parent)
+
+    def addMenuBar(self, parent):
+        top = parent.winfo_toplevel()
+        menubar = Tkinter.Menu(top, type="menubar", tearoff=False)
+        top.config(menu=menubar)
+
+        filemenu = Tkinter.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Load Project...", command=self.configFrame.onLoad)
+        filemenu.add_command(label="Save", command=self.configFrame.onSave)
+        filemenu.add_command(label="Save As...", command=self.configFrame.onSaveAs)
+        filemenu.add_command(label="Create Project From Structure", command=self.configFrame.onLoadFromStructure)
+
+        def updateRecent():
+            recentMenu.delete(0, "end")
+            paths = getPaths()
+            for i, p in enumerate(paths):
+                recentMenu.add_command(label=p, command=lambda: self.configFrame.onQuickLoad(p))
+        recentMenu = Tkinter.Menu(menubar, tearoff=0, postcommand=updateRecent)
+        filemenu.add_cascade(label="Load Recent", menu=recentMenu)
+        
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        from chimera.tkgui import aquaMenuBar
+        aquaMenuBar(menubar, parent, row = 0)
+
     def CiteXlinkAnalyzer(self):
         from chimera import help
         help.display("http://www.ncbi.nlm.nih.gov/pubmed/25661704")
@@ -1009,22 +1035,6 @@ class SetupFrame(TabFrame):
                                          command=self.onSubcomplexes)
         self.subCompButton.grid(row = curRow,column = 1, sticky = "W",**layout)
 
-        self.subCompButton = Button(self,text="Load from structure", \
-                                         command=self.onLoadFromStructure)
-        self.subCompButton.grid(row = curRow,column = 2, sticky = "W",**layout)
-
-        curRow = curRow + 1
-        self.saveAsButton = Button(self,text="Save as", command=self.onSaveAs)
-        self.saveAsButton.grid(row = curRow,column = 0, sticky = "W",**layout)
-        self.saveButton = Button(self,text="Save", command=self.onSave)
-        self.saveButton.grid(row = curRow,column = 1, sticky = "W",**layout)
-        self.loadButton = Button(self,text="Load project", command=self.onLoad)
-        self.loadButton.grid(row = curRow,column = 2, sticky = "W",**layout)
-
-        curRow = curRow + 1
-        
-        #Quickload
-        self.buildQuickLoad()
 
         #Deploy the subunits in self.config
         for i,item in enumerate(self.config.items):
@@ -1040,24 +1050,6 @@ class SetupFrame(TabFrame):
     def __iter__(self):
         for subunitFrame in self.subunitFrames:
             yield subunitFrame
-
-    def buildQuickLoad(self):
-        for b in self.quickLoad:
-            b.destroy()
-        layout = {"pady":0,"padx":5}
-        paths = getPaths()
-        label = Label(self, text="Recent projects:",
-                         borderwidth=0)
-        label.grid(row=1, column=4, sticky="nsw", padx=1, pady=1)
-
-        for i,p in enumerate(paths):
-            if len(p) > 80:
-                text = p[:32] + '...' + p[-45:]
-            else:
-                text = p
-            b = Button(self,text=text,command=lambda p=p:self.onQuickLoad(p))
-            b.grid(row=i+2,column=4,sticky="W",**layout)
-            self.quickLoad.append(b)
 
     def clear(self):
         
@@ -1100,7 +1092,6 @@ class SetupFrame(TabFrame):
             self.mainWindow.setTitle(self.config.file)
             push(self.config.file)
             self.config.state="unchanged"
-            self.buildQuickLoad()
 
     def onSaveAs(self):
         self.resMngr.saveAssembly(self)
