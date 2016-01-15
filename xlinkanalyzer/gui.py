@@ -1682,7 +1682,7 @@ class XlinkMgrTabFrame(TabFrame):
                                   command=command)
         btn.var = self.showFirstOnlyOliMode
         btn.grid(row=curRow, column=0)
-        Label(frame, text='Show only first xlink').grid(row=curRow, column=1)
+        Label(frame, text='Show only the first copy \nof the equivalent homo-oligomeric cross-links').grid(row=curRow, column=1)
         curRow += 1
 
         frame.pack()
