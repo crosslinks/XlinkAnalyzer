@@ -226,7 +226,7 @@ def show_dialog():
 class SubunitsOptionMenu(Tkinter.OptionMenu):
     def __init__(self, master, defOption, config):
         self.var = Tkinter.StringVar(master)
-        defOption = defOption
+        self.defOption = defOption
         self.var.set(defOption)
 
         options = [defOption] + config.getSubunitNames()
@@ -238,7 +238,7 @@ class SubunitsDomainsOptionMenu(Pmw.OptionMenu):
     def __init__(self, master, defOption, config):
         self.xlaConfig = config
         self.var = Tkinter.StringVar(master)
-        defOption = defOption
+        self.defOption = defOption
         self.var.set(defOption)
 
         self.objectsToOptions = []
@@ -1743,6 +1743,9 @@ class XlinkMgrTabFrame(TabFrame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 mgr.showAllXlinks()
+
+        self.showXlinksFromTabNameCompOptMenuFrom.var.set(self.showXlinksFromTabNameCompOptMenuFrom.defOption)
+        self.showXlinksFromTabNameCompOptMenuTo.var.set(self.showXlinksFromTabNameCompOptMenuTo.defOption)
 
     def onSmartModeChange(self):
         dataMgrs = self.getXlinkDataMgrs()
