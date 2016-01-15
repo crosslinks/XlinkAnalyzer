@@ -1350,6 +1350,7 @@ class ResourceManager(object):
                 if self.config.frame:
                     self.config.frame.clear()
                 self.config.loadFromDict(data)
+            print self.config.file
             xlinkanalyzer.pushRecentToPrefs(self.config.file)
         return _file
 

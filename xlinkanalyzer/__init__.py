@@ -28,19 +28,17 @@ def getConfig():
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta.configFrame.config
 
-prefs = preferences.addCategory("xlinkanalyzer",preferences.HiddenCategory)
+prefs = preferences.addCategory("xlinkanalyzer", preferences.HiddenCategory)
 
 def pushRecentToPrefs(path):
-    if "path2" in prefs:
-        prefs["path3"]=prefs["path2"]
-    if "path1" in prefs:
-        prefs["path2"]=prefs["path1"]
+    otherPaths = [p for p in getRecentPaths() if p != path]
     prefs["path1"]=path
-    print prefs["path1"]
+    for i, p in zip(range(2,11), otherPaths):
+        prefs["path{0}".format(i)] = p
 
 def getRecentPaths():
     ret = []
-    for s in ["path1","path2","path3"]:
+    for s in ["path"+str(i) for i in range(1,11)]:
         if s in prefs:
             ret.append(prefs[s])
     return ret

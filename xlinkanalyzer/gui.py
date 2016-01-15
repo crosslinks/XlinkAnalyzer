@@ -138,8 +138,8 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         def updateRecent():
             recentMenu.delete(0, "end")
             paths = xlinkanalyzer.getRecentPaths()
-            for i, p in enumerate(paths):
-                recentMenu.add_command(label=p, command=lambda: self.configFrame.onQuickLoad(p))
+            for p in paths:
+                recentMenu.add_command(label=p, command=lambda rebindItem=p: self.configFrame.onQuickLoad(rebindItem))
         recentMenu = Tkinter.Menu(menubar, tearoff=0, postcommand=updateRecent)
         filemenu.add_cascade(label="Load Recent", menu=recentMenu)
         
