@@ -6,7 +6,7 @@ import pyxlinks
 import tkFileDialog
 import csv
 import copy
-from itertools import product, groupby, tee, izip, izip_longest, combinations_with_replacement
+from itertools import product, groupby, tee, izip, izip_longest, combinations_with_replacement, ifilter
 from collections import defaultdict
 from sys import __stdout__
 
@@ -533,6 +533,21 @@ class XlinkDataMgr(DataMgr):
             triggers, trigName, handler = self._handlers.pop()
             triggers.deleteHandler(trigName, handler)
 
+    def scoreFilter(self, xb):
+        '''
+        xb - XlinkBond instance
+        '''
+        return ('ld-Score' in xb.xlink) and xb.xlink['ld-Score'] != '-' and float(xb.xlink['ld-Score']) >= self.minLdScore
+
+    def compFilter(self, xb):
+        return True
+
+    def intraFilter(self, xb):
+        return True
+
+    def interFilter(self, xb):
+        return True
+
     def load(self):
 
         self.ambig_xlink_sets = []
@@ -579,12 +594,7 @@ class XlinkDataMgr(DataMgr):
         self.deletePBG()
         self.xlinkAnalyzer = None
         self.load()
-        if self.smartMode:
-            self.show_xlinks_smart(xlinkanalyzer.XLINK_LEN_THRESHOLD, show_only_one=self.show_only_one)
-        else:
-            self.smartMode = False
-            self.showAllXlinks()            
-        self.hide_by_ld_score(self.minLdScore)
+        self.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode, show_only_one=self.show_only_one)
         restyleXlinks([self], XLINK_LEN_THRESHOLD)
 
     def isCrosslinked(self, resId, chainId):
@@ -893,8 +903,37 @@ class XlinkDataMgr(DataMgr):
             b.display = False
 
     def showAllXlinks(self):
-        for b in self.iterXlinkPseudoBonds():
-            b.display = True
+        self.compFilter = lambda x: True
+        self.interFilter = lambda x: True
+        self.intraFilter = lambda x: True
+        self.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode, show_only_one=self.show_only_one)
+
+    def updateDisplayed(self, threshold=XLINK_LEN_THRESHOLD, smart=True, show_only_one=False):
+
+        def nFilter(filters, objects):
+            for f in filters:
+                objects = ifilter(f, objects)
+            return objects
+
+        for xlink_set in self.ambig_xlink_sets:
+            to_hide = []
+            if smart:
+                to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
+            else:
+                to_show = xlink_set 
+
+            out = nFilter([self.interFilter, self.intraFilter, self.compFilter, self.scoreFilter], to_show)
+            for x in to_show:
+                if x.pb is not None:
+                    if x in out: 
+                        x.pb.display = True
+                    else:
+                        x.pb.display = False
+
+            if to_hide:
+                for x in to_hide:
+                    if x.pb:
+                        x.pb.display = False
 
     def mapXlinkResi(self, name, to=None, hide_others=True):
         if hide_others:
@@ -1057,30 +1096,20 @@ class XlinkDataMgr(DataMgr):
                     atom.color = color
 
     def hide_intra_xlinks(self):
-        for b in self.iterXlinkPseudoBonds():
-            at1, at2 = b.atoms
-            chain1 = get_chain_for_atom(at1)
-            chain2 = get_chain_for_atom(at2)
-            # prot1 = config.chain_to_xquest_name[chain1]
-            prot1 = self.model.config.getSubunitByChain(chain1)
-            # prot2 = config.chain_to_xquest_name[chain2]
-            prot2 = self.model.config.getSubunitByChain(chain2)
-            # prot2 = config.get_xquest_name_from_chain(chain2)
-            if prot1 == prot2 and None not in (prot1, prot2):
-                b.display = False
+        def filter_fn(x):
+            if not pyxlinks.is_intra(x.xlink):
+                return True
+
+        self.intraFilter = filter_fn
+        self.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode, show_only_one=self.show_only_one)
 
     def hideInterxlinks(self):
-        for b in self.iterXlinkPseudoBonds():
-            at1, at2 = b.atoms
-            chain1 = get_chain_for_atom(at1)
-            chain2 = get_chain_for_atom(at2)
-            # prot1 = config.chain_to_xquest_name[chain1]
-            prot1 = self.model.config.getSubunitByChain(chain1)
-            # prot2 = config.chain_to_xquest_name[chain2]
-            prot2 = self.model.config.getSubunitByChain(chain2)
-            # prot2 = config.get_xquest_name_from_chain(chain2)
-            if prot1 != prot2 and None not in (prot1, prot2):
-                b.display = False
+        def filter_fn(x):
+            if not pyxlinks.is_inter(x.xlink):
+                return True
+
+        self.interFilter = filter_fn
+        self.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode, show_only_one=self.show_only_one)
 
     def iter_obj_xlinks(self, skip_mono=True):
         for obj, fs in self.objToXlinksMap.iteritems():
@@ -1097,7 +1126,7 @@ class XlinkDataMgr(DataMgr):
         self.minLdScore = threshold
         for x in self.iter_all_xlinks():
             if x.pb is not None:
-                if float(x.xlink['ld-Score']) < threshold:
+                if not self.scoreFilter(x):
                     x.pb.display = False
 
     def hideFromSelection(self, atomSpec):
@@ -1112,6 +1141,7 @@ class XlinkDataMgr(DataMgr):
     def showOnlyFromSelection(self, atomSpec):
         '''
         Careful: doesn't support smart homo-oligomeric mode!
+        TODO: use updateDisplayed
         '''
         xfrom_sel = selection.OSLSelection(atomSpec)
         xfrom_sel = selection.ItemizedSelection(xfrom_sel.residues())
@@ -1265,53 +1295,35 @@ class XlinkDataMgr(DataMgr):
         return to_show, to_hide
 
     def show_xlinks_smart(self, threshold=XLINK_LEN_THRESHOLD, show_only_one=False):
-        for xlink_set in self.ambig_xlink_sets:
-            to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
-            for x in to_show:
-                if x.pb:
-                    x.pb.display = True
-            for x in to_hide:
-                if x.pb:
-                    x.pb.display = False
+        self.updateDisplayed(smart=True, threshold=threshold, show_only_one=show_only_one)
 
     def show_xlinks_from(self, xfrom, to=None, threshold=XLINK_LEN_THRESHOLD, hide_others=True, smart=True, show_only_one=False):
-        for xlink_set in self.ambig_xlink_sets:
-            if smart:
-                to_show, to_hide = self._get_smart_list(xlink_set, threshold, show_only_one=show_only_one)
-            else:
-                to_show = xlink_set
-                to_hide = []
-
-            to_show_updated = []
-            for x in to_show:
-                # xlinked_subunits = [x.xlink['Protein1'], x.xlink['Protein2']]
-                protein1 = pyxlinks.get_protein(x.xlink, 1)
-                protein2 = pyxlinks.get_protein(x.xlink, 2)
-                xlinked_subunits = [protein1, protein2]
-                if xfrom not in xlinked_subunits:
-                    to_hide.append(x)
+        def xfrom_fn(x):
+            protein1 = pyxlinks.get_protein(x.xlink, 1)
+            protein2 = pyxlinks.get_protein(x.xlink, 2)
+            xlinked_subunits = [protein1, protein2]
+            if xfrom not in xlinked_subunits:
+                if hide_others:
+                    return False
                 else:
-                    if to is not None:
-                        subunits = xlinked_subunits
-                        subunits.remove(xfrom)
-                        subunit_other = subunits[0]
-                        if to != subunit_other:
-                            to_hide.append(x)
+                    return True
+            else:
+                if to is not None:                
+                    subunits = xlinked_subunits
+                    subunits.remove(xfrom)
+                    subunit_other = subunits[0]
+                    if to != subunit_other:
+                        if hide_others:
+                            return False
                         else:
-                            to_show_updated.append(x)
+                            return True
                     else:
-                        to_show_updated.append(x)
+                        return True
+                else:
+                    return True
 
-            for x in to_show_updated:
-                if x.pb is not None:
-                    x.pb.display = True
-                    if float(x.xlink['ld-Score']) < self.minLdScore:
-                        x.pb.display = False
-
-            if hide_others:
-                for x in to_hide:
-                    if x.pb is not None:
-                        x.pb.display = False
+        self.compFilter = xfrom_fn
+        self.updateDisplayed(threshold, smart, show_only_one)
 
     def countSatisfiedBetweenSelections(self, threshold, xfrom=None, xto=None):
         """
