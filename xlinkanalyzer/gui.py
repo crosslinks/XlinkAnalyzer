@@ -17,7 +17,6 @@ from chimera.widgets import ModelScrolledListBoxBase, ModelItems
 from chimera.mplDialog import MPLDialog
 from chimera.tkoptions import ColorOption
 from chimera import UserError,MaterialColor
-from chimera import preferences
 
 from operator import mul
 
@@ -44,37 +43,13 @@ from manager import Model, RMF_Model, XlinkDataMgr, InteractingResiDataMgr, Cons
 import xlinkanalyzer
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import move as xmove
-###########
-# TEMPORARY
-###########
 
 from item import ItemList
 
 DEBUG_MODE = False
 DEV = True
 
-###################
-# Init Preferences
-###################
 
-
-prefs = preferences.addCategory("xlinkanalyzer",preferences.HiddenCategory)
-
-def push(path):
-    if "path2" in prefs:
-        prefs["path3"]=prefs["path2"]
-    if "path1" in prefs:
-        prefs["path2"]=prefs["path1"]
-    prefs["path1"]=path
-    print prefs["path1"]
-
-def getPaths():
-    ret = []
-    for s in ["path1","path2","path3"]:
-        if s in prefs:
-            ret.append(prefs[s])
-    return ret
-    
 class XlinkAnalyzer_Dialog(ModelessDialog):
 
     title = 'Xlink Analyzer v.{0}'.format(xlinkanalyzer.__version__)
@@ -162,7 +137,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
 
         def updateRecent():
             recentMenu.delete(0, "end")
-            paths = getPaths()
+            paths = xlinkanalyzer.getRecentPaths()
             for i, p in enumerate(paths):
                 recentMenu.add_command(label=p, command=lambda: self.configFrame.onQuickLoad(p))
         recentMenu = Tkinter.Menu(menubar, tearoff=0, postcommand=updateRecent)
@@ -1074,7 +1049,6 @@ class SetupFrame(TabFrame):
             self.clear()
             self.update()
             self.mainWindow.setTitle(self.config.file)
-            push(self.config.file)
             self.config.state="unchanged"
 
     def onSaveAs(self):

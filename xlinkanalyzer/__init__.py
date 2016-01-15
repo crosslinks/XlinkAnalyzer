@@ -1,4 +1,6 @@
 import chimera
+from chimera import preferences
+
 # from data import *
 
 from sys import __stdout__
@@ -26,6 +28,22 @@ def getConfig():
         if hasattr(insta, 'name') and insta.name == 'Xlink Analyzer':
             return insta.configFrame.config
 
+prefs = preferences.addCategory("xlinkanalyzer",preferences.HiddenCategory)
+
+def pushRecentToPrefs(path):
+    if "path2" in prefs:
+        prefs["path3"]=prefs["path2"]
+    if "path1" in prefs:
+        prefs["path2"]=prefs["path1"]
+    prefs["path1"]=path
+    print prefs["path1"]
+
+def getRecentPaths():
+    ret = []
+    for s in ["path1","path2","path3"]:
+        if s in prefs:
+            ret.append(prefs[s])
+    return ret
 
 def activateByName(name, chainIds=None):  # this is for testing only
     if name is not None:
