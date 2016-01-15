@@ -1020,7 +1020,8 @@ class SetupFrame(TabFrame):
             self.config.items = []
             self.resMngr.loadAssembly(self, p)
             self.update()
-        
+            self.mainWindow.setTitle(self.config.file)
+            self.config.state="unchanged"        
     
     def onSubcomplexes(self):
         subunitNames = self.config.getSubunitNames()
