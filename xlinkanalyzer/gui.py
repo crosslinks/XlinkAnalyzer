@@ -265,24 +265,6 @@ class SubunitsDomainsOptionMenu(Pmw.OptionMenu):
         idx = self.index(Pmw.SELECT)
         return self.objectsToOptions[idx][0]
 
-
-class SubunitsHandleOptionMenu(Tkinter.OptionMenu):
-    def __init__(self, master):
-        self.var = Tkinter.StringVar(master)
-        defOption = 'Select'
-        self.var.set(defOption)
-
-        options = [
-            'Select',
-            'Show',
-            'Show only',
-            'Hide'
-        ]
-        Tkinter.OptionMenu.__init__(self, master, self.var, *options)
-        self.config(font=('calibri',(10)),bg='white',width=12)
-        self['menu'].config(font=('calibri',(10)), bg='white')
-
-
 class ShowModifiedFrame(Tkinter.Frame):
     def __init__(self, parent, xlinkMgrTabFrame, *args, **kwargs):
         Tkinter.Frame.__init__(self, parent, *args, **kwargs)
