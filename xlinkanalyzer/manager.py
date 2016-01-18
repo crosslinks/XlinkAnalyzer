@@ -1036,9 +1036,6 @@ class XlinkDataMgr(DataMgr):
                 if not to.contains(xlinked_to_comp.name, posTo):
                     bad.append([obj, xlinked_to])
                     continue
-              
-            if to is not None and to.name != xlinked_to:
-                continue
 
             if fromComp is not None and fromComp != subunit:
                 bad.append([obj, xlinked_to])
