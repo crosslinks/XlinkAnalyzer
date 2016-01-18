@@ -1362,7 +1362,7 @@ class ResourceManager(object):
             self.dumpJson(_file)
             self.config.file = _file
             self.state = "unchanged"
-
+            xlinkanalyzer.pushRecentToPrefs(self.config.file)
             return True
         else:
             return False
