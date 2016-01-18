@@ -74,6 +74,35 @@ class Item(object):
     def validate(self):
         return True if type(self.name) == str and len(self.name) > 0 else False
 
+    def explore(self,_class,item=None):
+        if item is None:
+            item = self
+        visited = set()
+        to_crawl = deque([item])
+        while to_crawl:
+            current = to_crawl.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+            node_children = set(current.flatten())
+            to_crawl.extend(node_children - visited)
+        visited = [v for v in visited if (isinstance(v,_class) and not v.fake)]
+        return list(visited)
+
+    def flatten(self,items = []):
+        for obj in self.__dict__.values():
+            if type(obj) == dict:
+                for v in obj.values():
+                    if isinstance(v,Item):
+                        items.append(v)
+            elif type(obj) == list:
+                for v in obj:
+                    if isinstance(v,Item):
+                        items.append(v)
+            else:
+                if isinstance(obj,Item):
+                    items.append(obj)
+        return items
     
 class Chain(Item):
     def __init__(self,_id,item,*args,**kwargs):
