@@ -1427,7 +1427,7 @@ class XlinkMgrTabFrame(TabFrame):
                 data.append(item)
         return data
 
-    def getXlinkDataMgrs(self):
+    def getXlinkDataMgrs(self, update=False):
         self.getActiveModels()
         dataMgrsForActive = []
         for model in self.models:
@@ -1435,13 +1435,16 @@ class XlinkMgrTabFrame(TabFrame):
             for mgr in self.dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap') and mgr.model is model:
                     xlinkDataMgrsForModel.append(mgr)
-            if len(xlinkDataMgrsForModel) == 0:
+            if update and len(xlinkDataMgrsForModel) == 0:
                 xlinkDataMgrsForModel.append(XlinkDataMgr(model, self.getActiveData()))
                 self.dataMgrs.extend(xlinkDataMgrsForModel)
             dataMgrsForActive.extend(xlinkDataMgrsForModel)
         self.restyleXlinks()
 
         return dataMgrsForActive
+
+    def updateXlinkDataMgrs(self):
+        return self.getXlinkDataMgrs(update=True)
 
     def reload(self, name, userData, o):
         if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
@@ -1649,7 +1652,6 @@ class XlinkMgrTabFrame(TabFrame):
         self._configureOligomeric(self.showXlinksFrom)
 
     def displayDefault(self):
-        self.getXlinkDataMgrs()
         self.showAllXlinks()
         self.restyleXlinks()
 
@@ -1695,6 +1697,7 @@ class XlinkMgrTabFrame(TabFrame):
                 mgr.hideInterxlinks()
 
     def showAllXlinks(self):
+        self.updateXlinkDataMgrs()
         dataMgrs = self.getXlinkDataMgrs()
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
