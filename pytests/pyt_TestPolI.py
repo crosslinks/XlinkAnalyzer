@@ -40,3 +40,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
         self.assertEqual(106, displayed)
+
+        #just test open windows
+        g.configFrame.domainsButton.invoke()
+        g.configFrame.subCompButton.invoke()
