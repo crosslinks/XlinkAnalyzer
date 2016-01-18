@@ -17,7 +17,7 @@ from chimera.widgets import ModelScrolledListBoxBase, ModelItems
 from chimera.mplDialog import MPLDialog
 from chimera.tkoptions import ColorOption
 from chimera import UserError,MaterialColor
-
+from chimera.tkgui import aquaMenuBar
 from operator import mul
 
 import Pmw
@@ -106,7 +106,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
     def fillInUI(self, parent):
         self.notebook=Pmw.NoteBook(parent)
 
-        self.notebook.pack(fill = 'both', expand = 1, padx = 10, pady = 10)
+        self.notebook.grid(row=1, padx = 10, pady = 10, sticky='nsew')
 
         self.createLoadDataTab()
         self.notebook.page(self.loadDataTabName).focus_set()
@@ -144,9 +144,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         filemenu.add_cascade(label="Load Recent", menu=recentMenu)
         
         menubar.add_cascade(label="File", menu=filemenu)
-
-        from chimera.tkgui import aquaMenuBar
-        aquaMenuBar(menubar, parent, row = 0)
+        aquaMenuBar(menubar, parent, row=0)
 
     def CiteXlinkAnalyzer(self):
         from chimera import help
