@@ -1134,19 +1134,15 @@ class SubunitsTabFrame(TabFrame):
         self.table.reload()
 
 class LdScoreFilterEntry(EntryField):
-    def __init__(self, parent, var, command):
+    def __init__(self, parent, var):
         self.var = var
         EntryField.__init__(self, parent,
                 labelpos = 'w',
-                value = '0.0',
                 label_text = 'Custom (from 0 to 100)',
                 # validate = {'validator' : 'real'},
                 validate = {'validator' : 'real',
                         'min' : 0, 'max' : 100, 'minstrict' : 1},
-                entry_textvariable = self.var,
-                modifiedcommand = command)
-        command1 = lambda x,y,z: command()
-        self.var.trace('w', command1)
+                entry_textvariable = self.var)
 
 class LdScoreFilterScale(Tkinter.Scale):
     def __init__(self, parent, var):
@@ -1236,7 +1232,7 @@ class XlinkToolbar(Tkinter.Frame):
         customScoresFrame.pack()
         curRow += 1
 
-        self.generalTabldScoreFilter = LdScoreFilterEntry(customScoresFrame, ld_score_var, self.reshowByLdScore)
+        self.generalTabldScoreFilter = LdScoreFilterEntry(customScoresFrame, ld_score_var)
         self.generalTabldScoreFilter.pack()
 
 
@@ -1290,19 +1286,6 @@ class XlinkToolbar(Tkinter.Frame):
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
                 mgr.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.xlinkMgrTabFrame.smartMode.get(), show_only_one=self.xlinkMgrTabFrame.showFirstOnlyOliMode.get())
-
-    def reshowByLdScore(self):
-        val = self.ld_score_var.get()
-        dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs()
-        try:
-            minScore = float(val)
-        except ValueError:
-            pass
-        else:
-            for mgr in dataMgrs:
-                if hasattr(mgr, 'objToXlinksMap'):
-                    mgr.minLdScore = minScore
-                    mgr.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.xlinkMgrTabFrame.smartMode.get(), show_only_one=self.xlinkMgrTabFrame.showFirstOnlyOliMode.get())
 
     def resetView(self):
         dataMgrs = self.xlinkMgrTabFrame.getXlinkDataMgrs() #TODO: remove when modelList widget will be updating self.models and self.dataMgrs
@@ -1523,6 +1506,9 @@ class XlinkMgrTabFrame(TabFrame):
             curRow += 1
 
             self.ld_score_var = Tkinter.DoubleVar()
+            self.ld_score_var.set(0.0)
+            self.ld_score_var.trace('w', self.reshowByLdScore)
+
             self.lengthThreshVar = Tkinter.DoubleVar()
 
             xlinkToolbar = XlinkToolbar(xlNotebook.page(generalTabName), self.ld_score_var, self.lengthThreshVar, self)
@@ -1619,6 +1605,19 @@ class XlinkMgrTabFrame(TabFrame):
             self.modelStatsTable = ModelXlinkStatsTable(body.interior(), self)
 
             self.modelStatsTable.pack(fill='both')
+
+    def reshowByLdScore(self, x, y, z):
+        val = self.ld_score_var.get()
+        dataMgrs = self.getXlinkDataMgrs()
+        try:
+            minScore = float(val)
+        except ValueError:
+            pass
+        else:
+            for mgr in dataMgrs:
+                if hasattr(mgr, 'objToXlinksMap'):
+                    mgr.minLdScore = minScore
+                    mgr.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode.get(), show_only_one=self.showFirstOnlyOliMode.get())
 
     def _configureOligomeric(self, command):
         menu = Toplevel()
