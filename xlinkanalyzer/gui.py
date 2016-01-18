@@ -1369,7 +1369,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 class XlinkMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
-        Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
+        self.renderEmpty()
         self.dataMgrs = []
         self._onModelRemoveHandler = chimera.openModels.addRemoveHandler(self.onModelRemove, None)
         self._addHandlers()
@@ -1379,6 +1379,9 @@ class XlinkMgrTabFrame(TabFrame):
 
         self.smartMode = Tkinter.BooleanVar()
         self.smartMode.set(False)
+
+    def renderEmpty(self):
+        Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
 
     def _addHandlers(self):
         TabFrame._addHandlers(self)
@@ -1447,9 +1450,9 @@ class XlinkMgrTabFrame(TabFrame):
         return self.getXlinkDataMgrs(update=True)
 
     def reload(self, name, userData, o):
-        if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
-            self.clear()
-
+        self.clear()
+        if xlinkanalyzer.XQUEST_DATA_TYPE in [item.type for item in self.config.getDataItems()] or \
+           xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE in [item.type for item in self.config.getDataItems()]:
             xlNotebook = Pmw.NoteBook(self)
             xlNotebook.pack(fill = 'both', expand = 1, padx = 2, pady = 2)
             self.xlNotebook = xlNotebook
@@ -1608,6 +1611,9 @@ class XlinkMgrTabFrame(TabFrame):
             self.modelStatsTable = ModelXlinkStatsTable(body.interior(), self)
 
             self.modelStatsTable.pack(fill='both')
+
+        else:
+            self.renderEmpty()
 
     def reshowByLdScore(self, x, y, z):
         val = self.ld_score_var.get()
