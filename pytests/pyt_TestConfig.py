@@ -18,11 +18,11 @@ class TestConfig_PolI(util.XLABaseTest):
 
     def setUp(self):
         mPaths = ['PolI/4C3H.pdb']
-        cPath = 'PolI/PolI_with_interacting_resi.json'
+        cPath = 'PolI/PolI_with_interacting.json'
         super(TestConfig_PolI, self).setUp(mPaths, cPath)
 
     def testSubunits(self):
-        self.assertEqual(len(self.config.Subunits()), 14)
+        self.assertEqual(len(self.config.getSubunits()), 14)
 
 
 class TestConfig_Rvb12(util.XLABaseTest):
@@ -34,4 +34,4 @@ class TestConfig_Rvb12(util.XLABaseTest):
 
     def testSubunits(self):
         pass
-        # self.assertEqual(len(self.config.Subunits()), 14)
+        # self.assertEqual(len(self.config.getSubunits()), 14)

@@ -19,7 +19,7 @@ class TestPolI(XlaGuiTests.TestLoadFromStructure):
 
     def testThis(self):
         from xlinkanalyzer.data import SubunitMatcher
-        s = SubunitMatcher()
+        s = SubunitMatcher(xla.getConfig())
         self.assertEqual('dna-directed rna polymerase I subunit RPA34',
                         s.getSubunit('sp|P47006|RPA34_YEAST').name)
 
