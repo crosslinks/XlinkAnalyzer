@@ -1215,7 +1215,7 @@ class Assembly(Item):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return compL[0].domains
+                return compL[0].color
             else:
                 return None
         else:
@@ -1248,7 +1248,7 @@ class Assembly(Item):
         if name:
             compL = [i for i in self.subunits if i.name == name]
             if compL:
-                return self.proxify([d for d in compL[0].domains])
+                return [d for d in compL[0].domains]
             else:
                 return None
         else:

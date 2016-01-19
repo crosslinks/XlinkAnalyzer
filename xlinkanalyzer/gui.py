@@ -1345,7 +1345,6 @@ class ColorXlinkedFrame(Tkinter.Frame):
             fromComp = fromCompSel
 
         to = self.compOptMenuTo.getSelected()
-        print type(to)
 
         colorOption = self.colorOptionVar.get()
         color = None
