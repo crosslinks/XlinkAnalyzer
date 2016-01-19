@@ -74,6 +74,8 @@ class FileFrame(Frame):
 
 class MenuFrame(Frame):
     """
+    Drop down menu in Mapping windows
+
     __str__ must be an unique identifier
     """
     def __init__(self,parent,items,callback=None,current=None,*args,**kwargs):
@@ -114,6 +116,11 @@ class MenuFrame(Frame):
             
 class SubsetFrame(Frame):
     def __init__(self,parent,subset,active=False,limit=None,*args,**kwargs):
+        '''
+        Holds a set of mapping drop downs. Each drop down allows to map a subunit to the data key.
+
+        o limit - how many dropdowns max. limit=1 would map {key: [subunit1]}, higher limits allow {key: [subunit1, subunit2, ...]}
+        '''
         Frame.__init__(self,parent,*args,**kwargs)
         self.subset = subset
         self.menus = []
@@ -231,7 +238,6 @@ class MapFrame(Frame):
         for i,key in enumerate(self.mapping.keys()):
             Label(self.listFrame.interior(),text=self.formatKey(key))\
                  .grid(row=i+c,column=0,pady=1,padx=3)
-            #TODO: Change in 1.2
             ssf = SubsetFrame(self.listFrame.interior(),self.mapping.getSubset(key),limit=1)
             self.subsetframes[key] = ssf
             ssf.grid(sticky="w",row=i,column=1)

@@ -342,7 +342,6 @@ class Domain(Item):
 
         for k, sels in out.iteritems():
             out[k] = [':' + ','.join(out[k])]
-            print 'out[k]', out[k]
 
         return out
 
@@ -648,6 +647,9 @@ class FileGroup(object):
 
 class Subset(object):
     def __init__(self,items,chosen=None,getElements=lambda:[]):
+        '''
+        Holds elements for mapping drop downs (all possible as self.items, chosen as self.chosen)
+        '''
         self.items = items
         self.getElements = getElements
         if chosen:
@@ -702,7 +704,7 @@ class Subset(object):
     
     def remove(self,v):
         if v in self.items:
-            self.chosen = self.chosen.remove(v)
+            self.chosen.remove(v)
             
 class Mapping(Item):    
     def __init__(self,dataItem):
@@ -743,7 +745,7 @@ class Mapping(Item):
         if key in self:
             return self.mapping[key]
         else:
-            return Subset([])
+            return Subset(self.getElements(),getElements=self.getElements)
 
     def keys(self):
         return self.dataItem.keys()
@@ -894,7 +896,6 @@ class XQuestItem(DataItem):
 
     def __deepycopy__(self,x):
         super(XQuestItem).__deepcopy__(self)
-        print "copied! "+self.name
 
     def updateData(self):
         if self.resourcePaths():
