@@ -31,7 +31,6 @@ class Item(object):
         self.config = config
         self.fake = fake
         self.sym = True
-        self.defaults = dict()
 
     @property
     def show(self):
@@ -61,6 +60,14 @@ class Item(object):
         _dict.pop("config")
         _dict.pop("fake")
         _dict.pop("sym")
+        if '_active' in _dict:
+            _dict.pop("_active")
+        if '_show' in _dict:
+            _dict.pop("_show")
+
+        #for cleaning old format jsons
+        if 'defaults' in _dict:
+            _dict.pop("defaults")
 
         return _dict
 
@@ -204,6 +211,11 @@ class Subunit(Item):
             _dict.pop("subunitToChain")
         if "chains" in _dict:
             _dict.pop("chains")
+        if "type" in _dict:
+            _dict.pop("type")
+        if "sequence" in _dict:
+            _dict.pop("sequence")
+
         return _dict
 
     def deserialize(self,_dict):
@@ -267,25 +279,22 @@ class Subunit(Item):
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
     def __init__(self,subunit=None,ranges=[[]],\
-                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),chainIds=[],**kwargs):
+                 color=MaterialColor(*[1.0,1.0,1.0,0.0]),**kwargs):
         super(Domain,self).__init__(**kwargs)
         self.subunit = subunit
         self.ranges = self.parseRanges(ranges)
         self.color = color
-        self.chainIds = chainIds
         self.chains = []
         
     def __deepcopy__(self,x):
         r = Domain(name=self.name,config=self.config,subunit=self.subunit,\
-                      ranges=self.ranges,color=self.color,\
-                      chainIds=self.chainIds)
+                      ranges=self.ranges,color=self.color)
         return r
 
     def __eq__(self,other):
         if isinstance(other,self.__class__):
             if other.name == self.name and other.subunit == self.subunit\
-            and other.ranges == self.ranges and other.color == self.color\
-            and other.chainIds == self.chainIds:
+            and other.ranges == self.ranges and other.color == self.color:
                 return True
             else:
                 return False
@@ -378,20 +387,24 @@ class Domain(Item):
         _dict = super(Domain,self).serialize()
         _dict["color"] = self.color.rgba()
         _dict.pop("subunit")
-        _dict.pop("chainIds")
+
+        #for cleaning old format jsons:
         if "chains" in _dict:
             _dict.pop("chains")
+        if 'chainIds' in _dict:
+            _dict.pop("chainIds")
+        if '_chainIds' in _dict:
+            _dict.pop("_chainIds")
+        if "type" in _dict:
+            _dict.pop("type")
+
         return _dict
 
     def deserialize(self,_dict):
-        #TODO: Temporal
         if "subunit" in _dict:
             _dict.pop("subunit")
         for key,value in _dict.items():
-            if key == "chainIds":
-                self.__dict__["_chainIds"] = value
-            else:
-                self.__dict__[key] = value
+            self.__dict__[key] = value
 
         if type(_dict["color"]) == list:
             self.color = chimera.MaterialColor(*_dict["color"])

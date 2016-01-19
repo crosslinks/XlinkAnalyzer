@@ -1,9 +1,7 @@
 {
     "data": [
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
@@ -45,9 +43,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_2_Inter.xls",
@@ -101,9 +97,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_3_Inter.xls",
@@ -157,9 +151,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_4_Inter.xls",
@@ -216,9 +208,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_5_Inter.xls",
@@ -275,9 +265,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_6_Inter.xls",
@@ -334,9 +322,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_a_Inter.xls",
@@ -390,9 +376,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_b_Inter.xls",
@@ -449,9 +433,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_c_Inter.xls",
@@ -505,9 +487,7 @@
             "type": "xquest"
         },
         {
-            "_active": true,
             "active": true,
-            "defaults": {},
             "fileGroup": {
                 "files": [
                     "PolI_sequences.fasta"
@@ -573,17 +553,14 @@
                 0.745,
                 1.0
             ],
-            "defaults": {},
             "domains": [
                 {
-                    "_chainIds": [],
                     "color": [
                         0.0,
                         0.76,
                         0.0,
                         1.0
                     ],
-                    "defaults": {},
                     "name": "A190splitdom",
                     "ranges": [
                         [
@@ -594,15 +571,13 @@
                             200,
                             300
                         ]
-                    ],
-                    "type": "item"
+                    ]
                 }
             ],
             "info": {},
             "name": "A190",
             "selection": ":.A",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -614,13 +589,11 @@
                 0.65,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "A135",
             "selection": ":.B",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -632,13 +605,11 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "AC40",
             "selection": ":.C",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -650,13 +621,11 @@
                 0.5,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "A14",
             "selection": ":.D",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -668,13 +637,11 @@
                 0.5647058823529412,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "ABC27",
             "selection": ":.E",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -686,13 +653,11 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "ABC23",
             "selection": ":.F",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -704,13 +669,11 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "A43",
             "selection": ":.G",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -722,13 +685,11 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "ABC14.5",
             "selection": ":.H",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -740,13 +701,11 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "A12",
             "selection": ":.I",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -758,13 +717,11 @@
                 0.5,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "ABC10beta",
             "selection": ":.J",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -776,13 +733,11 @@
                 0.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "AC19",
             "selection": ":.K",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -794,13 +749,11 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "ABC10alpha",
             "selection": ":.L",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -812,32 +765,27 @@
                 0.6,
                 1.0
             ],
-            "defaults": {},
             "domains": [
                 {
-                    "_chainIds": "",
                     "color": [
                         0.5450980392156862,
                         0.0,
                         0.0,
                         1.0
                     ],
-                    "defaults": {},
                     "name": "A49-tWH",
                     "ranges": [
                         [
                             172,
                             403
                         ]
-                    ],
-                    "type": "item"
+                    ]
                 }
             ],
             "info": {},
             "name": "A49",
             "selection": ":.M",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         },
         {
             "chainIds": [
@@ -849,13 +797,11 @@
                 1.0,
                 1.0
             ],
-            "defaults": {},
             "domains": [],
             "info": {},
             "name": "A34.5",
             "selection": ":.N",
-            "sequence": "",
-            "type": "component"
+            "sequence": ""
         }
     ],
     "xlinkanalyzerVersion": "1.1"

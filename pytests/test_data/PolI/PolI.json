@@ -554,10 +554,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A190",
-            "selection": ":.A",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.A"
         },
         {
             "chainIds": [
@@ -570,10 +569,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A135",
-            "selection": ":.B",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.B"
         },
         {
             "chainIds": [
@@ -586,10 +584,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "AC40",
-            "selection": ":.C",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.C"
         },
         {
             "chainIds": [
@@ -602,10 +599,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A14",
-            "selection": ":.D",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.D"
         },
         {
             "chainIds": [
@@ -618,10 +614,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "ABC27",
-            "selection": ":.E",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.E"
         },
         {
             "chainIds": [
@@ -634,10 +629,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "ABC23",
-            "selection": ":.F",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.F"
         },
         {
             "chainIds": [
@@ -650,10 +644,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A43",
-            "selection": ":.G",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.G"
         },
         {
             "chainIds": [
@@ -666,10 +659,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "ABC14.5",
-            "selection": ":.H",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.H"
         },
         {
             "chainIds": [
@@ -682,10 +674,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A12",
-            "selection": ":.I",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.I"
         },
         {
             "chainIds": [
@@ -698,10 +689,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "ABC10beta",
-            "selection": ":.J",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.J"
         },
         {
             "chainIds": [
@@ -714,10 +704,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "AC19",
-            "selection": ":.K",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.K"
         },
         {
             "chainIds": [
@@ -730,10 +719,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "ABC10alpha",
-            "selection": ":.L",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.L"
         },
         {
             "chainIds": [
@@ -746,10 +734,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A49",
-            "selection": ":.M",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.M"
         },
         {
             "chainIds": [
@@ -762,10 +749,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "A34.5",
-            "selection": ":.N",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.N"
         }
     ],
     "xlinkanalyzerVersion": "1.1"

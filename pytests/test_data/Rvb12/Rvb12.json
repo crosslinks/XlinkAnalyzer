@@ -10,12 +10,25 @@
                 ]
             },
             "mapping": {
+                "Act": [],
+                "Arp4": [],
+                "Arp5": [],
+                "Arp8": [],
+                "Ies1": [],
+                "Ies2": [],
+                "Ies3": [],
+                "Ies4": [],
+                "Ies5": [],
+                "Ies6": [],
+                "Ino80": [],
+                "Nhp10": [],
                 "Rvb1": [
                     "Rvb1"
                 ],
                 "Rvb2": [
                     "Rvb2"
-                ]
+                ],
+                "Taf14": []
             },
             "name": "x",
             "type": "xquest"
@@ -54,9 +67,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "Rvb1",
-            "selection": ":.A,.C,.E",
-            "type": "component"
+            "selection": ":.A,.C,.E"
         },
         {
             "chainIds": [
@@ -71,9 +84,9 @@
                 1.0
             ],
             "domains": [],
+            "info": {},
             "name": "Rvb2",
-            "selection": ":.B,.D,.F",
-            "type": "component"
+            "selection": ":.B,.D,.F"
         }
     ],
     "xlinkanalyzerVersion": "1.1"
