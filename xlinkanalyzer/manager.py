@@ -694,8 +694,6 @@ class XlinkDataMgr(DataMgr):
         # color_visible_xlinking_resi(chimera.colorTable.getColorByName('light gray'))
         runCommand('color light gray #' + str(self.model.getModelId()))
 
-        not_observable = []
-        #1. show all Lys and color gray
         for resi in self.model.iterateResidues():
             color = 'light gray'
             resId = resi.id.position
@@ -706,20 +704,25 @@ class XlinkDataMgr(DataMgr):
 
             observable = self.isExpectedMonolink(resId, chainId, byPredictor=byPredictor, byLength=byLength)
 
-            if is_crosslinkable(resi):
-                if colorExpected:
-                    color = expectedColor
+            show = False
 
-                if colorNotExpected and observable is False:
-                    not_observable.append(resi)
-                    color = 'yellow'
+            if is_crosslinkable(resi) and colorExpected:
+                show = True
+                color = expectedColor
 
-                if colorMonolinked and monolinked:
-                    color = 'blue'
+            if colorNotExpected and observable is False:
+                show = True
+                color = 'yellow'
 
-                if colorXlinked and crosslinked:
-                    color = 'blue'
+            if colorMonolinked and monolinked:
+                show = True
+                color = 'blue'
 
+            if colorXlinked and crosslinked:
+                show = True
+                color = 'blue'
+
+            if show:
                 for atom in resi.atoms:
                     atom.drawMode = chimera.Atom.Sphere
                     atom.display = True
