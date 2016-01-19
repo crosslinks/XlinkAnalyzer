@@ -1302,22 +1302,18 @@ class XlinkDataMgr(DataMgr):
             if xfrom not in xlinked_subunits:
                 if hide_others:
                     return False
-                else:
-                    return True
-            else:
-                if to is not None:                
-                    subunits = xlinked_subunits
-                    subunits.remove(xfrom)
-                    subunit_other = subunits[0]
-                    if to != subunit_other:
-                        if hide_others:
-                            return False
-                        else:
-                            return True
-                    else:
-                        return True
-                else:
-                    return True
+                elif x.pb is not None:
+                    return x.pb.display
+            elif to is not None:                
+                xlinked_subunits.remove(xfrom)
+                subunit_other = xlinked_subunits[0]
+                if to != subunit_other:
+                    if hide_others:
+                        return False
+                    elif x.pb is not None:
+                        return x.pb.display
+
+            return True
 
         self.compFilter = xfrom_fn
         self.updateDisplayed(threshold, smart, show_only_one)

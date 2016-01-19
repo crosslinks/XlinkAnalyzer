@@ -1578,8 +1578,9 @@ class XlinkMgrTabFrame(TabFrame):
             var.set(True)
             self.showXlinksFromTabhideOthersBtn = Tkinter.Checkbutton(xlNotebook.page(showXlinksFromTabName),
                 text="Hide other xlinks",
-                variable=var,
-                command=self.showXlinksFrom)
+                variable=var
+                # command=self.showXlinksFrom
+                )
             self.showXlinksFromTabhideOthersBtn.var = var
             self.showXlinksFromTabhideOthersBtn.grid(row = curRow, columnspan=2)
             curRow += 1
