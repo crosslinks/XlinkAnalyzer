@@ -22,6 +22,9 @@ from chimera.tkoptions import ColorOption
 from data import FileGroup,Mapping,Subset
 from __builtin__ import True
 
+import xlinkanalyzer
+from xlinkanalyzer import getConfig
+
 def is_mac():
     return _platform == "darwin"
 
@@ -653,13 +656,24 @@ class ItemFrame(LabelFrame):
                         self.listFrame.synchronize()
             finally:
                 self.empty()
-        else:
+
+    def validate(self):
+        if not self.fields["type"][3].get() or \
+        not self.fields["name"][3].get():
             title = "Empty Fields"
             message = "Please fill in all fields."
             tkMessageBox.showinfo(title,message,parent=self)
 
-    def validate(self):
-        #no real use for now. maybe rework later
+            return False
+
+        if self.fields["type"][3].get() == 'sequences':
+            if getConfig().getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
+                title = "Error"
+                message = "You cannot add more than one Sequence file."
+                tkMessageBox.showinfo(title,message,parent=self)
+
+                return False                
+
         return True
 
     def empty(self):
