@@ -561,23 +561,7 @@
             "type": "sequences"
         }
     ],
-    "subcomplexes": [
-        {
-            "color": [
-                0.8148148148148148,
-                0.6296296296296297,
-                0.0,
-                1.0
-            ],
-            "defaults": {},
-            "items": [
-                "A135",
-                "testdom"
-            ],
-            "name": "testsubcomplex",
-            "type": "item"
-        }
-    ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -593,20 +577,22 @@
             "domains": [
                 {
                     "_chainIds": [],
-                    "chainIds": [],
-                    "chains": [],
                     "color": [
                         0.0,
-                        0.6666666666666666,
+                        0.76,
                         0.0,
                         1.0
                     ],
                     "defaults": {},
-                    "name": "testdom",
+                    "name": "A190splitdom",
                     "ranges": [
                         [
                             1,
                             100
+                        ],
+                        [
+                            200,
+                            300
                         ]
                     ],
                     "type": "item"
@@ -827,7 +813,26 @@
                 1.0
             ],
             "defaults": {},
-            "domains": [],
+            "domains": [
+                {
+                    "_chainIds": "",
+                    "color": [
+                        0.5450980392156862,
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "defaults": {},
+                    "name": "A49-tWH",
+                    "ranges": [
+                        [
+                            172,
+                            403
+                        ]
+                    ],
+                    "type": "item"
+                }
+            ],
             "info": {},
             "name": "A49",
             "selection": ":.M",

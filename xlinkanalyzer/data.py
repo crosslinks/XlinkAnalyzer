@@ -378,6 +378,9 @@ class Domain(Item):
         _dict = super(Domain,self).serialize()
         _dict["color"] = self.color.rgba()
         _dict.pop("subunit")
+        _dict.pop("chainIds")
+        if "chains" in _dict:
+            _dict.pop("chains")
         return _dict
 
     def deserialize(self,_dict):
