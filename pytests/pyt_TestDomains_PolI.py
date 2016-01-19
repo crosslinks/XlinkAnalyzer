@@ -14,7 +14,7 @@ description = "Tests gui class"
 class TestPolI(XlaGuiTests.XlaBaseTest):
 
     def setUp(self):
-        mPaths = ['PolI/4C3H.pdb']
+        mPaths = ['PolI/4C3H_with_wHTH_start.pdb']
         cPath = 'PolI/PolI_with_domains.json'
         super(TestPolI, self).setUp(mPaths, cPath)
 

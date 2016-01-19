@@ -295,12 +295,9 @@ class Domain(Item):
     def getChains(self):
         selsChains = self.getSelectionsByChain()
         if not self.chains:
-            self.chains = [Chain(c,self,config=self.config) \
-                           for c in self.subunit.chainIds]
-
-            for c in self.chains:
-                sels = [s[0] for s in selsChains[c.id]]
-                c.setSelection(','.join([sel[1:] for sel in sels]))
+            for c, sel in selsChains.iteritems():
+                self.chains.append(Chain(c,self,config=self.config))
+                self.chains[-1].setSelection(sel[0])
         return self.chains
 
     def getSelection(self):
@@ -319,7 +316,10 @@ class Domain(Item):
         return ':' + ','.join(forString)
 
     def getSelectionsByChain(self):
-        '''Return {chain_id: selection} object for use in selecting subset of chains.'''
+        '''Return {chain_id: [[selection]]} object for use in selecting subset of chains.
+
+        I think returns [[selection]] instead of just selection for compatibility with subcomplexes
+        '''
         rStrings = []
         for oneRange in self.ranges:
             if len(oneRange) == 1:
@@ -329,7 +329,11 @@ class Domain(Item):
 
         out = defaultdict(list)
         for chainId, oneRange in itertools.product(self.subunit.chainIds, rStrings):
-            out[chainId].append([':{0}.{1}'.format(oneRange,chainId)])
+            out[chainId].append('{0}.{1}'.format(oneRange,chainId))
+
+        for k, sels in out.iteritems():
+            out[k] = [':' + ','.join(out[k])]
+            print 'out[k]', out[k]
 
         return out
 
