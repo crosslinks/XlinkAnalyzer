@@ -553,21 +553,7 @@
                 "A34.5",
                 "A49-Nter"
             ],
-            "name": "heterodimer",
-            "type": "item"
-        },
-        {
-            "color": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "items": [
-                "A190"
-            ],
-            "name": "testsingle",
-            "type": "item"
+            "name": "heterodimer"
         }
     ],
     "subunits": [

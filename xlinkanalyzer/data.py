@@ -483,6 +483,9 @@ class Subcomplex(Item):
         _dict.pop("dataMap")
         _dict["items"] = [item.name for item in self.items]
         _dict["color"] = self.color.rgba()
+        if "type" in _dict:
+            _dict.pop("type")
+
         return _dict
 
     def getChains(self):
