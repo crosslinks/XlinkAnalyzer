@@ -19,4 +19,25 @@ class TestLoad(XlaGuiTests.XlaBaseTest):
         super(TestLoad, self).setUp(mPaths, cPath)
 
     def testLoad(self):
-        pass
+        ms = xla.get_gui().Subunits.table.modelSelect
+        m = chimera.openModels.list()[0]
+        ms.setvalue([m])
+
+        g = xla.get_gui()
+
+        g.modelSelect.doSync(ms)
+
+        xFrame = g.Xlinks
+
+        xFrame.displayDefault()
+
+        self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
+
+        xmgr = xFrame.getXlinkDataMgrs()[0]
+        self.assertEqual(216, len(xmgr.pbg.pseudoBonds))
+
+        xFrame.ld_score_var.set(30.0)
+
+
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(162, displayed)
