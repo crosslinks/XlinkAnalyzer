@@ -121,7 +121,7 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
             self.addTab('Interacting', InteractingResiMgrTabFrame)
 
         self.notebook.setnaturalsize()
-
+        parent.grid_rowconfigure(1, weight=1)
         self.addMenuBar(parent)
 
     def addMenuBar(self, parent):
