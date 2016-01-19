@@ -1193,6 +1193,8 @@ class Assembly(Item):
 
     def deleteItem(self,item):
         if isinstance(item,Subunit):
+            for domain in item.domains:
+                self.domains.remove(domain)
             if item in self.subunits:
                 self.subunits.remove(item)
         elif isinstance(item,DataItem):
