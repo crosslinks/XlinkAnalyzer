@@ -297,6 +297,7 @@ class ItemFrame(LabelFrame):
                                 {GuiClass:(args,kwargsKeys)} - mostly value=...
         """
         self.analyzeData()
+        print self.fields
         self.initUIElements()
         self.gridUIElelemts()
 
@@ -658,21 +659,22 @@ class ItemFrame(LabelFrame):
                 self.empty()
 
     def validate(self):
-        if not self.fields["type"][3].get() or \
-        not self.fields["name"][3].get():
-            title = "Empty Fields"
-            message = "Please fill in all fields."
-            tkMessageBox.showinfo(title,message,parent=self)
-
-            return False
-
-        if self.fields["type"][3].get() == 'sequences':
-            if getConfig().getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
-                title = "Error"
-                message = "You cannot add more than one Sequence file."
+        if self.fields.get("type"):
+            if not self.fields["type"][3].get() or \
+            not self.fields["name"][3].get():
+                title = "Empty Fields"
+                message = "Please fill in all fields."
                 tkMessageBox.showinfo(title,message,parent=self)
 
-                return False                
+                return False
+
+            if self.fields["type"][3].get() == 'sequences':
+                if getConfig().getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
+                    title = "Error"
+                    message = "You cannot add more than one Sequence file."
+                    tkMessageBox.showinfo(title,message,parent=self)
+
+                    return False                
 
         return True
 
