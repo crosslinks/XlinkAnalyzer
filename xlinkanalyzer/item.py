@@ -297,7 +297,6 @@ class ItemFrame(LabelFrame):
                                 {GuiClass:(args,kwargsKeys)} - mostly value=...
         """
         self.analyzeData()
-        print self.fields
         self.initUIElements()
         self.gridUIElelemts()
 
