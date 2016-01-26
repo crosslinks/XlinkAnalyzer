@@ -1706,6 +1706,8 @@ class XlinkMgrTabFrame(TabFrame):
         dataMgrs = self.getXlinkDataMgrs()
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
+                mgr.smartMode = self.smartMode.get()
+                mgr.show_only_one = self.showFirstOnlyOliMode.get()
                 mgr.showAllXlinks()
 
         self.showXlinksFromTabNameCompOptMenuFrom.var.set(self.showXlinksFromTabNameCompOptMenuFrom.defOption)
