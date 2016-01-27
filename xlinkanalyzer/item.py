@@ -210,6 +210,7 @@ class MapFrame(Frame):
     
     def popUp(self):
         self.pop = Toplevel()
+        self.pop.title("Name mapping")
         self.frame = Frame(self.pop,padx=5,pady=5)
         self.listFrame = ScrolledFrame(self.frame)
         self.similars = self.getSimilarItems()

@@ -1029,7 +1029,10 @@ class SetupFrame(TabFrame):
             message = "Please add some subunits or domains before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
-        ItemList(Toplevel(),self.config,"subcomplexes",True)
+
+        top = Toplevel()
+        top.title("Subcomplexes")
+        ItemList(top,self.config,"subcomplexes",True)
 
     def onDomain(self):
         subunitNames = self.config.getSubunitNames()
@@ -1038,7 +1041,10 @@ class SetupFrame(TabFrame):
             message = "Please add some subunits before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
-        ItemList(Toplevel(),self.config,"domains",True)
+
+        top = Toplevel()
+        top.title("Domains")
+        ItemList(top,self.config,"domains",True)
 
     def onLoadFromStructure(self):
         dialog = LoadFromStructureDialog()
@@ -1629,6 +1635,7 @@ class XlinkMgrTabFrame(TabFrame):
 
     def _configureOligomeric(self, command):
         menu = Toplevel()
+        menu.title("Configure the homo-oligomeric mode")
         w = menu.winfo_screenwidth()
         h = menu.winfo_screenheight()
         x = w/2
