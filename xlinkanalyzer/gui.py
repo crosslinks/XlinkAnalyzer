@@ -1448,6 +1448,13 @@ class XlinkMgrTabFrame(TabFrame):
                 xlinkDataMgrsForModel.append(XlinkDataMgr(model, self.getActiveData()))
                 self.dataMgrs.extend(xlinkDataMgrsForModel)
             dataMgrsForActive.extend(xlinkDataMgrsForModel)
+            for mgr in dataMgrsForActive:
+                try:
+                    minScore = float(self.ld_score_var.get())
+                except ValueError:
+                    pass
+                else:
+                    mgr.minLdScore = minScore
         self.restyleXlinks()
 
         return dataMgrsForActive
