@@ -1384,6 +1384,8 @@ class XlinkMgrTabFrame(TabFrame):
         self.smartMode = Tkinter.BooleanVar()
         self.smartMode.set(False)
 
+        self.ld_score_var = None
+
     def renderEmpty(self):
         Label(self, text="Load cross-files using Setup tab. See Tutorial for instructions.").pack(anchor='w', pady=1)
 
@@ -1514,10 +1516,10 @@ class XlinkMgrTabFrame(TabFrame):
                 .grid(sticky='W', row=curRow, column=1)
 
             curRow += 1
-
-            self.ld_score_var = Tkinter.DoubleVar()
-            self.ld_score_var.set(0.0)
-            self.ld_score_var.trace('w', self.reshowByLdScore)
+            if self.ld_score_var is None:
+                self.ld_score_var = Tkinter.DoubleVar()
+                self.ld_score_var.set(0.0)
+                self.ld_score_var.trace('w', self.reshowByLdScore)
 
             self.lengthThreshVar = Tkinter.DoubleVar()
 
