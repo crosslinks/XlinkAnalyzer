@@ -710,7 +710,7 @@ class XlinkDataMgr(DataMgr):
                 show = True
                 color = expectedColor
 
-            if colorNotExpected and observable is False:
+            if colorNotExpected and observable is False and is_crosslinkable(resi):
                 show = True
                 color = 'yellow'
 
