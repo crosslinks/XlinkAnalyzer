@@ -1,5 +1,5 @@
 '''
-chimera --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"
+chimera --nogui --script "<full path>/XlinkAnalyzer/scripts/get_distances.py file.pdb/cif xlink_file1.csv xlink_file2.csv"
 '''
 
 import os.path
@@ -44,12 +44,9 @@ def loadFromStructure(chimeraModel, xfiles):
     fg = xla.data.FileGroup(files=xfiles)
     xi = xla.data.XQuestItem(fileGroup=fg, config=config)
     config.addItem(xi)
-    for name in xi.getMappingElements()[0]:
-        guess = xi.getMappingDefaults(name)
-        if guess is not None:
-            xi.mapping[name] = [guess.name]
 
-    print 'Mapping (cross-check if not using --proj option): ', xi.mapping
+    print 'Mapping of names to structure: (please check if you are not using --proj option): '
+    print '\n'.join(str(xi.mapping).splitlines()[1:])
 
     return config
 

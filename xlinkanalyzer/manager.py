@@ -582,7 +582,7 @@ class XlinkDataMgr(DataMgr):
                             self.objToXlinksMap[resi_key].extend(xlinks_for_resi)
 
     def onConfigUpdated(self, name, userData, o):
-        self.reload(getConfig())
+        self.reload(self.model.config)
 
     def reload(self, config):
         data = []
@@ -1603,8 +1603,8 @@ class XlinkDataMgr(DataMgr):
 
         xlink - xlink for which to get original xlinks
         """
-        comp1 = getConfig().getSubunitByName(pyxlinks.get_protein(xlink, 1))
-        comp2 = getConfig().getSubunitByName(pyxlinks.get_protein(xlink, 2))
+        comp1 = self.model.config.getSubunitByName(pyxlinks.get_protein(xlink, 1))
+        comp2 = self.model.config.getSubunitByName(pyxlinks.get_protein(xlink, 2))
         resi1 = pyxlinks.get_AbsPos(xlink, 1)
         resi2 = pyxlinks.get_AbsPos(xlink, 2)
 
