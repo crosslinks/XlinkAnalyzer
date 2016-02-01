@@ -1,0 +1,38 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "ALBU_HUMAN": [
+                    "ALBU_HUMAN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "B"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "ALBU_HUMAN",
+            "selection": ":.A,.B",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

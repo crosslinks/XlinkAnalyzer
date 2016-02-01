@@ -1,0 +1,37 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "RF2_ECOLI": [
+                    "RF2_ECOLI"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RF2_ECOLI",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

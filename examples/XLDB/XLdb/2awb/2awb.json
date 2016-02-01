@@ -1,0 +1,77 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "RL15_ECOLI": [
+                    "RL15_ECOLI"
+                ],
+                "RL19_ECOLI": [
+                    "RL19_ECOLI"
+                ],
+                "RL2_ECOLI": [
+                    "RL2_ECOLI"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "L"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RL15_ECOLI",
+            "selection": ":.L",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "P"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RL19_ECOLI",
+            "selection": ":.P",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                1.0,
+                0.412,
+                0.706,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RL2_ECOLI",
+            "selection": ":.C",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

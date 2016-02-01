@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "PYC_HUMAN": [
+                    "PYC_HUMAN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "D",
+                "A",
+                "B",
+                "C"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "PYC_HUMAN",
+            "selection": ":.D,.A,.B,.C",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "RS10_ECOLI": [
+                    "RS10_ECOLI"
+                ],
+                "RS17_ECOLI": [
+                    "RS17_ECOLI"
+                ],
+                "RS4_ECOLI": [
+                    "RS4_ECOLI"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "D"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RS4_ECOLI",
+            "selection": ":.D",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RS10_ECOLI",
+            "selection": ":.J",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "Q"
+            ],
+            "color": [
+                1.0,
+                0.412,
+                0.706,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "RS17_ECOLI",
+            "selection": ":.Q",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

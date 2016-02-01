@@ -1,0 +1,38 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "TIG_ECO57": [
+                    "TIG_ECO57"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "B",
+                "A"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "TIG_ECO57",
+            "selection": ":.B,.A",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

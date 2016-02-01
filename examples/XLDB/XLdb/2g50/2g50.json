@@ -1,0 +1,39 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "KPYM_RABIT": [
+                    "KPYM_RABIT"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "M",
+                "O"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "KPYM_RABIT",
+            "selection": ":.A,.M,.O",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

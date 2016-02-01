@@ -1,0 +1,57 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "BARD1_HUMAN": [
+                    "BARD1_HUMAN"
+                ],
+                "BRCA1_HUMAN": [
+                    "BRCA1_HUMAN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "BRCA1_HUMAN",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "BARD1_HUMAN",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

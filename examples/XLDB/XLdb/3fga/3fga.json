@@ -1,0 +1,77 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "2A5G_HUMAN": [
+                    "2A5G_HUMAN"
+                ],
+                "2AAA_HUMAN": [
+                    "2AAA_HUMAN"
+                ],
+                "PP2AA_HUMAN": [
+                    "PP2AA_HUMAN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "PP2AA_HUMAN",
+            "selection": ":.C",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "2A5G_HUMAN",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                1.0,
+                0.412,
+                0.706,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "2AAA_HUMAN",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "ALDOA_RABIT": [
+                    "ALDOA_RABIT"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "C",
+                "D",
+                "A",
+                "B"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "ALDOA_RABIT",
+            "selection": ":.C,.D,.A,.B",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "CALM_DROME": [
+                    "CALM_DROME"
+                ],
+                "MYLK2_RABIT": [
+                    "MYLK2_RABIT"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "CALM_DROME",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "MYLK2_RABIT",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

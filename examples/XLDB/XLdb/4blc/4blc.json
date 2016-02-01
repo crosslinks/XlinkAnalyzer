@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "CATA_BOVIN": [
+                    "CATA_BOVIN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "B",
+                "D",
+                "A",
+                "C"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "CATA_BOVIN",
+            "selection": ":.B,.D,.A,.C",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

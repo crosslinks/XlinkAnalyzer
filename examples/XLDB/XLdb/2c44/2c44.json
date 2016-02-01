@@ -1,0 +1,39 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "TNAA_ECOLI": [
+                    "TNAA_ECOLI"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A",
+                "C",
+                "D"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "TNAA_ECOLI",
+            "selection": ":.A,.C,.D",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

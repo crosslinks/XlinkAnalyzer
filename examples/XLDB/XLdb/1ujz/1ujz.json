@@ -1,0 +1,57 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "CEA7_ECOLX": [
+                    "CEA7_ECOLX"
+                ],
+                "IMM7_ECOLX": [
+                    "IMM7_ECOLX"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "CEA7_ECOLX",
+            "selection": ":.B",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "componentToChain": {},
+            "domains": null,
+            "name": "IMM7_ECOLX",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}
