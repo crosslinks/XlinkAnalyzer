@@ -1,0 +1,6 @@
+chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py --proj test_data/PolI/PolI.json test_data/PolI/4C3H.pdb"
+
+chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py test_data/PolI/4C3H.pdb test_data/PolI/xlinks/all.csv"
+
+chimera --pypath /struct/cmueller/kosinski/devel/XlinkAnalyzer/xlinkanalyzer --pypath /struct/cmueller/kosinski/devel/pyxlinks/ --nogui --script "/struct/cmueller/kosinski/devel/XlinkAnalyzer/scripts/get_distances.py test_data/Rvb12/yRvb12.hexamer.w_header.pdb test_data/Rvb12/xlinks/inter.csv test_data/Rvb12/xlinks/intra.csv test_data/Rvb12/xlinks/monolinks.csv"
+
