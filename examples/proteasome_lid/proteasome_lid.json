@@ -1,0 +1,701 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "/Users/kosinski/Desktop/Pol3/Pol3_paper/proteasome_lid/proteasome_lid/xlinks/intra.csv",
+                    "/Users/kosinski/Desktop/Pol3/Pol3_paper/proteasome_lid/proteasome_lid/xlinks/inter.csv"
+                ]
+            },
+            "mapping": {
+                "sp|O13563|RPN13_YEAST": [
+                    "26S proteasome regulatory subunit RPN13"
+                ],
+                "sp|O94742|SEM1_YEAST": [
+                    "26S proteasome complex subunit SEM1"
+                ],
+                "sp|P32565|RPN2_YEAST": [
+                    "RPN2"
+                ],
+                "sp|P33297|PRS6A_YEAST": [
+                    "26S protease regulatory subunit 6A"
+                ],
+                "sp|P33298|PRS6B_YEAST": [
+                    "26S protease regulatory subunit 6B homolog"
+                ],
+                "sp|P33299|PRS7_YEAST": [
+                    "26S protease regulatory subunit 7 homolog"
+                ],
+                "sp|P38348|HSM3_YEAST": [],
+                "sp|P38764|RPN1_YEAST": [
+                    "26S proteasome regulatory subunit RPN1"
+                ],
+                "sp|P40016|RPN3_YEAST": [
+                    "RPN3"
+                ],
+                "sp|P40327|PRS4_YEAST": [
+                    "26S protease regulatory subunit 4 homolog"
+                ],
+                "sp|P43588|RPN11_YEAST": [
+                    "26S proteasome regulatory subunit RPN11"
+                ],
+                "sp|P43593|UBP6_YEAST": [],
+                "sp|P53196|RPN14_YEAST": [],
+                "sp|P53549|PRS10_YEAST": [
+                    "26S protease subunit RPT4"
+                ],
+                "sp|Q01939|PRS8_YEAST": [
+                    "26S protease regulatory subunit 8 homolog"
+                ],
+                "sp|Q04062|RPN9_YEAST": [
+                    "26S proteasome regulatory subunit RPN9"
+                ],
+                "sp|Q06103|RPN7_YEAST": [
+                    "RPN7"
+                ],
+                "sp|Q08723|RPN8_YEAST": [
+                    "RPN8"
+                ],
+                "sp|Q12250|RPN5_YEAST": [
+                    "26S proteasome regulatory subunit RPN5"
+                ],
+                "sp|Q12377|RPN6_YEAST": [
+                    "26S proteasome regulatory subunit RPN6"
+                ]
+            },
+            "name": "xlinks",
+            "type": "xquest"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "1"
+            ],
+            "color": [
+                0.4196078431372549,
+                0.5568627450980392,
+                0.13725490196078433,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB1_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P38624"
+            },
+            "name": "proteasome component PRE3",
+            "selection": ":.1"
+        },
+        {
+            "chainIds": [
+                "2"
+            ],
+            "color": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB2_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P25043"
+            },
+            "name": "proteasome component PUP1",
+            "selection": ":.2"
+        },
+        {
+            "chainIds": [
+                "3"
+            ],
+            "color": [
+                0.3333333333333333,
+                0.4196078431372549,
+                0.1843137254901961,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB3_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P25451"
+            },
+            "name": "proteasome component PUP3",
+            "selection": ":.3"
+        },
+        {
+            "chainIds": [
+                "4"
+            ],
+            "color": [
+                0.1843137254901961,
+                0.30980392156862746,
+                0.30980392156862746,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB4_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P22141"
+            },
+            "name": "proteasome component C11",
+            "selection": ":.4"
+        },
+        {
+            "chainIds": [
+                "5"
+            ],
+            "color": [
+                0.6470588235294118,
+                0.16470588235294117,
+                0.16470588235294117,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB5_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P30656"
+            },
+            "name": "proteasome component PRE2",
+            "selection": ":.5"
+        },
+        {
+            "chainIds": [
+                "6"
+            ],
+            "color": [
+                0.4392156862745098,
+                0.5019607843137255,
+                0.5647058823529412,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P23724"
+            },
+            "name": "proteasome component C5",
+            "selection": ":.6"
+        },
+        {
+            "chainIds": [
+                "7"
+            ],
+            "color": [
+                1.0,
+                0.0784313725490196,
+                0.5764705882352941,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSB7_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P30657"
+            },
+            "name": "proteasome component PRE4",
+            "selection": ":.7"
+        },
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.1843137254901961,
+                0.30980392156862746,
+                0.30980392156862746,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA1_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P21243"
+            },
+            "name": "proteasome component C7-\u03b1",
+            "selection": ":.A"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA2_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P23639"
+            },
+            "name": "proteasome component Y7",
+            "selection": ":.B"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                0.12549019607843137,
+                0.6980392156862745,
+                0.6666666666666666,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA3_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P23638"
+            },
+            "name": "proteasome component Y13",
+            "selection": ":.C"
+        },
+        {
+            "chainIds": [
+                "D"
+            ],
+            "color": [
+                0.0,
+                0.39215686274509803,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA4_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P40303"
+            },
+            "name": "proteasome component PRE6",
+            "selection": ":.D"
+        },
+        {
+            "chainIds": [
+                "E"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA5_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P32379"
+            },
+            "name": "proteasome component PUP2",
+            "selection": ":.E"
+        },
+        {
+            "chainIds": [
+                "F"
+            ],
+            "color": [
+                0.6627450980392157,
+                0.6627450980392157,
+                0.6627450980392157,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P40302"
+            },
+            "name": "proteasome component PRE5",
+            "selection": ":.F"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PSA7_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P21242"
+            },
+            "name": "proteasome component C1",
+            "selection": ":.G"
+        },
+        {
+            "chainIds": [
+                "H"
+            ],
+            "color": [
+                0.4980392156862745,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS7_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P33299"
+            },
+            "name": "26S protease regulatory subunit 7 homolog",
+            "selection": ":.H"
+        },
+        {
+            "chainIds": [
+                "I"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS4_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P40327"
+            },
+            "name": "26S protease regulatory subunit 4 homolog",
+            "selection": ":.I"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "color": [
+                0.4117647058823529,
+                0.4117647058823529,
+                0.4117647058823529,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS8_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q01939"
+            },
+            "name": "26S protease regulatory subunit 8 homolog",
+            "selection": ":.J"
+        },
+        {
+            "chainIds": [
+                "K"
+            ],
+            "color": [
+                0.8274509803921568,
+                0.8274509803921568,
+                0.8274509803921568,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS6B_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P33298"
+            },
+            "name": "26S protease regulatory subunit 6B homolog",
+            "selection": ":.K"
+        },
+        {
+            "chainIds": [
+                "L"
+            ],
+            "color": [
+                0.39215686274509803,
+                0.5843137254901961,
+                0.9294117647058824,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS10_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P53549"
+            },
+            "name": "26S protease subunit RPT4",
+            "selection": ":.L"
+        },
+        {
+            "chainIds": [
+                "M"
+            ],
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PRS6A_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P33297"
+            },
+            "name": "26S protease regulatory subunit 6A",
+            "selection": ":.M"
+        },
+        {
+            "chainIds": [
+                "N"
+            ],
+            "color": [
+                0.0,
+                0.5450980392156862,
+                0.5450980392156862,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN2_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P32565"
+            },
+            "name": "RPN2",
+            "selection": ":.N"
+        },
+        {
+            "chainIds": [
+                "O"
+            ],
+            "color": [
+                0.6470588235294118,
+                0.16470588235294117,
+                0.16470588235294117,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN9_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q04062"
+            },
+            "name": "26S proteasome regulatory subunit RPN9",
+            "selection": ":.O"
+        },
+        {
+            "chainIds": [
+                "P"
+            ],
+            "color": [
+                0.6470588235294118,
+                0.16470588235294117,
+                0.16470588235294117,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN5_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q12250"
+            },
+            "name": "26S proteasome regulatory subunit RPN5",
+            "selection": ":.P"
+        },
+        {
+            "chainIds": [
+                "Q"
+            ],
+            "color": [
+                0.6980392156862745,
+                0.13333333333333333,
+                0.13333333333333333,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q12377"
+            },
+            "name": "26S proteasome regulatory subunit RPN6",
+            "selection": ":.Q"
+        },
+        {
+            "chainIds": [
+                "R"
+            ],
+            "color": [
+                0.9568627450980393,
+                0.6431372549019608,
+                0.3764705882352941,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN7_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q06103"
+            },
+            "name": "RPN7",
+            "selection": ":.R"
+        },
+        {
+            "chainIds": [
+                "S"
+            ],
+            "color": [
+                0.1803921568627451,
+                0.5450980392156862,
+                0.3411764705882353,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN3_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P40016"
+            },
+            "name": "RPN3",
+            "selection": ":.S"
+        },
+        {
+            "chainIds": [
+                "T"
+            ],
+            "color": [
+                0.13333333333333333,
+                0.5450980392156862,
+                0.13333333333333333,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN12_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P32496"
+            },
+            "name": "26S proteasome regulatory subunit RPN12",
+            "selection": ":.T"
+        },
+        {
+            "chainIds": [
+                "U"
+            ],
+            "color": [
+                0.7411764705882353,
+                0.7176470588235294,
+                0.4196078431372549,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN8_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q08723"
+            },
+            "name": "RPN8",
+            "selection": ":.U"
+        },
+        {
+            "chainIds": [
+                "V"
+            ],
+            "color": [
+                0.4196078431372549,
+                0.5568627450980392,
+                0.13725490196078433,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN11_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P43588"
+            },
+            "name": "26S proteasome regulatory subunit RPN11",
+            "selection": ":.V"
+        },
+        {
+            "chainIds": [
+                "W"
+            ],
+            "color": [
+                0.7411764705882353,
+                0.7176470588235294,
+                0.4196078431372549,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN10_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P38886"
+            },
+            "name": "RPN10",
+            "selection": ":.W"
+        },
+        {
+            "chainIds": [
+                "X"
+            ],
+            "color": [
+                0.8274509803921568,
+                0.8274509803921568,
+                0.8274509803921568,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN13_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "O13563"
+            },
+            "name": "26S proteasome regulatory subunit RPN13",
+            "selection": ":.X"
+        },
+        {
+            "chainIds": [
+                "Y"
+            ],
+            "color": [
+                0.39215686274509803,
+                0.5843137254901961,
+                0.9294117647058824,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "SEM1_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "O94742"
+            },
+            "name": "26S proteasome complex subunit SEM1",
+            "selection": ":.Y"
+        },
+        {
+            "chainIds": [
+                "Z"
+            ],
+            "color": [
+                0.9803921568627451,
+                0.5019607843137255,
+                0.4470588235294118,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPN1_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P38764"
+            },
+            "name": "26S proteasome regulatory subunit RPN1",
+            "selection": ":.Z"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}
