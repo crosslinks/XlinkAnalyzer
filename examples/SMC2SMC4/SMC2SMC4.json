@@ -1,0 +1,157 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4_holo-complex-Band_i.csv"
+                ]
+            },
+            "mapping": {
+                "CAP-D2": [],
+                "CAP-G": [],
+                "CAP-H": [],
+                "Histone H2A-III": [],
+                "Histone H4 type VIII": [],
+                "SMC2": [
+                    "SMC2"
+                ],
+                "SMC4": [
+                    "SMC4"
+                ]
+            },
+            "name": "SMC2-SMC4_holo-complex-Band_i",
+            "type": "Xlink Analyzer"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4_holo-complex-Band_ii.csv"
+                ]
+            },
+            "mapping": {
+                "CAP-D2": [],
+                "CAP-G": [],
+                "CAP-H": [],
+                "SMC2": [
+                    "SMC2"
+                ],
+                "SMC4": [
+                    "SMC4"
+                ]
+            },
+            "name": "SMC2-SMC4_holo-complex-Band_ii",
+            "type": "Xlink Analyzer"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4_holo-complex-Band_iii.csv"
+                ]
+            },
+            "mapping": {
+                "CAP-D2": [],
+                "CAP-G": [],
+                "CAP-H": [],
+                "Histone H2A-III": [],
+                "Histone H2A.Z": [],
+                "SMC2": [
+                    "SMC2"
+                ],
+                "SMC4": [
+                    "SMC4"
+                ]
+            },
+            "name": "SMC2-SMC4_holo-complex-Band_iii",
+            "type": "Xlink Analyzer"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4-subcomplex.csv"
+                ]
+            },
+            "mapping": {
+                "SMC2": [
+                    "SMC2"
+                ],
+                "SMC4": [
+                    "SMC4"
+                ]
+            },
+            "name": "SMC2-SMC4-subcomplex",
+            "type": "Xlink Analyzer"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4_cohesin.csv"
+                ]
+            },
+            "mapping": {
+                "RAD21": [],
+                "SA-2": [],
+                "SMC1": [],
+                "SMC3": []
+            },
+            "name": "SMC2-SMC4_cohesin",
+            "type": "xquest"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/SMC2-SMC4_in-situ.csv"
+                ]
+            },
+            "mapping": {
+                "CAP-D2": [],
+                "CAP-G": [],
+                "CAP-H": [],
+                "Histone H2A-III": [],
+                "Histone H2A.Z": [],
+                "Histone H4 type VIII": [],
+                "SMC2": [
+                    "SMC2"
+                ],
+                "SMC4": [
+                    "SMC4"
+                ]
+            },
+            "name": "SMC2-SMC4_in-situ",
+            "type": "Xlink Analyzer"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "Y"
+            ],
+            "color": [
+                0.39215686274509803,
+                0.5843137254901961,
+                0.9294117647058824,
+                1.0
+            ],
+            "domains": [],
+            "info": {},
+            "name": "SMC4",
+            "selection": ":.Y"
+        },
+        {
+            "chainIds": [
+                "X"
+            ],
+            "color": [
+                0.13333333333333333,
+                0.5450980392156862,
+                0.13333333333333333,
+                1.0
+            ],
+            "domains": [],
+            "info": {},
+            "name": "SMC2",
+            "selection": ":.X"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}
