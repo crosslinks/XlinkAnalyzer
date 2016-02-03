@@ -1217,6 +1217,8 @@ class Assembly(Item):
                 self.domains.remove(item)
             if item in item.subunit.domains:
                 item.subunit.domains.remove(item)
+            for sub in self.subcomplexes:
+                sub.deleteItem(item)
         elif isinstance(item,Subcomplex):
             if item in self.items:
                 self.items.remove(item)
