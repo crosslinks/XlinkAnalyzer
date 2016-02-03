@@ -476,6 +476,11 @@ class Subcomplex(Item):
     def addItem(self,item):
         if isinstance(item,Domain) or isinstance(item,Subunit):
             self.items.append(item)
+    
+    def deleteItem(self,item):
+        if isinstance(item,Domain) or isinstance(item,Subunit):
+            if item in self.items:
+                self.items.remove(item)
 
     def serialize(self):
         _dict = super(Subcomplex,self).serialize()
