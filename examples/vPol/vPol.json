@@ -165,7 +165,7 @@
     "subunits": [
         {
             "chainIds": [
-                "D"
+                "A"
             ],
             "color": [
                 0.13333333333333333,
@@ -176,11 +176,11 @@
             "domains": [],
             "info": {},
             "name": "PA",
-            "selection": ":.D"
+            "selection": ":.A"
         },
         {
             "chainIds": [
-                "E"
+                "B"
             ],
             "color": [
                 0.39215686274509803,
@@ -191,11 +191,11 @@
             "domains": [],
             "info": {},
             "name": "PB1",
-            "selection": ":.E"
+            "selection": ":.B"
         },
         {
             "chainIds": [
-                "F"
+                "C"
             ],
             "color": [
                 0.9803921568627451,
@@ -206,7 +206,7 @@
             "domains": [],
             "info": {},
             "name": "PB2",
-            "selection": ":.F"
+            "selection": ":.C"
         }
     ],
     "xlinkanalyzerVersion": "1.1"
