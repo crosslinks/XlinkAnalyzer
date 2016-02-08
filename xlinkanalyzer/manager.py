@@ -771,7 +771,8 @@ class XlinkDataMgr(DataMgr):
         xlinkDataSets = self.data
         xlinkSetsCopies = [] #xlinkSets copies with names changed to subunit names
         for xlinkDataSet in xlinkDataSets:
-            xlinkSetsCopies.append(xlinkDataSet.xlinksSets.get_deep_copy())
+            if xlinkDataSet.xlinksSets:
+                xlinkSetsCopies.append(xlinkDataSet.xlinksSets.get_deep_copy())
 
         for xlinkSet, xlinkDataSet in zip(xlinkSetsCopies, xlinkDataSets):
             for xlink in xlinkSet.data:
