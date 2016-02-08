@@ -1,0 +1,374 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/Chen2010/PolII.csv"
+                ]
+            },
+            "mapping": {
+                "sp|P04050|Rpb1": [
+                    "Rpb1"
+                ],
+                "sp|P08518|Rpb2": [
+                    "Rpb2"
+                ],
+                "sp|P16370|Rpb3": [
+                    "Rpb3"
+                ],
+                "sp|P20433|Rpb4": [
+                    "Rpb4"
+                ],
+                "sp|P20434|Rpb5": [
+                    "Rpb5"
+                ],
+                "sp|P20435|Rpb6": [
+                    "Rpb6"
+                ],
+                "sp|P20436|Rpb8": [
+                    "Rpb8"
+                ],
+                "sp|P22139|Rpb10": [
+                    "Rpb10"
+                ],
+                "sp|P27999|Rpb9": [
+                    "Rpb9"
+                ],
+                "sp|P35189|Tfg3": [],
+                "sp|P38902|Rpb11": [
+                    "Rpb11"
+                ],
+                "sp|P40422|Rpb12": [
+                    "Rpb12"
+                ],
+                "sp|P41895|Tfg1": [],
+                "sp|P41896|Tfg2": []
+            },
+            "name": "Chen2010_PolII_high_conf",
+            "type": "xquest"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/Chen2010/PolII_lowConfidence.csv"
+                ]
+            },
+            "mapping": {
+                "sp|P04050|Rpb1": [
+                    "Rpb1"
+                ],
+                "sp|P08518|Rpb2": [
+                    "Rpb2"
+                ],
+                "sp|P16370|Rpb3": [
+                    "Rpb3"
+                ],
+                "sp|P20433|Rpb4": [
+                    "Rpb4"
+                ],
+                "sp|P20434|Rpb5": [
+                    "Rpb5"
+                ],
+                "sp|P20435|Rpb6": [
+                    "Rpb6"
+                ],
+                "sp|P22139|Rpb10": [
+                    "Rpb10"
+                ],
+                "sp|P27999|Rpb9": [
+                    "Rpb9"
+                ],
+                "sp|P34087|Rpb7": [
+                    "Rpb7"
+                ],
+                "sp|P38902|Rpb11": [
+                    "Rpb11"
+                ],
+                "sp|P40422|Rpb12": [
+                    "Rpb12"
+                ]
+            },
+            "name": "Chen2010_PolII_low_conf",
+            "type": "xquest"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/Chen2010/PolII-TFIIF_highConf.csv"
+                ]
+            },
+            "mapping": {
+                "sp|P04050|Rpb1": [
+                    "Rpb1"
+                ],
+                "sp|P08518|Rpb2": [
+                    "Rpb2"
+                ],
+                "sp|P16370|Rpb3": [
+                    "Rpb3"
+                ],
+                "sp|P20433|Rpb4": [
+                    "Rpb4"
+                ],
+                "sp|P20434|Rpb5": [
+                    "Rpb5"
+                ],
+                "sp|P20435|Rpb6": [
+                    "Rpb6"
+                ],
+                "sp|P22139|Rpb10": [
+                    "Rpb10"
+                ],
+                "sp|P27999|Rpb9": [
+                    "Rpb9"
+                ],
+                "sp|P34087|Rpb7": [
+                    "Rpb7"
+                ],
+                "sp|P35189|Tfg3": [],
+                "sp|P38902|Rpb11": [
+                    "Rpb11"
+                ],
+                "sp|P40422|Rpb12": [
+                    "Rpb12"
+                ],
+                "sp|P41895|Tfg1": [],
+                "sp|P41896|Tfg2": []
+            },
+            "name": "Chen2010_PolII_TFIIF",
+            "type": "xquest"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.7450980392156863,
+                0.7450980392156863,
+                0.7450980392156863,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB1_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P04050"
+            },
+            "name": "Rpb1",
+            "selection": ":.A"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.9921568627450981,
+                0.8196078431372549,
+                0.6509803921568628,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB2_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P08518"
+            },
+            "name": "Rpb2",
+            "selection": ":.B"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB3_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P16370"
+            },
+            "name": "Rpb3",
+            "selection": ":.C"
+        },
+        {
+            "chainIds": [
+                "D"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                0.5019607843137255,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB3_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P20433"
+            },
+            "name": "Rpb4",
+            "selection": ":.D"
+        },
+        {
+            "chainIds": [
+                "E"
+            ],
+            "color": [
+                0.8156862745098039,
+                0.12549019607843137,
+                0.5647058823529412,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB5_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P20434"
+            },
+            "name": "Rpb5",
+            "selection": ":.E"
+        },
+        {
+            "chainIds": [
+                "F"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P20435"
+            },
+            "name": "Rpb6",
+            "selection": ":.F"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "color": [
+                0.0,
+                0.5019607843137255,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB6_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P34087"
+            },
+            "name": "Rpb7",
+            "selection": ":.G"
+        },
+        {
+            "chainIds": [
+                "H"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB8_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P20436"
+            },
+            "name": "Rpb8",
+            "selection": ":.H"
+        },
+        {
+            "chainIds": [
+                "I"
+            ],
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB9_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P27999"
+            },
+            "name": "Rpb9",
+            "selection": ":.I"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "color": [
+                0.5019607843137255,
+                1.0,
+                0.5019607843137255,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPBX_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P22139"
+            },
+            "name": "Rpb10",
+            "selection": ":.J"
+        },
+        {
+            "chainIds": [
+                "K"
+            ],
+            "color": [
+                1.0,
+                0.6470588235294118,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPBY_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P38902"
+            },
+            "name": "Rpb11",
+            "selection": ":.K"
+        },
+        {
+            "chainIds": [
+                "L"
+            ],
+            "color": [
+                0.5450980392156862,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPCX_YEAST",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P40422"
+            },
+            "name": "Rpb12",
+            "selection": ":.L"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

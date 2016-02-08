@@ -2,53 +2,34 @@
     "data": [
         {
             "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/inter.csv",
+                    "xlinks/intra.csv",
+                    "xlinks/monolinks.csv"
+                ]
+            },
             "informed": false,
             "mapping": {
-                "Act": [
-                    ""
-                ],
-                "Arp4": [
-                    ""
-                ],
-                "Arp5": [
-                    ""
-                ],
-                "Arp8": [
-                    ""
-                ],
-                "Ies1": [
-                    ""
-                ],
-                "Ies2": [
-                    ""
-                ],
-                "Ies3": [
-                    ""
-                ],
-                "Ies4": [
-                    ""
-                ],
-                "Ies5": [
-                    ""
-                ],
-                "Ies6": [
-                    ""
-                ],
-                "Ino80": [
-                    ""
-                ],
-                "Nhp10": [
-                    ""
-                ],
+                "Act": [],
+                "Arp4": [],
+                "Arp5": [],
+                "Arp8": [],
+                "Ies1": [],
+                "Ies2": [],
+                "Ies3": [],
+                "Ies4": [],
+                "Ies5": [],
+                "Ies6": [],
+                "Ino80": [],
+                "Nhp10": [],
                 "Rvb1": [
                     "Rvb1"
                 ],
                 "Rvb2": [
                     "Rvb2"
                 ],
-                "Taf14": [
-                    ""
-                ]
+                "Taf14": []
             },
             "name": "xlinks",
             "resource": [
@@ -56,27 +37,15 @@
                 "xlinks/intra.csv",
                 "xlinks/monolinks.csv"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "Ies6",
-                "Ies5",
-                "Ies4",
-                "Ies3",
-                "Ino80",
-                "Ies1",
-                "Ies2",
-                "Rvb2",
-                "Nhp10",
-                "Rvb1",
-                "Arp8",
-                "Act",
-                "Taf14",
-                "Arp5",
-                "Arp4"
-            ]
+            "type": "xquest"
         },
         {
             "active": true,
+            "fileGroup": {
+                "files": [
+                    "sequences.yeast.fasta"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|Q03940|RUVB1_YEAST RuvB-like protein 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RVB1 PE=1 SV=1": [
@@ -93,6 +62,7 @@
             "type": "sequences"
         }
     ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -112,11 +82,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "Rvb1",
-            "selection": ":.A,.C,.E",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.A,.C,.E"
         },
         {
             "chainIds": [
@@ -136,12 +105,11 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "Rvb2",
-            "selection": ":.B,.D,.F",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.B,.D,.F"
         }
     ],
-    "xlinkanalyzerVersion": "0.1"
+    "xlinkanalyzerVersion": "1.1"
 }
