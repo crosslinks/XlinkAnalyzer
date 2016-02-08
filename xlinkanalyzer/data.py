@@ -588,8 +588,7 @@ class File(object):
         return self.__str__()
 
     def getResourcePath(self):
-        path = self.path
-        return path
+        return self.path
 
     def serialize(self):
         #Normalize just in case:
@@ -647,7 +646,8 @@ class FileGroup(object):
         return _file
 
     def getResourcePaths(self):
-        return [f.getResourcePath() for f in self.files]
+        ret = [f.getResourcePath() for f in self.files if f.validate()]
+        return ret
 
     def empty(self):
         self.files = []
@@ -844,7 +844,7 @@ class DataItem(Item):
         map(self.fileGroup.addFile,filePaths)
 
     def resourcePaths(self):
-        return [f.getResourcePath() for f in self.fileGroup]
+        return [f.getResourcePath() for f in self.fileGroup if f.validate()]
 
     def deserialize(self,_dict):
         missing = []
