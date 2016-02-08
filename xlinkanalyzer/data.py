@@ -14,6 +14,7 @@ from os.path import relpath, normpath, dirname, commonprefix, samefile
 from chimera import MaterialColor
 from MultAlignViewer.parsers import readFASTA
 from pyxlinks import XlinksSet
+import tkMessageBox
 
 import xlinkanalyzer
 from xlinkanalyzer import minify_json
@@ -588,8 +589,6 @@ class File(object):
 
     def getResourcePath(self):
         path = self.path
-        # if not os.path.exists(path):
-        #     path = ""
         return path
 
     def serialize(self):
@@ -633,18 +632,21 @@ class FileGroup(object):
         return _dict
 
     def deserialize(self,_dict, root):
+        missing = []
         if "files" in _dict:
             for f in _dict["files"]:
-                self.addFile(os.path.join(root, f))
-        # self.locate()
+                _file = self.addFile(os.path.join(root, f))
+                if not _file.validate():
+                    missing.append(os.path.join(root, f))
+        return missing
 
     def addFile(self,_file):
         if not isinstance(_file,File):
             _file = File(_file)
         self.files.append(_file)
+        return _file
 
     def getResourcePaths(self):
-        # self.locate()
         return [f.getResourcePath() for f in self.files]
 
     def empty(self):
@@ -845,9 +847,10 @@ class DataItem(Item):
         return [f.getResourcePath() for f in self.fileGroup]
 
     def deserialize(self,_dict):
+        missing = []
         if "fileGroup" in _dict:
             fileGroup = FileGroup()
-            fileGroup.deserialize(_dict["fileGroup"], self.config.root)
+            missing = fileGroup.deserialize(_dict["fileGroup"], self.config.root)
             self.__dict__["fileGroup"] = fileGroup
             _dict.pop("fileGroup")
         if "mapping" in _dict:
@@ -859,6 +862,7 @@ class DataItem(Item):
             _dict.pop("mapping")
         super(DataItem,self).deserialize(_dict)
         self.updateData()
+        return missing
 
     def serialize(self):
         _dict = super(DataItem,self).serialize()
@@ -1077,6 +1081,7 @@ class Assembly(Item):
 
 
     def loadFromDict(self,_dict):
+        missing = []
         self.clear()
         classDir = dict([(xlinkanalyzer.XQUEST_DATA_TYPE,XQuestItem),\
                         (xlinkanalyzer.XLINK_ANALYZER_DATA_TYPE,XlinkAnalyzerItem),\
@@ -1113,9 +1118,10 @@ class Assembly(Item):
             #load DataItems in new format
             elif "fileGroup" in dataD:
                 d = classDir[dataD["type"]](config=self)
-                d.deserialize(dataD)
+                missing += d.deserialize(dataD)
             self.addItem(d)
         self.domains = self.getDomains()
+        return missing
     #KILL IT! KILL IT WITH FIRE!
     def loadFromStructure(self, m):
         def getAddedBySeq(newS, m):
@@ -1157,8 +1163,8 @@ class Assembly(Item):
 
                 else:
                     oldSubunit.addChain(str(s.chain))
-
-
+    
+    
     def convert(self,_input):
         """
         Encodes Unicode, List and Dict instances to utf-8
@@ -1175,7 +1181,6 @@ class Assembly(Item):
 
 
     def getColor(self, name):
-        #TODO: Try to simplify
         color = chimera.MaterialColor(*[0.0]*4)
         if self.getSubunitColors(name):
             colorCfg = self.getSubunitColors(name)
@@ -1405,16 +1410,22 @@ class ResourceManager(object):
             _file = tkFileDialog.askopenfilename(title="Choose file",\
                                                  parent=parent)
         if _file:
+            missing = []
             self.config.file = _file
             with open(_file,'r') as f:
                 data = json.loads(minify_json.json_minify(f.read()))
                 self.config.root = dirname(_file)
                 if self.config.frame:
                     self.config.frame.clear()
-                self.config.loadFromDict(data)
+                missing += self.config.loadFromDict(data)
             xlinkanalyzer.pushRecentToPrefs(self.config.file)
+            if missing:
+                mstring = ""
+                for f in missing:
+                    mstring += (str(f)+"\n")
+                tkMessageBox.showwarning("Missing files!", mstring)
         return _file
-
+    
     def dumpJson(self,_file):
         with open(_file,'w') as f:
             self.config.root = dirname(_file)
