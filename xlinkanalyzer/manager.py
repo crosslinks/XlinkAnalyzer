@@ -588,8 +588,8 @@ class XlinkDataMgr(DataMgr):
         data = []
         for item in config.dataItems:
             if xlinkanalyzer.data.isXlinkItem(item):
-                if item.data.active:
-                    data.append(item.data)
+                if item.active:
+                    data.append(item)
         self.data = data
         self.deletePBG()
         self.xlinkAnalyzer = None
