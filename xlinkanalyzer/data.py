@@ -1227,6 +1227,8 @@ class Assembly(Item):
         elif isinstance(item,Subcomplex):
             if item in self.items:
                 self.items.remove(item)
+            if item in self.subcomplexes:
+                self.subcomplexes.remove(item)
         self.state = "changed"
 
     def getSubunitByName(self,name):
