@@ -898,7 +898,6 @@ class XQuestItem(DataItem):
     def __init__(self,**kwargs):
         super(XQuestItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
-        self.data={}
         self.xQuestNames = []
         self.xlinksSets = []
         self.updateData()
@@ -914,8 +913,6 @@ class XQuestItem(DataItem):
 
             self.xlinksSets = sum(xlinksSets)
             self.xQuestNames = self.xlinksSets.get_protein_names()
-
-            self.data = self
 
             self.xQuestNames = list(self.xlinksSets.get_protein_names())
 
