@@ -69,7 +69,7 @@ class Item(object):
         #for cleaning old format jsons
         if 'defaults' in _dict:
             _dict.pop("defaults")
-
+    
         return _dict
 
     def deserialize(self,_dict):
@@ -1034,6 +1034,7 @@ class Assembly(Item):
         self.subunitToChain = {}
         self.chainToSubunit = {}
         self.chainToProtein = {}
+        self.excessive = {}
 
         self.dataMap = dict([\
             ("domains",Domain(config = self,subunit=Subunit(config=self,fake=True),fake=True)),\
@@ -1088,9 +1089,13 @@ class Assembly(Item):
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
                          (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
-        subunits = _dict.get("subunits")
-        subcomplexes = _dict.get("subcomplexes")
-        dataItems = _dict.get("data")
+        subunits = _dict.pop("subunits")
+        subcomplexes = _dict.pop("subcomplexes")
+        dataItems = _dict.pop("data")
+        
+        
+        for k,v in _dict.items():
+            self.excessive[k] = v
         
         #first, load all Items that might appear in a mapping later on
         for subD in subunits:
@@ -1104,10 +1109,17 @@ class Assembly(Item):
                 self.addItem(s)
         #then, load DataItems
         for dataD in dataItems:
+            d = None
             #SimpleDataItems, no file references
             if "data" in dataD:
-                d = classDir[dataD["type"]]\
+                if dataD["type"] in classDir:
+                    d = classDir[dataD["type"]]\
                     (name=dataD["name"],config=self,data=dataD["data"])
+                else:
+                    if "data" in self.excessive:
+                        self.excessive["data"].append(dataD)
+                    else:
+                        self.excessive["data"] = [dataD]
             #load DataItems in old format, deprecate at some point
             elif "resource" in dataD:
                 paths = [os.path.join(self.root, r) for r in dataD["resource"]]
@@ -1119,7 +1131,8 @@ class Assembly(Item):
             elif "fileGroup" in dataD:
                 d = classDir[dataD["type"]](config=self)
                 missing += d.deserialize(dataD)
-            self.addItem(d)
+            if d:
+                self.addItem(d)
         self.domains = self.getDomains()
         return missing
     #KILL IT! KILL IT WITH FIRE!
@@ -1355,6 +1368,13 @@ class Assembly(Item):
         _dict["subunits"] = [subunit.serialize() for subunit in self.subunits]
         _dict["data"] = [dataItem.serialize() for dataItem in self.dataItems]
         _dict["subcomplexes"] = [sub.serialize() for sub in self.subcomplexes]
+            
+        for k,v in self.excessive.items():
+            if k == "data":
+                for w in v:
+                    _dict["data"].append(w)
+            else:
+                _dict[k] = v
         return _dict
 
     def dataItems(self):
