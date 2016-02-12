@@ -1879,8 +1879,44 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
+class CustomSortableTable(SortableTable):
+    '''
+    Hacked to update the first column after Checkbutton click
+    '''
+    def _widgetCB(self, datum, column, newVal=None):
+        SortableTable._widgetCB(self, datum, column, newVal)
+
+        activeColIdx = 0
+
+        #TODO: checking if the active col was clicked
+
+        sortData = self._sortedData()
+        for row, datum in enumerate(sortData):
+            for col, column in enumerate([c for c in self.columns if c.display]):
+                if col == activeColIdx:
+                    self.updateCellWidget(datum,column)
+
 class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
+        '''
+        In Show chains mode, Chains are dynamically created for Subunits and Domains.
+        So sort of artificial Chains are created for Domains.
+
+        = Activating for move: =
+        How it works:
+        getMovableAtoms:
+         1. collects
+            active "parent" items, i.e. Subunits and Chains of Subunits
+            and active "children", i.e.  Domains and Chains of Domains
+         2. collects all atoms of these items.
+         3. collects all atoms of inactive children
+         4. subtracts inactive atoms from active atomSpecs
+         5. the result is passed to SelectionMover
+
+        getMovableAtoms does not collect atoms from Subcomplexes,
+        because activating/disactivating Subcomplexes automatically 
+        affects active status of its children (Subunits and Domains).
+        '''
         Frame.__init__(self,parent,*args,**kwargs)
 
         self.config = config
@@ -1977,7 +2013,7 @@ class ComponentTable(Frame):
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
 
-        self.table = SortableTable(self, allowUserSorting=False)
+        self.table = CustomSortableTable(self, allowUserSorting=False)
         self.table.addColumn("Active", "active",format=bool)
         self.table.addColumn("Show", "show",format=bool)
         if DEV:
@@ -2044,6 +2080,14 @@ class ComponentTable(Frame):
     def onDeactivate(self):
         for item in self.table.selected():
             item.active = False
+            # if item in self.config.domains+self.config.subunits:
+            #     for subcomp in self.config.subcomplexes:
+            #         if item in subcomp.items:
+            #             subcomp._active = False #using ._active instead of .active to not inactivate other parts of subcomplex
+
+        # for subcomp in self.config.subcomplexes:
+        #     if not all([item.active for item in subcomp.items]):
+        #         subcomp._active = False
         self.table.refresh()
 
     def onShow(self):
@@ -2104,8 +2148,64 @@ class ComponentTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):
-        return [item for item in self.table.data if item.active]
+    def getActiveParents(self):
+        '''
+        Return active Subunits or Subunit Chains.
+
+        Do not return active Subcomplexes - their activating works through activating their items
+        '''
+        out = []
+        if self.chainVar.get():
+            for item in self.table.data:
+                if item.active and item.item in self.config.subunits:
+                    out.append(item)
+        else:
+            for item in self.table.data:
+                if item.active and item in self.config.subunits:
+                    out.append(item)
+
+        return out
+
+    def getActiveChildren(self):
+        '''
+        Return active Subunits, Domains and Chains.
+
+        Do not return active Subcomplexes - their activating works through activating their items
+        '''
+        out = []
+        if self.chainVar.get():
+            for item in self.table.data:
+                if item.item in self.config.subunits:
+                    for child in item.item.getChildren(): #WRONG
+                        if child.active:
+                            out.append(child)
+        else:
+            for item in self.table.data:
+                if item in self.config.subunits:
+                    for child in item.domains:
+                        if child.active:
+                            out.append(child)
+
+        return out
+
+    def getInActiveChildren(self):
+        '''
+        Return inactive Subunits, Domains and Chains.
+
+        Do not return active Subcomplexes - their activating works through activating their items
+        '''
+        out = []
+        if self.chainVar.get():
+            for item in self.table.data:
+                if (not item.active) and item.item in self.config.domains:
+                    out.append(item)
+        else:
+            for item in self.table.data:
+                if (not item.active) and item in self.config.domains:
+                    out.append(item)
+
+        return out
+
 
     def getCurrentSelections(self):
         sels = []
@@ -2115,21 +2215,76 @@ class ComponentTable(Frame):
 
         return sels
 
-    def getMovableAtomSpecs(self):
+    def getActiveComponents(self):
+        return [item for item in self.table.data if item.active]
+
+    def getInactiveComponents(self):
+        return [item for item in self.table.data if not item.active]
+
+   # def getInactiveSelections(self):
+   #     sels = []
+   #     for comp in self.getInactiveComponents():
+   #         sels.append(comp.getSelection())
+   #     print 'inactive', sels
+   #     return sels
+
+    def getAtomSpecsFromSels(self, sels):
         activeModelIds = []
         self.getActiveModels()
         for model in self.models:
             if model.active:
                 activeModelIds.append(model.getModelId())
-
-        currentSelections = self.getCurrentSelections()
+ 
         atomSpecs = []
-        for modelId, sel in itertools.product(activeModelIds, currentSelections):
+        for modelId, sel in itertools.product(activeModelIds, sels):
             if not sel.startswith(':'):
                 sel = ':' + sel
             atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
+
+    def getMovableAtoms(self):
+        if (len(self.getActiveComponents()) != len(self.table.data)
+            or len(self.getActiveComponents()) == 1):
+            from chimera.specifier import evalSpec
+            activeSels = []
+            for comp in self.getActiveParents() + self.getActiveChildren():
+                activeSels.append(comp.getSelection())
+            # print self.getActiveParents() + self.getActiveChildren()
+            activeSpecs = self.getAtomSpecsFromSels(activeSels)
+            activeAtoms = set([])
+            for selection in activeSpecs:
+                activeAtoms.update(evalSpec(selection).atoms())
+
+
+            inactiveSels = []
+            for comp in self.getInActiveChildren():
+                inactiveSels.append(comp.getSelection())
+            # print self.getInActiveChildren()
+            inactiveSpecs = self.getAtomSpecsFromSels(inactiveSels)
+            inactiveAtoms = set([])
+            for selection in inactiveSpecs:
+                inactiveAtoms.update(evalSpec(selection).atoms())
+
+            return activeAtoms - inactiveAtoms
+        else:
+            return []
+
+    # def getMovableAtomSpecs(self):
+    #     activeModelIds = []
+    #     self.getActiveModels()
+    #     for model in self.models:
+    #         if model.active:
+    #             activeModelIds.append(model.getModelId())
+
+    #     currentSelections = self.getCurrentSelections()
+    #     atomSpecs = []
+    #     for modelId, sel in itertools.product(activeModelIds, currentSelections):
+    #         if not sel.startswith(':'):
+    #             sel = ':' + sel
+    #         atomSpecs.append('#{0}{1}'.format(modelId, sel))
+
+    #     return atomSpecs
 
 
 def is_mac():

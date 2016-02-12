@@ -122,6 +122,21 @@ class Chain(Item):
 
         self.setSelection(':.'+_id)
 
+    @Item.active.setter
+    def active(self, val):
+        self._active = val
+        if hasattr(self.item, 'domains'):
+            for dom in self.item.domains:
+                for chain in dom.getChains():
+                    if chain.id == self.id:
+                        chain.active = val
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
     def setSelection(self,sel):
         self.selection = sel
 
@@ -271,11 +286,17 @@ class Subunit(Item):
 
         chimera.triggers.activateTrigger('component shown/hidden', self)
 
-    @Item.active.setter
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.getChains()])
+        return self._active
+
+    @active.setter
     def active(self, val):
         self._active = val
         for child in self.getChildren():
-            child._active = val
+            child.active = val
+
 
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
@@ -301,6 +322,17 @@ class Domain(Item):
                 return False
         else:
             return False
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.getChains()])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChains():
+            child.active = val
 
     def getChains(self):
         selsChains = self.getSelectionsByChain()
@@ -456,6 +488,17 @@ class Subcomplex(Item):
         self.dataMap = dict([("items",\
             [Domain(config=self.config,fake=True),\
              Subunit(config=self.config,fake=True)])])
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.items])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.items:
+            child.active = val
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
