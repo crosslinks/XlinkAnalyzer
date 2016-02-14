@@ -647,6 +647,7 @@ class ItemFrame(LabelFrame):
                             cp = deepcopy(self.data)
                         self.listFrame.container.addItem(cp)
                         self.listFrame.synchronize()
+                        self.listFrame.toBottom()
                 elif self.differs:
                     _type = self.fields["Type"][3].get()
                     name = self.fields["Choose"][3].get()
@@ -655,6 +656,7 @@ class ItemFrame(LabelFrame):
                     if self.listFrame:
                         self.listFrame.container.addItem(choice)
                         self.listFrame.synchronize()
+                        self.listFrame.toBottom()
             finally:
                 self.empty()
 
@@ -817,6 +819,9 @@ class ItemList(LabelFrame):
         self.analyzeData()
         self.initUIElements()
         self.gridUIElements()
+
+    def toBottom(self):
+        self.scrolledFrame.yview(mode="moveto",value=1.0)
 
     def analyzeData(self):
         pass
