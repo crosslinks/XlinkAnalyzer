@@ -1887,13 +1887,16 @@ class CustomSortableTable(SortableTable):
         SortableTable._widgetCB(self, datum, column, newVal)
 
         activeColIdx = 0
+        showColIdx = 1
 
-        #TODO: checking if the active col was clicked
+        #TODO: checking which col was clicked and update only that one
 
         sortData = self._sortedData()
         for row, datum in enumerate(sortData):
             for col, column in enumerate([c for c in self.columns if c.display]):
                 if col == activeColIdx:
+                    self.updateCellWidget(datum,column)
+                if col == showColIdx:
                     self.updateCellWidget(datum,column)
 
 class ComponentTable(Frame):
@@ -2035,6 +2038,7 @@ class ComponentTable(Frame):
         Frame.destroy(self)
 
     def onCompShowChange(self, trigger, userData, comp):
+        # print "onCompShowChange", comp.name
         self.getActiveModels()
         for model in self.models:
             if comp.show:
@@ -2174,11 +2178,13 @@ class ComponentTable(Frame):
         '''
         out = []
         if self.chainVar.get():
-            for item in self.table.data:
-                if item.item in self.config.subunits:
-                    for child in item.item.getChildren(): #WRONG
+            for chain in self.table.data:
+                if chain.item in self.config.subunits:
+                    for child in chain.item.getChildren():
                         if child.active:
                             out.append(child)
+                elif chain.item in self.config.domains:
+                    out.append(chain)
         else:
             for item in self.table.data:
                 if item in self.config.subunits:

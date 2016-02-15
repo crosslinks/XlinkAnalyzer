@@ -131,6 +131,17 @@ class Chain(Item):
                     if chain.id == self.id:
                         chain.active = val
 
+    @Item.show.setter
+    def show(self, val):
+        # chimera.triggers.blockTrigger('component shown/hidden')
+        if hasattr(self.item, 'domains'):
+            for dom in self.item.domains:
+                for chain in dom.getChains():
+                    if chain.id == self.id:
+                        chain._show = val # _show to not to activate children's triggers
+        Item.show.fset(self, val)
+        # chimera.triggers.releaseTrigger('component shown/hidden')
+
     def __repr__(self):
         return self.name
 
@@ -156,6 +167,33 @@ class Subunit(Item):
         self.domains = []
         self.chains = []
         self.info = {}
+
+    @Item.show.getter
+    def show(self):
+        self._show = all([item.show for item in self.getChains()])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        for child in self.getChains():
+            child.show = val # do show by activating children's (chains) triggers
+        for child in self.domains:
+            child._show = val # do not activate domains triggers
+
+        self._show = val # do not call Item setter, to not to call the trigger
+        chimera.triggers.releaseTrigger('component shown/hidden')
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.getChains()])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChildren():
+            child.active = val
 
     def getChains(self):
         if not self.chains:
@@ -278,25 +316,6 @@ class Subunit(Item):
     def getChildren(self):
         return self.domains + self.getChains()
 
-    @Item.show.setter
-    def show(self, val):
-        self._show = val
-        for child in self.getChildren():
-            child._show = val # _show to not to activate children's triggers
-
-        chimera.triggers.activateTrigger('component shown/hidden', self)
-
-    @Item.active.getter
-    def active(self):
-        self._active = all([item.active for item in self.getChains()])
-        return self._active
-
-    @active.setter
-    def active(self, val):
-        self._active = val
-        for child in self.getChildren():
-            child.active = val
-
 
 class Domain(Item):
     SHOW = ["name","subunit","ranges","color"]
@@ -322,6 +341,21 @@ class Domain(Item):
                 return False
         else:
             return False
+
+    @Item.show.getter
+    def show(self):
+        self._show = all([item.show for item in self.getChains()])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        for child in self.getChains():
+            child.show = val #do show by activating chains' triggers
+
+        self._show = val
+        # Item.show.fset(self, val)
+        chimera.triggers.releaseTrigger('component shown/hidden')
 
     @Item.active.getter
     def active(self):
@@ -488,6 +522,21 @@ class Subcomplex(Item):
         self.dataMap = dict([("items",\
             [Domain(config=self.config,fake=True),\
              Subunit(config=self.config,fake=True)])])
+
+    @Item.show.getter
+    def show(self):
+        self._show = any([item.show for item in self.items])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        self._show = val
+        for child in self.items:
+            child.show = val # do show by activating children's (chains) triggers
+
+        self._show = val # do not call Item setter, to not to call the trigger
+        chimera.triggers.releaseTrigger('component shown/hidden')
 
     @Item.active.getter
     def active(self):
