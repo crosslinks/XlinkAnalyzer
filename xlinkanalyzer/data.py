@@ -23,6 +23,15 @@ from xlinkanalyzer import utils as xutils
 
 
 class Item(object):
+    """
+    The Base Item class. Derive Components, DataItems, Complex Data Structures from this class.
+    Properties: 
+    Type: XLA Item Type
+    Config: the current configuration, instance of the assembly class
+    Fake: True if the Item is not used for representation of a real data item, e.g. for the Active ItemFrame in the ItemList
+    show,active,sym: Flags for chimera
+    SHOW: properties to be interpreted and view by the ItemFrame
+    """
     SHOW = ["name"]
     _show = True
     _active = True
@@ -57,6 +66,9 @@ class Item(object):
         return self.name
 
     def serialize(self):
+        '''
+        Save the defining parameters of this object in a dict
+        ''' 
         _dict = dict([(k,v) for k,v in self.__dict__.items()])
         _dict.pop("config")
         _dict.pop("fake")
@@ -73,16 +85,26 @@ class Item(object):
         return _dict
 
     def deserialize(self,_dict):
+        """
+        Set the object properties to the pairs values of the dict
+        """
         for key,value in _dict.items():
             if key == "domains" and _dict[key] is None: #TODO: this is temporal
-                self.__dict__[key] = []
+                self.setattr(key,[])
             else:
-                self.__dict__[key] = value
+                self.setattr(key,value)
 
     def validate(self):
+        """
+        check a few basic properties. this is to be implemented for all derived classes
+        """
         return True if type(self.name) == str and len(self.name) > 0 else False
 
     def explore(self,_class,item=None):
+        """
+        Walk through all linked data structures and return a list with all items of the specified class. 
+        Highly costly, use for debugging only. Optional parameter sets a starting point
+        """
         if item is None:
             item = self
         visited = set()
@@ -98,6 +120,9 @@ class Item(object):
         return list(visited)
 
     def flatten(self,items = []):
+        """
+        flatten dicts and lists, omitting the structure but making them easily iterable
+        """
         for obj in self.__dict__.values():
             if type(obj) == dict:
                 for v in obj.values():
@@ -113,6 +138,9 @@ class Item(object):
         return items
     
 class Chain(Item):
+    """
+    Symbolizes a molecular chain
+    """
     def __init__(self,_id,item,*args,**kwargs):
         super(Chain,self).__init__(self,*args,**kwargs)
         self.id = _id
@@ -243,6 +271,9 @@ class Subunit(Item):
         return self.name
 
     def __deepcopy__(self,x):
+        """
+        Returns a true copy of the object, used by copy.deepcopy. THis needs to be implmented for all Items!
+        """
         subunitCopy =Subunit(name=self.name,config=self.config)
         subunitCopy.setColor(self.color)
         subunitCopy.setChainIds(self.chainIds)
@@ -278,6 +309,10 @@ class Subunit(Item):
             child._active = val
 
 class Domain(Item):
+    """
+    An Item which can contain Ranges of a subunit. Has to implement addItem and deleteItem
+    """
+    
     SHOW = ["name","subunit","ranges","color"]
     def __init__(self,subunit=None,ranges=[[]],\
                  color=MaterialColor(*[1.0,1.0,1.0,0.0]),**kwargs):
@@ -446,6 +481,10 @@ class Domain(Item):
         return ret
 
 class Subcomplex(Item):
+    """
+    An Item which can contain Subunits and Domains. Has to implement addItem and deleteItem
+    """
+    
     SHOW = ["name","color","items"]
     def __init__(self,config,fake=False):
         super(Subcomplex,self).__init__(config=config)
@@ -475,10 +514,16 @@ class Subcomplex(Item):
         return copy
 
     def addItem(self,item):
+        """
+        Adds an Item to the Subcomplex. This method is to be implemented for all Item which can contain other Item object
+        """
         if isinstance(item,Domain) or isinstance(item,Subunit):
             self.items.append(item)
     
     def deleteItem(self,item):
+        """
+        Deletes an Item from the Subcomplex. This method is to be implemented for all Item which can contain other Item object
+        """
         if isinstance(item,Domain) or isinstance(item,Subunit):
             if item in self.items:
                 self.items.remove(item)
@@ -532,6 +577,9 @@ class Subcomplex(Item):
         return ':{0}'.format(','.join(out))
 
 class SimpleDataItem(Item):
+    """
+    An Item which symbolizes a data structure which does not refer to files.
+    """
     def __init__(self, data=None, **kwargs):
         super(SimpleDataItem,self).__init__(**kwargs)
 
@@ -578,6 +626,9 @@ class InteractingResidueItem(SimpleDataItem):
 
 
 class File(object):
+    """
+    Represents a file on disk.
+    """
     def __init__(self,path=""):
         self.path = path
 
@@ -591,6 +642,9 @@ class File(object):
         return self.path
 
     def serialize(self):
+        '''
+        the files are saved and loaded with relative paths, to enable moving json files and data files while not relying on absolute paths
+        '''
         #Normalize just in case:
         path = normpath(self.path)
         root = normpath(getConfig().root)
@@ -603,6 +657,9 @@ class File(object):
         return os.path.exists(self.path)
 
 class FileGroup(object):
+    """
+    represents a group of File objects
+    """
     def __init__(self,files=[]):
         self.files=[]
         map(self.addFile,files)
@@ -631,6 +688,9 @@ class FileGroup(object):
         return _dict
 
     def deserialize(self,_dict, root):
+        """
+        Deserializes paths, and returns all missing file paths
+        """
         missing = []
         if "files" in _dict:
             for f in _dict["files"]:
@@ -656,6 +716,7 @@ class Subset(object):
     def __init__(self,items,chosen=None,getElements=lambda:[]):
         '''
         Holds elements for mapping drop downs (all possible as self.items, chosen as self.chosen)
+        Refers always to a totality of possible objects and selects a subset of those.
         '''
         self.items = items
         self.getElements = getElements
@@ -714,6 +775,10 @@ class Subset(object):
             self.chosen.remove(v)
             
 class Mapping(Item):    
+    """
+    Symbolizes a Mapping. DataItem has to implement keys() and getElements() which return all possible elements being used 
+    as keys and values for the mapping
+    """
     def __init__(self,dataItem):
         self.mapping = {}
         self.dataItem = dataItem
@@ -787,6 +852,10 @@ class Mapping(Item):
         return self.dataItem.config.getDataItems(self.dataItem.type)
 
 class DataItem(Item):
+    """
+    DataItem symbolizes data which is contained in files on disk. It holds the paths for these files and has to implement methods
+    to parse and interprete the data files
+    """
     SHOW = ["name","fileGroup","mapping"]
     def __init__(self,fileGroup=FileGroup(),**kwargs):
         super(DataItem,self).__init__(**kwargs)
@@ -847,6 +916,9 @@ class DataItem(Item):
         return [f.getResourcePath() for f in self.fileGroup if f.validate()]
 
     def deserialize(self,_dict):
+        """
+        Returns missing file paths
+        """
         missing = []
         if "fileGroup" in _dict:
             fileGroup = FileGroup()
@@ -1017,6 +1089,13 @@ class ConsurfItem(DataItem):
 
 
 class Assembly(Item):
+    """Symbolizes the top level data object. All Items have a reference to this object and pass on data and events to other
+    items through this reference. The datamap property maps data type names to the corresponding classes. Can be represented as
+    a json file. Holds global properties such as the dataMap or the file path of the json file, also the file root for the project.
+    Has, as a container item, addItem and deleteItem implemented. Keeps track of changes with the state property. Holds various
+    getter methods to obtain items and several dictionaries to translate between data descriptor keys. the excessive property holds
+    unused keys from the json, to be added during save again.
+    """
     def __init__(self,frame=None):
         super(Assembly,self).__init__()
         self.items = []
@@ -1076,7 +1155,6 @@ class Assembly(Item):
 
     def isEmpty(self):
         return len(self.subunits+self.subcomplexes+self.dataItems+self.domains) == 0
-
 
     def loadFromDict(self,_dict):
         missing = []
@@ -1401,6 +1479,9 @@ class Assembly(Item):
     #         item.locate()
 
 class ResourceManager(object):
+    """
+    A manager object which handles the loading and saving of the json file representing the assembly object.
+    """
     def __init__(self,config):
         self.config = config
         self.root = ""
