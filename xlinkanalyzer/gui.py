@@ -381,7 +381,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.detailsFrame = None
 
         Label(self, anchor='w', bg='white', padx=4, pady=4,
-                    text='This panel allows performing statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
+                    text='Statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
 
         legendFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
         legendFrame.pack(anchor='w', pady='4')
@@ -400,7 +400,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                     text=u'Satisfied: xlinks shorter or equal to %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
                     ).grid(row=2, column=0, sticky="w")
 
-        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render, padx=4, pady=4)
+        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render)
         updateBtn.grid(row=0, rowspan=3, column=1)
 
 
@@ -481,8 +481,12 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.tableData = tableData
         modelListFrame.grid_columnconfigure(len(colNames)-1, minsize=10, weight=1)
 
-        exportTableBtn = Tkinter.Button(self, text="Export table", command=self.exportTable)
-        exportTableBtn.pack(anchor='e', padx=4)
+        belowFrame = Tkinter.Frame(self)
+        Label(belowFrame, anchor='w', bg='white', padx=4, pady=4,
+                    text='Note: only cross-links that could be mapped to the structures are counted in this table.').grid(column=0, row=0)
+        exportTableBtn = Tkinter.Button(belowFrame, text="Export table", command=self.exportTable)
+        exportTableBtn.grid(column=1, row=0)
+        belowFrame.pack(anchor='e', padx=4)
 
         self.xlinkToolbar.pack(padx=4, pady=4)
 
