@@ -19,8 +19,8 @@ def getXlinkItems(config):
     data = []
     for item in config.dataItems:
         if xlinkanalyzer.data.isXlinkItem(item):
-            if item.data.active:
-                data.append(item.data)
+            if item.active:
+                data.append(item)
 
     return data
 
