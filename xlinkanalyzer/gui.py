@@ -1386,7 +1386,7 @@ class XlinkMgrTabFrame(TabFrame):
         self.showFirstOnlyOliMode.set(False)
 
         self.smartMode = Tkinter.BooleanVar()
-        self.smartMode.set(False)
+        self.smartMode.set(True)
 
         self.ld_score_var = None
 

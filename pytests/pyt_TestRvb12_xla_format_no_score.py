@@ -34,4 +34,4 @@ class TestLoad(XlaGuiTests.XlaBaseTest):
         self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
 
         xmgr = xFrame.getXlinkDataMgrs()[0]
-        self.assertEqual(216, len(xmgr.pbg.pseudoBonds))
+        self.assertEqual(57, len(xmgr.pbg.pseudoBonds))
