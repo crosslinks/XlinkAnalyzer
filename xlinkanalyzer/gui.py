@@ -2084,14 +2084,6 @@ class ComponentTable(Frame):
     def onDeactivate(self):
         for item in self.table.selected():
             item.active = False
-            # if item in self.config.domains+self.config.subunits:
-            #     for subcomp in self.config.subcomplexes:
-            #         if item in subcomp.items:
-            #             subcomp._active = False #using ._active instead of .active to not inactivate other parts of subcomplex
-
-        # for subcomp in self.config.subcomplexes:
-        #     if not all([item.active for item in subcomp.items]):
-        #         subcomp._active = False
         self.table.refresh()
 
     def onShow(self):
@@ -2227,13 +2219,6 @@ class ComponentTable(Frame):
     def getInactiveComponents(self):
         return [item for item in self.table.data if not item.active]
 
-   # def getInactiveSelections(self):
-   #     sels = []
-   #     for comp in self.getInactiveComponents():
-   #         sels.append(comp.getSelection())
-   #     print 'inactive', sels
-   #     return sels
-
     def getAtomSpecsFromSels(self, sels):
         activeModelIds = []
         self.getActiveModels()
@@ -2275,23 +2260,6 @@ class ComponentTable(Frame):
             return activeAtoms - inactiveAtoms
         else:
             return []
-
-    # def getMovableAtomSpecs(self):
-    #     activeModelIds = []
-    #     self.getActiveModels()
-    #     for model in self.models:
-    #         if model.active:
-    #             activeModelIds.append(model.getModelId())
-
-    #     currentSelections = self.getCurrentSelections()
-    #     atomSpecs = []
-    #     for modelId, sel in itertools.product(activeModelIds, currentSelections):
-    #         if not sel.startswith(':'):
-    #             sel = ':' + sel
-    #         atomSpecs.append('#{0}{1}'.format(modelId, sel))
-
-    #     return atomSpecs
-
 
 def is_mac():
     return _platform == "darwin"

@@ -161,14 +161,12 @@ class Chain(Item):
 
     @Item.show.setter
     def show(self, val):
-        # chimera.triggers.blockTrigger('component shown/hidden')
         if hasattr(self.item, 'domains'):
             for dom in self.item.domains:
                 for chain in dom.getChains():
                     if chain.id == self.id:
                         chain._show = val # _show to not to activate children's triggers
         Item.show.fset(self, val)
-        # chimera.triggers.releaseTrigger('component shown/hidden')
 
     def __repr__(self):
         return self.name
