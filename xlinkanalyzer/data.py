@@ -90,9 +90,9 @@ class Item(object):
         """
         for key,value in _dict.items():
             if key == "domains" and _dict[key] is None: #TODO: this is temporal
-                self.setattr(key,[])
+                self.__setattr__(key,[])
             else:
-                self.setattr(key,value)
+                self.__setattr__(key,value)
 
     def validate(self):
         """

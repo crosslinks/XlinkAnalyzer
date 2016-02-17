@@ -4,7 +4,6 @@ import inspect
 
 from collections import OrderedDict
 from copy import deepcopy
-from functools import partial
 
 import Tkinter
 from Tkinter import LabelFrame, Button, Entry, Frame, StringVar, \
@@ -19,7 +18,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import FileGroup,Mapping,Subset
+from data import FileGroup,Mapping
 from __builtin__ import True
 
 import xlinkanalyzer
@@ -29,6 +28,9 @@ def is_mac():
     return _platform == "darwin"
 
 class FileFrame(Frame):
+    """
+    Gui frame that is tied to a FileGroup object.
+    """
     def __init__(self,parent,active=False,fileGroup=FileGroup(),\
                  *args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
@@ -299,7 +301,7 @@ class ItemFrame(LabelFrame):
         """
         self.analyzeData()
         self.initUIElements()
-        self.gridUIElelemts()
+        self.gridUIElements()
 
     def grid(self,*args,**kwargs):
         LabelFrame.grid(self,*args,pady=2,**kwargs)
@@ -329,7 +331,8 @@ class ItemFrame(LabelFrame):
         #sort method used later on
         def sortKeys(shows):
             common = list(set.intersection(*[set(s) for s in shows]))
-            diff = list(set.difference(*[set(s) for s in shows]))
+            diff =[set.difference(s,set(common)) for s in [set(_s) for _s in shows]]
+            diff =list(reduce(lambda x,y: set.union(x,y),diff,set()))
             common.sort(lambda x,y: shows[0].index(x)-shows[0].index(y))
             ret = deepcopy(common)
             for key in diff:
@@ -362,13 +365,14 @@ class ItemFrame(LabelFrame):
 
         #populate simple data fields with gui classes
         for fK in fields:
-            data = _dict[fK]
-            if type(data) in self.classDict:
-                self.fields[fK] = (data,self.classDict[type(data)],None,None)
-            else:
-                if "explore" in dir(self.data):
-                    classL = self.data.explore(data.__class__)
-                    self.fields[fK] = (data,OptionMenu,classL,None)
+            if fK in _dict:
+                data = _dict[fK]
+                if type(data) in self.classDict:
+                    self.fields[fK] = (data,self.classDict[type(data)],None,None)
+                else:
+                    if "explore" in dir(self.data):
+                        classL = self.data.explore(data.__class__)
+                        self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
         if self.differs:
@@ -519,7 +523,7 @@ class ItemFrame(LabelFrame):
                         command=Tkinter._setit(_ovar, i.name, None)
                         menu.add_command(label=i.name,command=command)
 
-    def gridUIElelemts(self):
+    def gridUIElements(self):
         _onEditColor = lambda i: self.onEdit()
         c = 0
         for k,v in self.fields.items():
