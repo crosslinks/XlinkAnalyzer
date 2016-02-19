@@ -2239,8 +2239,7 @@ class ComponentTable(Frame):
         return atomSpecs
 
     def getMovableAtoms(self):
-        if (len(self.getActiveComponents()) != len(self.table.data)
-            or len(self.getActiveComponents()) == 1):
+        if self.config.isAnyPartInactive():
             from chimera.specifier import evalSpec
             activeSels = []
             for comp in self.getActiveParents() + self.getActiveChildren():

@@ -1568,6 +1568,17 @@ class Assembly(Item):
     #     for item in self.dataItems:
     #         item.locate()
 
+    def isAnyPartInactive(self):
+        '''Return True if any of Subunits, Domains or Chains has active == False.
+        '''
+        parts = self.getSubunits()+self.getDomains()
+        [parts.extend(s.getChains()) for s in self.getSubunits()]
+        [parts.extend(d.getChains()) for d in self.getDomains()]
+        active = [p.active for p in parts]
+
+        return not all(active)
+
+
 class ResourceManager(object):
     """
     A manager object which handles the loading and saving of the json file representing the assembly object.
