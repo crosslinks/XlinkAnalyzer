@@ -18,7 +18,8 @@
     "subunits": [
         {
             "chainIds": [
-                "A"
+                "A",
+                "B"
             ],
             "color": [
                 0.439215686,
@@ -26,10 +27,25 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "DYL1_HUMAN",
-            "selection": ":.A",
+            "selection": ":.A,.B",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "C",
+                "D"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "domains": null,
+            "name": "Nos1",
             "sequence": "",
             "type": "component"
         }

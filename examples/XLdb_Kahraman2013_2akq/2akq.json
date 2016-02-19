@@ -28,7 +28,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "LACB_BOVIN",
             "selection": ":.D,.B,.A",

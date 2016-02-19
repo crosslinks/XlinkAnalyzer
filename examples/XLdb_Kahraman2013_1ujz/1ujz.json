@@ -29,7 +29,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "CEA7_ECOLX",
             "selection": ":.B",
@@ -46,7 +45,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "IMM7_ECOLX",
             "selection": ":.A",

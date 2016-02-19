@@ -18,7 +18,8 @@
     "subunits": [
         {
             "chainIds": [
-                "B"
+                "B",
+                "D"
             ],
             "color": [
                 0.439215686,
@@ -26,10 +27,25 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "EFTS_ECOLI",
-            "selection": ":.B",
+            "selection": ":.B,.D",
+            "sequence": "",
+            "type": "component"
+        },
+        {
+            "chainIds": [
+                "A",
+                "C"
+            ],
+            "color": [
+                0.133,
+                0.545,
+                0.133,
+                1.0
+            ],
+            "domains": null,
+            "name": "tufB",
             "sequence": "",
             "type": "component"
         }

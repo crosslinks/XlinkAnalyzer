@@ -32,7 +32,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RL15_ECOLI",
             "selection": ":.L",
@@ -49,7 +48,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RL19_ECOLI",
             "selection": ":.P",
@@ -66,7 +64,6 @@
                 0.706,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RL2_ECOLI",
             "selection": ":.C",

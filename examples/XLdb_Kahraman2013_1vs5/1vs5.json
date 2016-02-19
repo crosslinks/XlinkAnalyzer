@@ -32,7 +32,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RS4_ECOLI",
             "selection": ":.D",
@@ -49,7 +48,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RS10_ECOLI",
             "selection": ":.J",
@@ -66,7 +64,6 @@
                 0.706,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "RS17_ECOLI",
             "selection": ":.Q",
