@@ -1255,7 +1255,7 @@ class Assembly(Item):
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
                          (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
         subunits = _dict.pop("subunits")
-        subcomplexes = _dict.pop("subcomplexes")
+        subcomplexes = _dict.pop("subcomplexes", [])
         dataItems = _dict.pop("data")
         
         
