@@ -39,6 +39,7 @@ class Model(object):
         resi_lookup_map = {}
 
         for resi in self.iterateResidues():
+            print resi.type
             res_id = resi.id.position
             chain_id = resi.id.chainId
             if not chain_id in resi_lookup_map:
@@ -52,8 +53,11 @@ class Model(object):
         return resi_lookup_map
 
     def iterateResidues(self):
-        for resi in self.chimeraModel.residues:
-            yield resi
+        '''Iterate over protein and nucleic acid residues
+        '''
+        for s in self.chimeraModel.sequences():
+            for r in s.residues:
+                yield r
 
     def color(self, comp, color=None):
         '''Color specified component of the model by color from config or specified color.'''
