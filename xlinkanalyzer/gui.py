@@ -2148,81 +2148,6 @@ class ComponentTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveParents(self):
-        '''
-        Return active Subunits or Subunit Chains.
-
-        Do not return active Subcomplexes - their activating works through activating their items
-        '''
-        out = []
-        if self.chainVar.get():
-            for item in self.table.data:
-                if item.active and item.item in self.config.subunits:
-                    out.append(item)
-        else:
-            for item in self.table.data:
-                if item.active and item in self.config.subunits:
-                    out.append(item)
-
-        return out
-
-    def getActiveChildren(self):
-        '''
-        Return active Subunits, Domains and Chains.
-
-        Do not return active Subcomplexes - their activating works through activating their items
-        '''
-        out = []
-        if self.chainVar.get():
-            for chain in self.table.data:
-                if chain.item in self.config.subunits:
-                    for child in chain.item.getChildren():
-                        if child.active:
-                            out.append(child)
-                elif chain.item in self.config.domains:
-                    out.append(chain)
-        else:
-            for item in self.table.data:
-                if item in self.config.subunits:
-                    for child in item.domains:
-                        if child.active:
-                            out.append(child)
-
-        return out
-
-    def getInActiveChildren(self):
-        '''
-        Return inactive Subunits, Domains and Chains.
-
-        Do not return active Subcomplexes - their activating works through activating their items
-        '''
-        out = []
-        if self.chainVar.get():
-            for item in self.table.data:
-                if (not item.active) and item.item in self.config.domains:
-                    out.append(item)
-        else:
-            for item in self.table.data:
-                if (not item.active) and item in self.config.domains:
-                    out.append(item)
-
-        return out
-
-
-    def getCurrentSelections(self):
-        sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
-            for comp in self.getActiveComponents():
-                sels.append(comp.getSelection())
-
-        return sels
-
-    def getActiveComponents(self):
-        return [item for item in self.table.data if item.active]
-
-    def getInactiveComponents(self):
-        return [item for item in self.table.data if not item.active]
-
     def getAtomSpecsFromSels(self, sels):
         activeModelIds = []
         self.getActiveModels()
@@ -2242,9 +2167,9 @@ class ComponentTable(Frame):
         if self.config.isAnyPartInactive():
             from chimera.specifier import evalSpec
             activeSels = []
-            for comp in self.getActiveParents() + self.getActiveChildren():
+            for comp in self.config.getActiveParents() + self.config.getActiveChildren():
                 activeSels.append(comp.getSelection())
-            # print self.getActiveParents() + self.getActiveChildren()
+            # print self.config.getActiveParents() + self.config.getActiveChildren()
             activeSpecs = self.getAtomSpecsFromSels(activeSels)
             activeAtoms = set([])
             for selection in activeSpecs:
@@ -2252,7 +2177,7 @@ class ComponentTable(Frame):
 
 
             inactiveSels = []
-            for comp in self.getInActiveChildren():
+            for comp in self.config.getInActiveChildren():
                 inactiveSels.append(comp.getSelection())
             # print self.getInActiveChildren()
             inactiveSpecs = self.getAtomSpecsFromSels(inactiveSels)

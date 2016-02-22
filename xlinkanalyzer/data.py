@@ -1578,6 +1578,41 @@ class Assembly(Item):
 
         return not all(active)
 
+    def getActiveParents(self):
+        '''Return active Subunit Chains.
+        '''
+        out = []
+        for s in self.getSubunits():
+            for c in s.getChains():
+                if c.active:
+                    out.append(c)
+
+        return out
+
+    def getInActiveChildren(self):
+        '''Return Chain objects of inactive Domains
+        '''
+        children = []
+        for s in self.getSubunits():
+            for d in s.domains:
+                for c in d.getChains():
+                    if not c.active:
+                        children.append(c)
+
+        return children
+
+    def getActiveChildren(self):
+        '''Return Chain objects of active Domains
+        '''
+        children = []
+        for s in self.getSubunits():
+            for d in s.domains:
+                for c in d.getChains():
+                    if c.active:
+                        children.append(c)
+
+        return children
+
 
 class ResourceManager(object):
     """
