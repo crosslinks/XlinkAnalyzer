@@ -1246,7 +1246,8 @@ class XlinkDataMgr(DataMgr):
             for link in inter_intra_ambig_list_sorted:
                 b = link.pb
                 if b is not None:
-                    if is_satisfied(b, threshold) and (float(link.xlink['ld-Score']) >= self.minLdScore):
+                    score = pyxlinks.get_score(link.xlink)
+                    if is_satisfied(b, threshold) and ((score is None) or (score >= self.minLdScore)):
                         show_groups[-1]['satisfied'].append(link)
                         found_satisfied = True
 
@@ -1254,7 +1255,8 @@ class XlinkDataMgr(DataMgr):
             if not found_satisfied:
                 shortest = inter_intra_ambig_list_sorted[0]
                 if shortest is not None:
-                    if float(shortest.xlink['ld-Score']) >= self.minLdScore:
+                    score = pyxlinks.get_score(shortest.xlink)
+                    if score is None or score >= self.minLdScore:
                         # to_show.append(shortest)
                         show_groups[-1]['shortest'].append(shortest)
 
@@ -1289,7 +1291,11 @@ class XlinkDataMgr(DataMgr):
         else:
             for sg in show_groups:
                 to_show.extend(sg['satisfied'])
-                to_show.extend(sg['shortest'])
+            all_satisfied = [link.xlink for link in to_show]
+            for sg in show_groups:
+                for link in sg['shortest']:
+                    if link.xlink not in all_satisfied:
+                        to_show.append(link)
 
         for link in xlink_set:
             b = link.pb
