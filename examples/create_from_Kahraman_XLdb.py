@@ -98,7 +98,7 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
 
         #fix mistakes in PDB residue number (PDB number in wrong column)
         if row['Protein1'] in ('ODB2_HUMAN', 'PCCA_HUMAN', 'SET_HUMAN', 'MCCA_HUMAN', 'KCC2G_HUMAN', 'KCC2D_HUMAN', 'PYC_HUMAN', 'KCC2B_HUMAN', 'PPME1_HUMAN',
-                            '2ABA_HUMAN', '2AAA_HUMAN', 'PP2AA_HUMAN'):
+                            '2ABA_HUMAN', '2AAA_HUMAN', 'PP2AA_HUMAN', '2A5G_HUMAN', 'HSP7C_HUMAN', 'VIME_HUMAN', 'GRP78_HUMAN'):
             row['AbsPos1'] = row['UniProt amino-acid number 2'] 
 
         row['score'] = 100
@@ -123,11 +123,11 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
         json_content['subunits'] = []
 
         g_rows = list(g)
-        if g_rows[0]['PDB-ID'] in ('1wcm', '1hjo'): #skip those already in Xla DB
+        if g_rows[0]['PDB-ID'] in ('1wcm', '1hjo', '3dw8'): #skip those already in Xla DB
             continue
 
-        if g_rows[0]['PDB-ID'] != '3dw8':
-            continue
+        # if g_rows[0]['PDB-ID'] != '3iuc':
+        #     continue
 
 
 
@@ -215,6 +215,8 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
             subunits['SET_HUMAN']['chainIds'] = ['A', 'B']
         if g_rows[0]['PDB-ID'] == '2g50':
             subunits['KPYM_RABIT']['chainIds'] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        if g_rows[0]['PDB-ID'] == '3iuc':
+            subunits['GRP78_HUMAN']['chainIds'] = ['A', 'C']
         color_i = 0
         for subunitnam, subunit in subunits.iteritems():
             subunit['selection'] = ':' + ','.join(['.'+c for c in subunit['chainIds']])
