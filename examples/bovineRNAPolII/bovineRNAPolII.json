@@ -1,0 +1,291 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/xlinks.csv"
+                ]
+            },
+            "mapping": {
+                "RPB1": [
+                    "dna-directed rna polymerase"
+                ],
+                "RPB11": [
+                    "dna-directed rna polymerase II subunit RPB11"
+                ],
+                "RPB2": [
+                    "dna-directed rna polymerase II subunit RPB2"
+                ],
+                "RPB5": [
+                    "dna-directed rna polymerases I, II, and III subunit RPABC1"
+                ],
+                "SPT4": [],
+                "SPT5": []
+            },
+            "name": "Bernecky2016",
+            "type": "Xlink Analyzer"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.8274509803921568,
+                0.8274509803921568,
+                0.8274509803921568,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "5FLM",
+                "db_name": "PDB",
+                "pdbx_db_accession": "5FLM"
+            },
+            "name": "dna-directed rna polymerase",
+            "selection": ":.A"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.8666666666666667,
+                0.6274509803921569,
+                0.8666666666666667,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "A5PJW8_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "A5PJW8"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB2",
+            "selection": ":.B"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                0.6274509803921569,
+                0.12549019607843137,
+                0.9411764705882353,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB3_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q3T0Q3"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB3",
+            "selection": ":.C"
+        },
+        {
+            "chainIds": [
+                "D"
+            ],
+            "color": [
+                0.8274509803921568,
+                0.8274509803921568,
+                0.8274509803921568,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "Q1JQ91_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q1JQ91"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB4",
+            "selection": ":.D"
+        },
+        {
+            "chainIds": [
+                "E"
+            ],
+            "color": [
+                1.0,
+                0.4980392156862745,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPAB1_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q2T9T3"
+            },
+            "name": "dna-directed rna polymerases I, II, and III subunit RPABC1",
+            "selection": ":.E"
+        },
+        {
+            "chainIds": [
+                "F"
+            ],
+            "color": [
+                0.25098039215686274,
+                0.8784313725490196,
+                0.8156862745098039,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "5FLM",
+                "db_name": "PDB",
+                "pdbx_db_accession": "5FLM"
+            },
+            "name": "dna-directed rna polymerases I, II, and III subunit RPABC2",
+            "selection": ":.F"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "color": [
+                0.7450980392156863,
+                0.7450980392156863,
+                0.7450980392156863,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB7_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q5E9B8"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB7",
+            "selection": ":.G"
+        },
+        {
+            "chainIds": [
+                "H"
+            ],
+            "color": [
+                0.11764705882352941,
+                0.5647058823529412,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "F2Z4H3_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "F2Z4H3"
+            },
+            "name": "dna-directed rna polymerases I, II, and III subunit RPABC3",
+            "selection": ":.H"
+        },
+        {
+            "chainIds": [
+                "I"
+            ],
+            "color": [
+                0.6274509803921569,
+                0.12549019607843137,
+                0.9411764705882353,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB9_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q32P73"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB9",
+            "selection": ":.I"
+        },
+        {
+            "chainIds": [
+                "J"
+            ],
+            "color": [
+                0.9568627450980393,
+                0.6431372549019608,
+                0.3764705882352941,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPAB5_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q32P78"
+            },
+            "name": "dna-directed rna polymerases I, II, and III subunit RPABC5",
+            "selection": ":.J"
+        },
+        {
+            "chainIds": [
+                "K"
+            ],
+            "color": [
+                0.6627450980392157,
+                0.6627450980392157,
+                0.6627450980392157,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPB11_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q32P79"
+            },
+            "name": "dna-directed rna polymerase II subunit RPB11",
+            "selection": ":.K"
+        },
+        {
+            "chainIds": [
+                "L"
+            ],
+            "color": [
+                1.0,
+                0.7529411764705882,
+                0.796078431372549,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "RPAB4_BOVIN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q3ZBC0"
+            },
+            "name": "dna-directed rna polymerases I, II, and III subunit RPABC4",
+            "selection": ":.L"
+        },
+        {
+            "chainIds": [
+                "X"
+            ],
+            "color": [
+                1.0,
+                0.0,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {},
+            "name": "SPT5",
+            "selection": ":.X"
+        },
+        {
+            "chainIds": [
+                "Y"
+            ],
+            "color": [
+                0.0,
+                0.8148148148148148,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {},
+            "name": "SPT4",
+            "selection": ":.Y"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}
