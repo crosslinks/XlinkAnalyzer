@@ -287,7 +287,7 @@ class Subunit(Item):
         return reduce(lambda x,y: str(x)+str(y)+",",chainIds,"")[:-1]
 
     def parseChainIds(self,chainIdsS):
-        ret = [s for s in chainIdsS.split(",")]
+        ret = [s.strip() for s in chainIdsS.split(",")]
         self.selection =':'+','.join(['.'+s for s in ret])
         return ret
 
