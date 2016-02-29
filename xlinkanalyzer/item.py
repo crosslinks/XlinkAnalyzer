@@ -395,15 +395,6 @@ class ItemFrame(LabelFrame):
                 #container,ItemList,show
                 self.fields[k] = (self.data,ItemList,k,None)
 
-        if hasattr(self.data,"__dict__"):
-            mapable = "mapping" in self.data.__dict__.keys()
-            for k,v in self.data.__dict__.items():
-                if hasattr(v,"__dict__"):
-                    for v1 in v.__dict__.values():
-                        if type(v1) == list:
-                            if self.data in v1 and mapable:
-                                self.mappings = dict([(dI.name,dI.mapping)\
-                                                       for dI in v1 if hasattr(dI, 'mapping')])
     def initUIElements(self):
         _onEdit = lambda i,j,k: self.onEdit()
         _onType = lambda i,j,k: self.onType()
