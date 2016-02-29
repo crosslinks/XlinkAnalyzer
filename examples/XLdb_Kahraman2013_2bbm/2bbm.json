@@ -29,7 +29,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "CALM_DROME",
             "selection": ":.A",
@@ -46,7 +45,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "MYLK2_RABIT",
             "selection": ":.B",

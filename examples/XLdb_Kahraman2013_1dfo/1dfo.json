@@ -27,7 +27,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "GLYA_ECOLI",
             "selection": ":.B,.A",

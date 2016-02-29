@@ -40,4 +40,4 @@ class TestLoad(XlaGuiTests.XlaBaseTest):
 
 
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
-        self.assertEqual(162, displayed)
+        self.assertEqual(57, displayed)

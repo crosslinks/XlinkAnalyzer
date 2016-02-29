@@ -19,6 +19,7 @@
         {
             "chainIds": [
                 "A",
+                "B",
                 "C",
                 "D"
             ],
@@ -28,10 +29,9 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "TNAA_ECOLI",
-            "selection": ":.A,.C,.D",
+            "selection": ":.A,.B,.C,.D",
             "sequence": "",
             "type": "component"
         }

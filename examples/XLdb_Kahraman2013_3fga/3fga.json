@@ -32,7 +32,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "PP2AA_HUMAN",
             "selection": ":.C",
@@ -49,7 +48,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "2A5G_HUMAN",
             "selection": ":.B",
@@ -66,7 +64,6 @@
                 0.706,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "2AAA_HUMAN",
             "selection": ":.A",

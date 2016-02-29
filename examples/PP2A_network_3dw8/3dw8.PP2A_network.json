@@ -1,0 +1,250 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/PP2A_network.Herzog.inter.csv"
+                ]
+            },
+            "mapping": {
+                "192,268,217,209": [],
+                "sp|O43815|STRN": [],
+                "sp|O94964|CT117": [],
+                "sp|O94988|FA13A": [],
+                "sp|O95684|FR1OP": [],
+                "sp|P05165|PCCA": [],
+                "sp|P05166|PCCB": [],
+                "sp|P11021|GRP78": [],
+                "sp|P17987|TCPA": [],
+                "sp|P30153|2AAA": [
+                    "serine/threonine-protein phosphatase 2A 65 kda regulatory subunit A \u03b1 isoform"
+                ],
+                "sp|P30154|2AAB": [],
+                "sp|P38646|GRP75": [],
+                "sp|P40227|TCPZ": [],
+                "sp|P48643|TCPE": [],
+                "sp|P49368|TCPG": [],
+                "sp|P50990|TCPQ": [],
+                "sp|P50991|TCPD": [],
+                "sp|P60510|PP4C": [],
+                "sp|P62714|PP2AB": [],
+                "sp|P63151|2ABA": [
+                    "serine/threonine-protein phosphatase 2A 55 kda regulatory subunit B \u03b1 isoform"
+                ],
+                "sp|P63167|DYL1": [],
+                "sp|P67775|PP2AA": [
+                    "serine/threonine-protein phosphatase 2A catalytic subunit \u03b1 isoform"
+                ],
+                "sp|P78318|IGBP1": [],
+                "sp|P78371|TCPB": [],
+                "sp|Q01105|SET": [],
+                "sp|Q13033|STRN3": [],
+                "sp|Q13136|LIPA1": [],
+                "sp|Q13362|2A5G": [],
+                "sp|Q13362|2A5G,sp|Q14738|2A5D,sp|Q15172|2A5A,sp|Q16537|2A5Esp|Q5FBB7|SGOL1": [],
+                "sp|Q14674|ESPL1": [],
+                "sp|Q14738|2A5D": [],
+                "sp|Q15172|2A5A": [],
+                "sp|Q16204|CCDC6": [],
+                "sp|Q16537|2A5E": [],
+                "sp|Q5FBB7|SGOL1": [],
+                "sp|Q5TA45|INT11": [],
+                "sp|Q5THK1|PR14L": [],
+                "sp|Q5VT06|CE350": [],
+                "sp|Q66LE6|2ABD": [],
+                "sp|Q6IN85|P4R3A": [],
+                "sp|Q8N201|INT1": [],
+                "sp|Q8WZ74|CTTB2": [],
+                "sp|Q969Q6|P2R3C": [],
+                "sp|Q96FJ2|DYL2": [],
+                "sp|Q96HW7|INT4": [],
+                "sp|Q99832|TCPH": [],
+                "sp|Q9BWN1|PRR14": [],
+                "sp|Q9H0H0|INT2": [],
+                "sp|Q9NRL3|STRN4": [],
+                "sp|Q9NV88|INT9": [],
+                "sp|Q9NVH2|INT7": [],
+                "sp|Q9NVM9|M89BB": [],
+                "sp|Q9NY27|PP4R2": [],
+                "sp|Q9P289|MST4": [],
+                "sp|Q9P2B4|CT2NL": [],
+                "sp|Q9UL03|INT6": [],
+                "sp|Q9ULQ0|FA40B": [],
+                "sp|Q9Y2T4|2ABG": [],
+                "sp|Q9Y3A3|MOBL3": []
+            },
+            "name": "inter",
+            "type": "Xlink Analyzer"
+        },
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/PP2A_network.Herzog.intra.csv"
+                ]
+            },
+            "mapping": {
+                "sp|O43815|STRN": [],
+                "sp|O95684|FR1OP": [],
+                "sp|O95819|M4K4": [],
+                "sp|O95819|M4K5": [],
+                "sp|P05165|PCCA": [],
+                "sp|P05166|PCCB": [],
+                "sp|P07437|TBB5": [],
+                "sp|P08107|HSP71": [],
+                "sp|P08670|VIME": [],
+                "sp|P10809|CH60": [],
+                "sp|P10809|CH61": [],
+                "sp|P11021|GRP78": [],
+                "sp|P11142|HSP7C": [],
+                "sp|P11182|ODB2": [],
+                "sp|P11498|PYC": [],
+                "sp|P17987|TCPA": [],
+                "sp|P30153|2AAA": [
+                    "serine/threonine-protein phosphatase 2A 65 kda regulatory subunit A \u03b1 isoform"
+                ],
+                "sp|P30154|2AAB": [],
+                "sp|P40227|TCPZ": [],
+                "sp|P48643|TCPE": [],
+                "sp|P49368|TCPG": [],
+                "sp|P50990|TCPQ": [],
+                "sp|P50991|TCPD": [],
+                "sp|P60510|PP4C": [],
+                "sp|P62714|PP2AB": [],
+                "sp|P63151|2ABA": [
+                    "serine/threonine-protein phosphatase 2A 55 kda regulatory subunit B \u03b1 isoform"
+                ],
+                "sp|P63167|DYL1": [],
+                "sp|P67775|PP2AA": [
+                    "serine/threonine-protein phosphatase 2A catalytic subunit \u03b1 isoform"
+                ],
+                "sp|P68104|EF1A1": [],
+                "sp|P68363|TBA1B": [],
+                "sp|P78318|IGBP1": [],
+                "sp|P78371|TCPB": [],
+                "sp|Q01105|SET": [],
+                "sp|Q08211|DHX9": [],
+                "sp|Q13033|STRN3": [],
+                "sp|Q13085|ACACA": [],
+                "sp|Q13136|LIPA1": [],
+                "sp|Q13362|2A5G": [],
+                "sp|Q13554|KCC2B": [],
+                "sp|Q13555|KCC2G": [],
+                "sp|Q13557|KCC2D": [],
+                "sp|Q14738|2A5D": [],
+                "sp|Q15172|2A5A": [],
+                "sp|Q16204|CCDC6": [],
+                "sp|Q16204|CCDC7": [],
+                "sp|Q16537|2A5E": [],
+                "sp|Q5FBB7|SGOL1": [],
+                "sp|Q5TA45|INT11": [],
+                "sp|Q5THK1|PR14L": [],
+                "sp|Q5VSL9|FA40A": [],
+                "sp|Q5VT06|CE350": [],
+                "sp|Q5VT06|CE351": [],
+                "sp|Q66LE6|2ABD": [],
+                "sp|Q69YH5|CDCA2": [],
+                "sp|Q6IN85|P4R3A": [],
+                "sp|Q6NUP7|PP4R4": [],
+                "sp|Q86XL3|ANKL2": [],
+                "sp|Q8N201|INT1": [],
+                "sp|Q92616|GCN1L": [],
+                "sp|Q96C01|F136A": [],
+                "sp|Q96HW7|INT4": [],
+                "sp|Q96RQ3|MCCA": [],
+                "sp|Q99832|TCPH": [],
+                "sp|Q9BWN1|PRR14": [],
+                "sp|Q9HCC0|MCCB": [],
+                "sp|Q9NRL3|STRN4": [],
+                "sp|Q9NVM9|M89BB": [],
+                "sp|Q9NY27|PP4R2": [],
+                "sp|Q9P2B4|CT2NL": [],
+                "sp|Q9ULQ0|FA40B": [],
+                "sp|Q9Y2T4|2ABG": [],
+                "sp|Q9Y3A3|MOBL3": [],
+                "sp|Q9Y570|PPME1": []
+            },
+            "name": "intra",
+            "type": "Xlink Analyzer"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.0,
+                0.7490196078431373,
+                1.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "2AAA_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P30153"
+            },
+            "name": "serine/threonine-protein phosphatase 2A 65 kda regulatory subunit A \u03b1 isoform",
+            "selection": ":.A"
+        },
+        {
+            "chainIds": [
+                "B"
+            ],
+            "color": [
+                0.0,
+                1.0,
+                0.4980392156862745,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "2ABA_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P63151"
+            },
+            "name": "serine/threonine-protein phosphatase 2A 55 kda regulatory subunit B \u03b1 isoform",
+            "selection": ":.B"
+        },
+        {
+            "chainIds": [
+                "C"
+            ],
+            "color": [
+                0.27450980392156865,
+                0.5098039215686274,
+                0.7058823529411765,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "PP2AA_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P67775"
+            },
+            "name": "serine/threonine-protein phosphatase 2A catalytic subunit \u03b1 isoform",
+            "selection": ":.C"
+        },
+        {
+            "chainIds": [
+                "G"
+            ],
+            "color": [
+                0.4980392156862745,
+                1.0,
+                0.8313725490196079,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NOR00109",
+                "db_name": "NOR",
+                "pdbx_db_accession": "NOR00109"
+            },
+            "name": "microcystin Lr",
+            "selection": ":.G"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

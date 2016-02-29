@@ -1,0 +1,36 @@
+{
+    "data": [
+        {
+            "active": true,
+            "informed": false,
+            "mapping": {
+                "HSP71_HUMAN": [
+                    "HSP71_HUMAN"
+                ]
+            },
+            "name": "xlinks",
+            "resource": [
+                "xlinks/xlinks.csv"
+            ],
+            "type": "xquest"
+        }
+    ],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.439215686,
+                0.831372549,
+                1.0,
+                1.0
+            ],
+            "domains": null,
+            "name": "HSP71_HUMAN",
+            "selection": ":.A",
+            "sequence": "",
+            "type": "component"
+        }
+    ]
+}

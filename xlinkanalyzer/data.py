@@ -150,6 +150,30 @@ class Chain(Item):
 
         self.setSelection(':.'+_id)
 
+    @Item.active.setter
+    def active(self, val):
+        self._active = val
+        if hasattr(self.item, 'domains'):
+            for dom in self.item.domains:
+                for chain in dom.getChains():
+                    if chain.id == self.id:
+                        chain.active = val
+
+    @Item.show.setter
+    def show(self, val):
+        if hasattr(self.item, 'domains'):
+            for dom in self.item.domains:
+                for chain in dom.getChains():
+                    if chain.id == self.id:
+                        chain._show = val # _show to not to activate children's triggers
+        Item.show.fset(self, val)
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
     def setSelection(self,sel):
         self.selection = sel
 
@@ -169,6 +193,33 @@ class Subunit(Item):
         self.domains = []
         self.chains = []
         self.info = {}
+
+    @Item.show.getter
+    def show(self):
+        self._show = all([item.show for item in self.getChains()])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        for child in self.getChains():
+            child.show = val # do show by activating children's (chains) triggers
+        for child in self.domains:
+            child._show = val # do not activate domains triggers
+
+        self._show = val # do not call Item setter, to not to call the trigger
+        chimera.triggers.releaseTrigger('component shown/hidden')
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.getChains()])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChildren():
+            child.active = val
 
     def getChains(self):
         if not self.chains:
@@ -294,19 +345,6 @@ class Subunit(Item):
     def getChildren(self):
         return self.domains + self.getChains()
 
-    @Item.show.setter
-    def show(self, val):
-        self._show = val
-        for child in self.getChildren():
-            child._show = val # _show to not to activate children's triggers
-
-        chimera.triggers.activateTrigger('component shown/hidden', self)
-
-    @Item.active.setter
-    def active(self, val):
-        self._active = val
-        for child in self.getChildren():
-            child._active = val
 
 class Domain(Item):
     """
@@ -336,6 +374,32 @@ class Domain(Item):
                 return False
         else:
             return False
+
+    @Item.show.getter
+    def show(self):
+        self._show = all([item.show for item in self.getChains()])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        for child in self.getChains():
+            child.show = val #do show by activating chains' triggers
+
+        self._show = val
+        # Item.show.fset(self, val)
+        chimera.triggers.releaseTrigger('component shown/hidden')
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.getChains()])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.getChains():
+            child.active = val
 
     def getChains(self):
         selsChains = self.getSelectionsByChain()
@@ -495,6 +559,32 @@ class Subcomplex(Item):
         self.dataMap = dict([("items",\
             [Domain(config=self.config,fake=True),\
              Subunit(config=self.config,fake=True)])])
+
+    @Item.show.getter
+    def show(self):
+        self._show = any([item.show for item in self.items])
+        return self._show
+
+    @show.setter
+    def show(self, val):
+        chimera.triggers.blockTrigger('component shown/hidden')
+        self._show = val
+        for child in self.items:
+            child.show = val # do show by activating children's (chains) triggers
+
+        self._show = val # do not call Item setter, to not to call the trigger
+        chimera.triggers.releaseTrigger('component shown/hidden')
+
+    @Item.active.getter
+    def active(self):
+        self._active = all([item.active for item in self.items])
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        self._active = val
+        for child in self.items:
+            child.active = val
 
     def setColor(self,colorCfg):
         color = chimera.MaterialColor(*[0.0]*4)
@@ -1165,7 +1255,7 @@ class Assembly(Item):
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
                          (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
         subunits = _dict.pop("subunits")
-        subcomplexes = _dict.pop("subcomplexes")
+        subcomplexes = _dict.pop("subcomplexes", [])
         dataItems = _dict.pop("data")
         
         
@@ -1477,6 +1567,52 @@ class Assembly(Item):
     # def locate(self):
     #     for item in self.dataItems:
     #         item.locate()
+
+    def isAnyPartInactive(self):
+        '''Return True if any of Subunits, Domains or Chains has active == False.
+        '''
+        parts = self.getSubunits()+self.getDomains()
+        [parts.extend(s.getChains()) for s in self.getSubunits()]
+        [parts.extend(d.getChains()) for d in self.getDomains()]
+        active = [p.active for p in parts]
+
+        return not all(active)
+
+    def getActiveParents(self):
+        '''Return active Subunit Chains.
+        '''
+        out = []
+        for s in self.getSubunits():
+            for c in s.getChains():
+                if c.active:
+                    out.append(c)
+
+        return out
+
+    def getInActiveChildren(self):
+        '''Return Chain objects of inactive Domains
+        '''
+        children = []
+        for s in self.getSubunits():
+            for d in s.domains:
+                for c in d.getChains():
+                    if not c.active:
+                        children.append(c)
+
+        return children
+
+    def getActiveChildren(self):
+        '''Return Chain objects of active Domains
+        '''
+        children = []
+        for s in self.getSubunits():
+            for d in s.domains:
+                for c in d.getChains():
+                    if c.active:
+                        children.append(c)
+
+        return children
+
 
 class ResourceManager(object):
     """

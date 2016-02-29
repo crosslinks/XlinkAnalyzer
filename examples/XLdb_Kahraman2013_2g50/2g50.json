@@ -19,8 +19,13 @@
         {
             "chainIds": [
                 "A",
-                "M",
-                "O"
+                "B",
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H"
             ],
             "color": [
                 0.439215686,
@@ -28,10 +33,9 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "KPYM_RABIT",
-            "selection": ":.A,.M,.O",
+            "selection": ":.A,.B,.C,.D,.E,.F,.G,.H",
             "sequence": "",
             "type": "component"
         }

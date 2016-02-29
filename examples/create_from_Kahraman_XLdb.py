@@ -96,6 +96,11 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
         row['AbsPos1'] = row['PDB amino-acid number 1']
         row['AbsPos2'] = row['PDB amino-acid number 2']
 
+        #fix mistakes in PDB residue number (PDB number in wrong column)
+        if row['Protein1'] in ('ODB2_HUMAN', 'PCCA_HUMAN', 'SET_HUMAN', 'MCCA_HUMAN', 'KCC2G_HUMAN', 'KCC2D_HUMAN', 'PYC_HUMAN', 'KCC2B_HUMAN', 'PPME1_HUMAN',
+                            '2ABA_HUMAN', '2AAA_HUMAN', 'PP2AA_HUMAN', '2A5G_HUMAN', 'HSP7C_HUMAN', 'VIME_HUMAN', 'GRP78_HUMAN'):
+            row['AbsPos1'] = row['UniProt amino-acid number 2'] 
+
         row['score'] = 100
 
         data.append(row)
@@ -118,8 +123,15 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
         json_content['subunits'] = []
 
         g_rows = list(g)
-        if g_rows[0]['PDB-ID'] in ('1wcm,'): #skip those already in Xla DB
+        if g_rows[0]['PDB-ID'] in ('1wcm', '1hjo', '3dw8'): #skip those already in Xla DB
             continue
+
+        # if g_rows[0]['PDB-ID'] != '3iuc':
+        #     continue
+
+
+
+
         dirname = 'XLdb_Kahraman2013_{0}/xlinks'.format(g_rows[0]['PDB-ID'])
         cmd = 'mkdir -p {0}'.format(dirname)
         print cmd
@@ -178,7 +190,7 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
                 #     1.0,
                 #     1.0
                 # ],
-                "componentToChain": {},
+                # "componentToChain": {},
                 "domains": None,
                 "sequence": "",
                 "type": "component"
@@ -191,6 +203,20 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
             if row['Chain-ID 2'] not in subunits[row['Protein2']]['chainIds']:
                 subunits[row['Protein2']]['chainIds'].append(row['Chain-ID 2'])
 
+        if g_rows[0]['PDB-ID'] == '1aon':
+            subunits['CH10_ECOLI']['chainIds'] = ['O', 'P', 'Q', 'R', 'S', 'T', 'U']
+        if g_rows[0]['PDB-ID'] == '1cmi':
+            subunits['DYL1_HUMAN']['chainIds'] = ['A', 'B']
+        if g_rows[0]['PDB-ID'] == '1efu':
+            subunits['EFTS_ECOLI']['chainIds'] = ['B', 'D']
+        if g_rows[0]['PDB-ID'] == '2c44':
+            subunits['TNAA_ECOLI']['chainIds'] = ['A', 'B', 'C', 'D']
+        if g_rows[0]['PDB-ID'] == '2e50':
+            subunits['SET_HUMAN']['chainIds'] = ['A', 'B']
+        if g_rows[0]['PDB-ID'] == '2g50':
+            subunits['KPYM_RABIT']['chainIds'] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        if g_rows[0]['PDB-ID'] == '3iuc':
+            subunits['GRP78_HUMAN']['chainIds'] = ['A', 'C']
         color_i = 0
         for subunitnam, subunit in subunits.iteritems():
             subunit['selection'] = ':' + ','.join(['.'+c for c in subunit['chainIds']])
@@ -204,6 +230,26 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
 
             color_i = color_i + 1
 
+        if g_rows[0]['PDB-ID'] == '1cmi':
+            json_content['subunits'].append({
+                    'name': 'Nos1',
+                    'chainIds': ['C', 'D'],
+                    "color": COLORS[color_i],
+                    "domains": None,
+                    "sequence": "",
+                    "type": "component"
+                    }
+                )
+        if g_rows[0]['PDB-ID'] == '1efu':
+            json_content['subunits'].append({
+                    'name': 'tufB',
+                    'chainIds': ['A', 'C'],
+                    "color": COLORS[color_i],
+                    "domains": None,
+                    "sequence": "",
+                    "type": "component"
+                    }
+                )
         dirname = 'XLdb_Kahraman2013_{0}'.format(g_rows[0]['PDB-ID'])
         with open('{0}/{1}.json'.format(dirname, g_rows[0]['PDB-ID']),'w') as f:
             f.write(json.dumps(json_content,\
@@ -228,6 +274,9 @@ with open(filename, 'rU') as csvfile: #'U' is necessary, otherwise sometimes cra
             templ = templ1
         else:
             templ = templ2
+
+        if g_rows[0]['PDB-ID'] in ('1jm7',):
+            templ = templ.replace('X-ray', 'NMR')
 
 
         re_m = re.search('(^.*et al.|Mak).*(\(20..\)).*', g_rows[0]['Reference'])

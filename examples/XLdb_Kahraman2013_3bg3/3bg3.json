@@ -29,7 +29,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "PYC_HUMAN",
             "selection": ":.D,.A,.B,.C",

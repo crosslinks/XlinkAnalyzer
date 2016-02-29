@@ -15,11 +15,7 @@ class ComponentMover(Selection_Mover):
 
     def record_movable_objects(self, event):
         if self.mode == self.COMPONENT_MOVEMENT and self.ctable:
-
-            atoms = []
-            for selection in self.ctable.getMovableAtomSpecs():
-                atoms.extend(evalSpec(selection).atoms())
-
+            atoms = self.ctable.getMovableAtoms()
             chains = []
             spieces = []
             self.movable_groups = chimera_move.objects_grouped_by_model(atoms, chains, spieces)

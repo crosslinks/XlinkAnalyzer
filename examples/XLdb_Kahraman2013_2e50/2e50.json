@@ -18,7 +18,8 @@
     "subunits": [
         {
             "chainIds": [
-                "Q"
+                "A",
+                "B"
             ],
             "color": [
                 0.439215686,
@@ -26,10 +27,9 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "SET_HUMAN",
-            "selection": ":.Q",
+            "selection": ":.A,.B",
             "sequence": "",
             "type": "component"
         }

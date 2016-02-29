@@ -381,7 +381,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.detailsFrame = None
 
         Label(self, anchor='w', bg='white', padx=4, pady=4,
-                    text='This panel allows performing statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
+                    text='Statistics of satisfied and violated cross-links').pack(anchor='w', pady='4')
 
         legendFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
         legendFrame.pack(anchor='w', pady='4')
@@ -400,7 +400,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                     text=u'Satisfied: xlinks shorter or equal to %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
                     ).grid(row=2, column=0, sticky="w")
 
-        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render, padx=4, pady=4)
+        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render)
         updateBtn.grid(row=0, rowspan=3, column=1)
 
 
@@ -481,8 +481,12 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         self.tableData = tableData
         modelListFrame.grid_columnconfigure(len(colNames)-1, minsize=10, weight=1)
 
-        exportTableBtn = Tkinter.Button(self, text="Export table", command=self.exportTable)
-        exportTableBtn.pack(anchor='e', padx=4)
+        belowFrame = Tkinter.Frame(self)
+        Label(belowFrame, anchor='w', bg='white', padx=4, pady=4,
+                    text='Note: only cross-links that could be mapped to the structures are counted in this table.').grid(column=0, row=0)
+        exportTableBtn = Tkinter.Button(belowFrame, text="Export table", command=self.exportTable)
+        exportTableBtn.grid(column=1, row=0)
+        belowFrame.pack(anchor='e', padx=4)
 
         self.xlinkToolbar.pack(padx=4, pady=4)
 
@@ -1382,7 +1386,7 @@ class XlinkMgrTabFrame(TabFrame):
         self.showFirstOnlyOliMode.set(False)
 
         self.smartMode = Tkinter.BooleanVar()
-        self.smartMode.set(False)
+        self.smartMode.set(True)
 
         self.ld_score_var = None
 
@@ -1879,8 +1883,47 @@ class InteractingResiMgrTabFrame(TabFrame):
 
 from CGLtk.Table import SortableTable
 
+class CustomSortableTable(SortableTable):
+    '''
+    Hacked to update the first column after Checkbutton click
+    '''
+    def _widgetCB(self, datum, column, newVal=None):
+        SortableTable._widgetCB(self, datum, column, newVal)
+
+        activeColIdx = 0
+        showColIdx = 1
+
+        #TODO: checking which col was clicked and update only that one
+
+        sortData = self._sortedData()
+        for row, datum in enumerate(sortData):
+            for col, column in enumerate([c for c in self.columns if c.display]):
+                if col == activeColIdx:
+                    self.updateCellWidget(datum,column)
+                if col == showColIdx:
+                    self.updateCellWidget(datum,column)
+
 class ComponentTable(Frame):
     def __init__(self,parent,config,*args,**kwargs):
+        '''
+        In Show chains mode, Chains are dynamically created for Subunits and Domains.
+        So sort of artificial Chains are created for Domains.
+
+        = Activating for move: =
+        How it works:
+        getMovableAtoms:
+         1. collects
+            active "parent" items, i.e. Subunits and Chains of Subunits
+            and active "children", i.e.  Domains and Chains of Domains
+         2. collects all atoms of these items.
+         3. collects all atoms of inactive children
+         4. subtracts inactive atoms from active atomSpecs
+         5. the result is passed to SelectionMover
+
+        getMovableAtoms does not collect atoms from Subcomplexes,
+        because activating/disactivating Subcomplexes automatically 
+        affects active status of its children (Subunits and Domains).
+        '''
         Frame.__init__(self,parent,*args,**kwargs)
 
         self.config = config
@@ -1977,7 +2020,7 @@ class ComponentTable(Frame):
                              ("Domains",self.config.getDomains),\
                              ("Subcomplexes", self.config.getSubcomplexes)])
 
-        self.table = SortableTable(self, allowUserSorting=False)
+        self.table = CustomSortableTable(self, allowUserSorting=False)
         self.table.addColumn("Active", "active",format=bool)
         self.table.addColumn("Show", "show",format=bool)
         if DEV:
@@ -1999,6 +2042,7 @@ class ComponentTable(Frame):
         Frame.destroy(self)
 
     def onCompShowChange(self, trigger, userData, comp):
+        # print "onCompShowChange", comp.name
         self.getActiveModels()
         for model in self.models:
             if comp.show:
@@ -2104,33 +2148,46 @@ class ComponentTable(Frame):
     def onRedo(self):
         self.mover.redo_move()
 
-    def getActiveComponents(self):
-        return [item for item in self.table.data if item.active]
-
-    def getCurrentSelections(self):
-        sels = []
-        if len(self.getActiveComponents()) != len(self.table.data) or len(self.getActiveComponents()) == 1:
-            for comp in self.getActiveComponents():
-                sels.append(comp.getSelection())
-
-        return sels
-
-    def getMovableAtomSpecs(self):
+    def getAtomSpecsFromSels(self, sels):
         activeModelIds = []
         self.getActiveModels()
         for model in self.models:
             if model.active:
                 activeModelIds.append(model.getModelId())
-
-        currentSelections = self.getCurrentSelections()
+ 
         atomSpecs = []
-        for modelId, sel in itertools.product(activeModelIds, currentSelections):
+        for modelId, sel in itertools.product(activeModelIds, sels):
             if not sel.startswith(':'):
                 sel = ':' + sel
             atomSpecs.append('#{0}{1}'.format(modelId, sel))
 
         return atomSpecs
 
+    def getMovableAtoms(self):
+        if self.config.isAnyPartInactive():
+            from chimera.specifier import evalSpec
+            activeSels = []
+            for comp in self.config.getActiveParents() + self.config.getActiveChildren():
+                activeSels.append(comp.getSelection())
+            # print self.config.getActiveParents() + self.config.getActiveChildren()
+            activeSpecs = self.getAtomSpecsFromSels(activeSels)
+            activeAtoms = set([])
+            for selection in activeSpecs:
+                activeAtoms.update(evalSpec(selection).atoms())
+
+
+            inactiveSels = []
+            for comp in self.config.getInActiveChildren():
+                inactiveSels.append(comp.getSelection())
+            # print self.getInActiveChildren()
+            inactiveSpecs = self.getAtomSpecsFromSels(inactiveSels)
+            inactiveAtoms = set([])
+            for selection in inactiveSpecs:
+                inactiveAtoms.update(evalSpec(selection).atoms())
+
+            return activeAtoms - inactiveAtoms
+        else:
+            return []
 
 def is_mac():
     return _platform == "darwin"

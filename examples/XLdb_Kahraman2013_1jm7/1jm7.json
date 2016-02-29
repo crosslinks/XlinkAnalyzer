@@ -29,7 +29,6 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "BRCA1_HUMAN",
             "selection": ":.A",
@@ -46,7 +45,6 @@
                 0.133,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "BARD1_HUMAN",
             "selection": ":.B",

@@ -18,7 +18,8 @@
     "subunits": [
         {
             "chainIds": [
-                "A"
+                "A",
+                "C"
             ],
             "color": [
                 0.439215686,
@@ -26,10 +27,9 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "GRP78_HUMAN",
-            "selection": ":.A",
+            "selection": ":.A,.C",
             "sequence": "",
             "type": "component"
         }

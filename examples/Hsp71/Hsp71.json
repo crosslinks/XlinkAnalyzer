@@ -1,0 +1,41 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/xlinks.csv"
+                ]
+            },
+            "mapping": {
+                "sp|P08107|HSP71": [
+                    "heat-shock 70KD protein"
+                ]
+            },
+            "name": "xlinks",
+            "type": "Xlink Analyzer"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "A"
+            ],
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "HSP71_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P08107"
+            },
+            "name": "heat-shock 70KD protein",
+            "selection": ":.A"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

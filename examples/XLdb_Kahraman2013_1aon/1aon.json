@@ -18,7 +18,13 @@
     "subunits": [
         {
             "chainIds": [
-                "P"
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U"
             ],
             "color": [
                 0.439215686,
@@ -26,10 +32,9 @@
                 1.0,
                 1.0
             ],
-            "componentToChain": {},
             "domains": null,
             "name": "CH10_ECOLI",
-            "selection": ":.P",
+            "selection": ":.O,.P,.Q,.R,.S,.T,.U",
             "sequence": "",
             "type": "component"
         }
