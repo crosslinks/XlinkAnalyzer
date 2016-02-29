@@ -601,7 +601,6 @@ class ItemFrame(LabelFrame):
                         _dict[k] = _ui.fileGroup
 
         else:
-            print "Synchronizing: ",data.name
             self.data = data
             _dict = data.__dict__
             for k,v in self.fields.items():
