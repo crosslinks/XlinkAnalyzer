@@ -1087,7 +1087,7 @@ class SetupFrame(TabFrame):
             toolTip.hidetip()
         widget.bind('<Enter>', enter)
         widget.bind('<Leave>', leave)
-
+        
 class DataMgrTabFrame(TabFrame):
     def __init__(self, master, *args, **kwargs):
         TabFrame.__init__(self, master, *args, **kwargs)
@@ -1911,67 +1911,67 @@ class ComponentTable(Frame):
         curRow = curRow + 1
         self.activate = Button(self,text="Activate", \
                                        command=self.onActivate)
-        self.activate.grid(row=curRow,column=3,sticky="W")
+        self.activate.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.activateAll = Button(self,text="Activate All", \
                                        command=self.onActivateAll)
-        self.activateAll.grid(row=curRow,column=3,sticky="W")
+        self.activateAll.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.activeOnly  = Button(self,text="Activate Only", \
                                        command=self.onActivateOnly)
-        self.activeOnly.grid(row=curRow,column=3,sticky="W")
+        self.activeOnly.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.deactivate = Button(self,text="Deactivate", \
                                        command=self.onDeactivate)
-        self.deactivate .grid(row=curRow,column=3,sticky="W")
+        self.deactivate .grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.show = Button(self,text="Show", \
                                        command=self.onShow)
-        self.show.grid(row=curRow,column=3,sticky="W")
+        self.show.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.hide  = Button(self,text="Hide", \
                                        command=self.onHide)
-        self.hide.grid(row=curRow,column=3,sticky="W")
+        self.hide.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.select = Button(self,text="Select", \
                                        command=self.onSelect)
-        self.select.grid(row=curRow,column=3,sticky="W")
+        self.select.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.showOnly = Button(self,text="Show Only", \
                                        command=self.onShowOnly)
-        self.showOnly.grid(row=curRow,column=3,sticky="W")
+        self.showOnly.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.showOnly = Button(self,text="Show all", \
                                        command=self.onShowAll)
-        self.showOnly.grid(row=curRow,column=3,sticky="W")
+        self.showOnly.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.colorAll = Button(self,text="Color", \
                                        command=self.onColor)
-        self.colorAll.grid(row=curRow,column=3,sticky="W")
+        self.colorAll.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.colorAll = Button(self,text="Color all", \
                                        command=self.onColorAll)
-        self.colorAll.grid(row=curRow,column=3,sticky="W")
+        self.colorAll.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.undo = Button(self,text="Undo Move", \
                                        command=self.onUndo)
-        self.undo.grid(row=curRow,column=3,sticky="W")
+        self.undo.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.redo = Button(self,text="Redo Move", \
                                        command=self.onRedo)
-        self.redo.grid(row=curRow,column=3,sticky="W")
+        self.redo.grid(row=curRow,column=2,sticky="W")
 
         self.choices = dict([("Subunits",self.config.getSubunits),\
                              ("Domains",self.config.getDomains),\

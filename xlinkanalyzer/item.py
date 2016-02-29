@@ -610,6 +610,7 @@ class ItemFrame(LabelFrame):
                         _dict[k] = _ui.fileGroup
 
         else:
+            print "Synchronizing: ",data.name
             self.data = data
             _dict = data.__dict__
             for k,v in self.fields.items():
@@ -893,6 +894,7 @@ class ItemList(LabelFrame):
         for f in self.frames:
             if not (f.data in self.container.__dict__[self.show]):
                 f.destroy()
+                f.synchronize(f.data)
         self.scrolledFrame.grid()
         self.grid()
         try:
