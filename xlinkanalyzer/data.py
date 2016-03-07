@@ -1188,7 +1188,6 @@ class Assembly(Item):
     """
     def __init__(self,frame=None):
         super(Assembly,self).__init__()
-        self.items = []
         self.subunits = []
         self.subcomplexes = []
         self.dataItems = []
@@ -1403,8 +1402,6 @@ class Assembly(Item):
             for sub in self.subcomplexes:
                 sub.deleteItem(item)
         elif isinstance(item,Subcomplex):
-            if item in self.items:
-                self.items.remove(item)
             if item in self.subcomplexes:
                 self.subcomplexes.remove(item)
         self.state = "changed"

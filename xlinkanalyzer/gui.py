@@ -996,21 +996,7 @@ class SetupFrame(TabFrame):
                                          command=self.onSubcomplexes)
         self.subCompButton.grid(row = curRow,column = 1, sticky = "W",**layout)
 
-
-        #Deploy the subunits in self.config
-        for i,item in enumerate(self.config.items):
-            itemFrame = ItemFrame(self,item=item)
-            itemFrame.grid(row=i+1,\
-                                column = 0,\
-                                columnspan = 3,\
-                                sticky = "W")
-            self.subunitFrames.append(itemFrame)
-
         self.pack(fill='both', expand=1)
-
-    def __iter__(self):
-        for subunitFrame in self.subunitFrames:
-            yield subunitFrame
 
     def clear(self):
         
@@ -1019,7 +1005,6 @@ class SetupFrame(TabFrame):
     def onQuickLoad(self,p):
         if self.config.isEmpty() or \
         (not self.config.isEmpty() and tkMessageBox.askquestion("Loading ...", "Load project "+p+"?", parent=self.master) =="yes"):
-            self.config.items = []
             self.resMngr.loadAssembly(self, p)
             self.update()
             self.mainWindow.setTitle(self.config.file)
