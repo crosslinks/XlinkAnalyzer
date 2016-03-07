@@ -804,7 +804,7 @@ class ToolTip(object):
 class ItemList(LabelFrame):
     def __init__(self,parent,container,show,active=False,*args,**kwargs):
         LabelFrame.__init__(self,parent,*args,**kwargs)
-        self.items = container.__dict__[show]
+        # self.items = container.__dict__[show]
         self.active = active
         self.parent = parent
         self.frames = []
@@ -842,7 +842,7 @@ class ItemList(LabelFrame):
 
         self.scrolledFrame = ScrolledFrame(self,**options)
 
-        for item in self.items:
+        for item in self.container.__dict__[self.show]:
             self.frames.append(\
                     ItemFrame(self.scrolledFrame.interior(),item,False,self))
 
