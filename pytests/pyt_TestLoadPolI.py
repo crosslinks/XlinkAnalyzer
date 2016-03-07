@@ -4,8 +4,6 @@ import XlaGuiTests
 
 import xlinkanalyzer as xla
 
-from chimera import runCommand as rc
-
 # for this test to run do:
 # chimera --pypath ~/devel/XlinkAnalyzer --pypath ~/devel/pyxlinks/ run.py <name of this file>
 RUNME = True
@@ -42,16 +40,3 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
         self.assertEqual(106, displayed)
-
-        #just test open windows
-        self.g.configFrame.domainsButton.invoke()
-        self.g.configFrame.subCompButton.invoke()
-
-    def testDeleteStuff(self):
-        subUnitFrame = self.g.configFrame.subUnitFrame
-        self.assertEqual(14, len(subUnitFrame.frames))
-        subUnitFrame.frames[0].onDelete()
-        self.assertEqual(13, len(subUnitFrame.frames))
-
-    def tearDown(self):
-        rc('close #0')
