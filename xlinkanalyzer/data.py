@@ -41,6 +41,7 @@ class Item(object):
         self.config = config
         self.fake = fake
         self.sym = True
+        self.registry = []
 
     @property
     def show(self):
@@ -136,6 +137,14 @@ class Item(object):
                 if isinstance(obj,Item):
                     items.append(obj)
         return items
+    
+    def register(self,frame):
+        self.registry.append(frame)
+            
+    def unregister(self,frame):
+        if frame in self.registry:
+            self.registry.remove(frame)
+        
     
 class Chain(Item):
     """
