@@ -892,7 +892,6 @@ class ItemList(LabelFrame):
             if not (f.data in self.container.__dict__[self.show]):
                 f.data.unregister(f)
                 f.destroy()
-                f.synchronize(f.data)
         self.scrolledFrame.grid()
         self.grid()
         try:
