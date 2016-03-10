@@ -33,6 +33,15 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
         xFrame.displayDefault()
 
+
+        self.assertEqual(14, len(self.g.configFrame.config.subunits))
+        self.assertEqual(1, len(self.g.configFrame.config.subcomplexes))
+        self.assertEqual(1, len(self.g.configFrame.config.domains))
+        self.assertEqual(10, len(self.g.configFrame.config.dataItems))
+        self.assertSetEqual(set([u'A190', u'A135', u'AC40', u'A14', u'ABC27', u'ABC23', u'A43', u'ABC14.5', u'A12', u'ABC10beta', u'AC19', u'ABC10alpha', u'A49', u'A34.5']),
+            set(self.g.configFrame.config.getSubunitNames()))
+
+
         self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
 
         xmgr = xFrame.getXlinkDataMgrs()[0]

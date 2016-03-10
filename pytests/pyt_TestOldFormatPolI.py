@@ -18,18 +18,25 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         cPath = 'PolI/PolI_old_format.json'
         super(TestPolI, self).setUp(mPaths, cPath)
 
-    def testPolI(self):
         ms = xla.get_gui().Subunits.table.modelSelect
         m = chimera.openModels.list()[0]
         ms.setvalue([m])
 
-        g = xla.get_gui()
+        self.g = xla.get_gui()
 
-        g.modelSelect.doSync(ms)
+        self.g.modelSelect.doSync(ms)
 
-        xFrame = g.Xlinks
+    def testPolI(self):
+        xFrame = self.g.Xlinks
 
         xFrame.displayDefault()
+
+        self.assertEqual(14, len(self.g.configFrame.config.subunits))
+        self.assertEqual(0, len(self.g.configFrame.config.subcomplexes))
+        self.assertEqual(0, len(self.g.configFrame.config.domains))
+        self.assertEqual(10, len(self.g.configFrame.config.dataItems))
+        self.assertSetEqual(set([u'A190', u'A135', u'AC40', u'A14', u'ABC27', u'ABC23', u'A43', u'ABC14.5', u'A12', u'ABC10beta', u'AC19', u'ABC10alpha', u'A49', u'A34.5']),
+            set(self.g.configFrame.config.getSubunitNames()))
 
         self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
 
@@ -42,5 +49,5 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.assertEqual(106, displayed)
 
         #just test open windows
-        g.configFrame.domainsButton.invoke()
-        g.configFrame.subCompButton.invoke()
+        self.g.configFrame.domainsButton.invoke()
+        self.g.configFrame.subCompButton.invoke()
