@@ -18,7 +18,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import FileGroup,Mapping
+from data import FileGroup,Mapping,Item
 from __builtin__ import True
 
 import xlinkanalyzer
@@ -362,6 +362,8 @@ class ItemFrame(LabelFrame):
             fields = _dict.keys()
             fields = [f for f in fields if f in show]
             fields.sort(lambda x,y: show.index(x)-show.index(y))
+            if isinstance(self.data,Item):
+                self.data.register(self)
 
         #populate simple data fields with gui classes
         for fK in fields:
@@ -418,6 +420,9 @@ class ItemFrame(LabelFrame):
                 _entry = Entry(self,textvariable=_var)
                 _entry.config(width=10)
                 self.fields[k] = (_data,_entry,_label,_var)
+                if isinstance(self.data,Item):
+                    if len(self.data.registry)>1:
+                        _entry.configure(state='disabled')
 
             elif _UIClass == ColorOption:
                 self.fields[k] = (_data,_UIClass,None,None)
@@ -697,6 +702,8 @@ class ItemFrame(LabelFrame):
         if self.listFrame:
             self.listFrame.container.deleteItem(self.data)
             self.listFrame.synchronize()
+        if isinstance(self.data, Item):
+            self.data.unregister(self)
         self.destroy()
 
     def onApply(self):
@@ -883,8 +890,8 @@ class ItemList(LabelFrame):
         
         for f in self.frames:
             if not (f.data in self.container.__dict__[self.show]):
+                f.data.unregister(f)
                 f.destroy()
-                f.synchronize(f.data)
         self.scrolledFrame.grid()
         self.grid()
         try:
