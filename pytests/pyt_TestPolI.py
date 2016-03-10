@@ -51,16 +51,51 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         subUnitFrame = self.g.configFrame.subUnitFrame
         self.assertEqual(14, len(subUnitFrame.frames))
         self.assertEqual(14, len(self.g.configFrame.config.subunits))
-        subUnitFrame.frames[0].onDelete()
-        self.assertEqual(13, len(subUnitFrame.frames))
+        subUnitFrame.frames[0].delete.invoke()
+        # self.assertEqual(13, len(subUnitFrame.frames))
         self.assertEqual(13, len(self.g.configFrame.config.subunits))
 
         dataFrame = self.g.configFrame.dataFrame
         self.assertEqual(10, len(dataFrame.frames))
         self.assertEqual(10, len(self.g.configFrame.config.dataItems))
-        dataFrame.frames[0].onDelete()
-        self.assertEqual(9, len(dataFrame.frames))
+        dataFrame.frames[0].delete.invoke()
+        # self.assertEqual(9, len(dataFrame.frames))
         self.assertEqual(9, len(self.g.configFrame.config.dataItems))
+
+
+    def testDeleteStuffSubcomplexes(self):
+        self.g.configFrame.subCompButton.invoke()
+        subWind = self._getSubcomplexesWindow()
+        self.assertIsNotNone(subWind)
+
+        self.assertEqual(1, len(subWind.winfo_children()))
+        itemList = subWind.winfo_children()[0]
+        itemList.frames[0].delete.invoke()
+        self.assertEqual(0, len(self.g.configFrame.config.subcomplexes))
+
+    def testDeleteStuffDomains(self):
+        self.g.configFrame.domainsButton.invoke()
+        domWind = self._getDomainsWindow()
+        self.assertIsNotNone(domWind)
+
+        self.assertEqual(1, len(domWind.winfo_children()))
+        itemList = domWind.winfo_children()[0]
+        itemList.frames[0].delete.invoke()
+        self.assertEqual(0, len(self.g.configFrame.config.domains))
+
+    def _getSubcomplexesWindow(self):
+        c = self.g.configFrame
+        for child in c.winfo_children():
+            if hasattr(child, 'title'):
+                if child.title() == 'Subcomplexes':
+                    return child
+
+    def _getDomainsWindow(self):
+        c = self.g.configFrame
+        for child in c.winfo_children():
+            if hasattr(child, 'title'):
+                if child.title() == 'Domains':
+                    return child
 
     def tearDown(self):
         rc('close #0')

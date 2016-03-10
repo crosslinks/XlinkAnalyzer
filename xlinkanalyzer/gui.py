@@ -1019,7 +1019,7 @@ class SetupFrame(TabFrame):
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
-        top = Toplevel()
+        top = Toplevel(self)
         top.title("Subcomplexes")
         ItemList(top,self.config,"subcomplexes",True)
 
@@ -1031,7 +1031,7 @@ class SetupFrame(TabFrame):
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
-        top = Toplevel()
+        top = Toplevel(self)
         top.title("Domains")
         ItemList(top,self.config,"domains",True)
 
