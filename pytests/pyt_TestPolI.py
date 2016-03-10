@@ -50,8 +50,17 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
     def testDeleteStuff(self):
         subUnitFrame = self.g.configFrame.subUnitFrame
         self.assertEqual(14, len(subUnitFrame.frames))
+        self.assertEqual(14, len(g.configFrame.config.subunits))
         subUnitFrame.frames[0].onDelete()
         self.assertEqual(13, len(subUnitFrame.frames))
+        self.assertEqual(13, len(g.configFrame.config.subunits))
+
+        dataFrame = self.g.configFrame.dataFrame
+        self.assertEqual(10, len(dataFrame.frames))
+        self.assertEqual(10, len(g.configFrame.config.dataItems))
+        dataFrame.frames[0].onDelete()
+        self.assertEqual(9, len(dataFrame.frames))
+        self.assertEqual(9, len(g.configFrame.config.dataItems))
 
     def tearDown(self):
         rc('close #0')
