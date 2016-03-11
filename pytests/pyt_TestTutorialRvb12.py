@@ -64,6 +64,8 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         fileFrame.resetFileMenu(paths,0)
         activeItemFrame.fields['type'][3].set('xquest')
         activeItemFrame.add.invoke()
+        self.assertEqual(1, len(self.g.configFrame.config.dataItems))
+        self.assertEqual(1, len(dataFrame.frames))
 
         xFrame = self.g.Xlinks
         xFrame.displayDefault()
@@ -84,3 +86,24 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         fileFrame.resetFileMenu(paths,0)
         activeItemFrame.fields['type'][3].set('sequences')
         activeItemFrame.add.invoke()
+        self.assertEqual(2, len(self.g.configFrame.config.dataItems))
+        self.assertEqual(2, len(dataFrame.frames))
+
+        sequenceFrame = dataFrame.frames[-1]
+        mapFrame = sequenceFrame.fields['mapping'][1]
+        mapFrame.mapButton.invoke()
+        for seqName, subset in mapFrame.subsetframes.iteritems():
+            if 'RUVB1' in seqName:
+                subset.menus[0].var.set('Rvb1')
+            if 'RUVB2' in seqName:
+                subset.menus[0].var.set('Rvb2')
+        mapFrame.onSave()
+
+
+        xFrame.showModifiedFrame.showModifiedMap()
+
+        #TODO: test if stuff displayed correctly
+
+
+
+

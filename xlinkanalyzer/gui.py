@@ -1527,7 +1527,8 @@ class XlinkMgrTabFrame(TabFrame):
             xlNotebook.add(modifiedTabName)
 
             curRow = 0
-            self.showModifiedFrame = ShowModifiedFrame(xlNotebook.page(modifiedTabName), self).grid(row=curRow, column=0)
+            self.showModifiedFrame = ShowModifiedFrame(xlNotebook.page(modifiedTabName), self)
+            self.showModifiedFrame.grid(row=curRow, column=0)
             curRow += 1
 
 
