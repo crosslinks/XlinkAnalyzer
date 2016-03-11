@@ -41,6 +41,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.assertSetEqual(set([u'A190', u'A135', u'AC40', u'A14', u'ABC27', u'ABC23', u'A43', u'ABC14.5', u'A12', u'ABC10beta', u'AC19', u'ABC10alpha', u'A49', u'A34.5']),
             set(self.g.configFrame.config.getSubunitNames()))
 
+        self.assertEqual(len(self.g.configFrame.config.subunits), len(self.g.configFrame.config.getSequences()))
 
         self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
 
