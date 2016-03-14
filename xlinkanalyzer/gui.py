@@ -1599,11 +1599,11 @@ class XlinkMgrTabFrame(TabFrame):
             curRow += 1
 
 
-            btn = Tkinter.Button(xlNotebook.page(showXlinksFromTabName),
+            self.showXlinksFromBtn = Tkinter.Button(xlNotebook.page(showXlinksFromTabName),
                 text='Show',
                 command=self.showXlinksFrom)
 
-            btn.grid(row = curRow, columnspan=2)
+            self.showXlinksFromBtn.grid(row = curRow, columnspan=2)
             curRow += 1
 
             xlinkToolbar = XlinkToolbar(xlNotebook.page(showXlinksFromTabName), self.ld_score_var, self.lengthThreshVar, self)

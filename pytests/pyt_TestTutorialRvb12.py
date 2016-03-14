@@ -57,6 +57,9 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
             color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
             self.assertEqual(color, chimera.MaterialColor(0.392,0.584,0.929))
 
+        configfilename = tempfile.mkstemp()[1]
+        self.g.configFrame.resMngr._saveAssembly(configfilename)
+
         dataFrame = self.g.configFrame.dataFrame
         activeItemFrame = dataFrame.activeItemFrame
         activeItemFrame.fields['name'][1].insert(0, 'xlinks')
@@ -105,6 +108,9 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
             if 'RUVB2' in seqName:
                 subset.menus[0].var.set('Rvb2')
         mapFrame.onSave()
+
+        configfilename = tempfile.mkstemp()[1]
+        self.g.configFrame.resMngr._saveAssembly(configfilename)
 
         xFrame.showModifiedFrame.showModifiedMap()
 
@@ -243,3 +249,12 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         modelStatsTable.xlinkToolbar.lengthThresholdFrameApplyBtn.invoke()
         modelStatsTable.updateBtn.invoke()
 
+        xFrame.showXlinksFromTabNameCompOptMenuFrom.var.set('Rvb1')
+        xFrame.showXlinksFromTabNameCompOptMenuTo.var.set('Rvb2')
+        xFrame.showXlinksFromBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(24, displayed)
+        xFrame.ld_score_var.set(0.0)
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(27, displayed)
+        xFrame.ld_score_var.set(30.0)

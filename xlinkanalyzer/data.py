@@ -74,6 +74,7 @@ class Item(object):
         _dict.pop("config")
         _dict.pop("fake")
         _dict.pop("sym")
+        _dict.pop("registry")
         if '_active' in _dict:
             _dict.pop("_active")
         if '_show' in _dict:
@@ -1637,6 +1638,10 @@ class ResourceManager(object):
                 parent=parent)
         else:
             _file = self.config.file
+
+        self._saveAssembly(_file)
+
+    def _saveAssembly(self, _file):
         if _file:
             # self.config.locate()
             self.dumpJson(_file)
