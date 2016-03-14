@@ -400,10 +400,8 @@ class ModelXlinkStatsTable(Tkinter.Frame):
                     text=u'Satisfied: xlinks shorter or equal to %s \u212B' % (str(xlinkanalyzer.XLINK_LEN_THRESHOLD),)
                     ).grid(row=2, column=0, sticky="w")
 
-        updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render)
-        updateBtn.grid(row=0, rowspan=3, column=1)
-
-
+        self.updateBtn = Tkinter.Button(legendFrame, text="Refresh", command=self.render)
+        self.updateBtn.grid(row=0, rowspan=3, column=1)
 
         modelSelect = xlinkanalyzer.get_gui().modelSelect.create(self)
         modelSelect.pack(anchor='w', fill = 'both', pady=1)
@@ -480,6 +478,7 @@ class ModelXlinkStatsTable(Tkinter.Frame):
 
         self.tableData = tableData
         modelListFrame.grid_columnconfigure(len(colNames)-1, minsize=10, weight=1)
+        self.modelListFrame = modelListFrame
 
         belowFrame = Tkinter.Frame(self)
         Label(belowFrame, anchor='w', bg='white', padx=4, pady=4,
@@ -496,6 +495,11 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
             return
 
+        self._exportTable(f)
+
+        f.close()
+
+    def _exportTable(self, f):
         quoting = csv.QUOTE_NONNUMERIC
 
         fieldnames = self.tableData[0]
@@ -504,8 +508,6 @@ class ModelXlinkStatsTable(Tkinter.Frame):
         wr = csv.writer(f, quoting=quoting)
         wr.writerow(fieldnames) #do not use wr.writeheader() to support also python 2.6
         wr.writerows(data)
-
-        f.close()
 
     def getDataMgrsForModel(self, model):
         out = []
@@ -528,19 +530,19 @@ class ModelXlinkStatsTable(Tkinter.Frame):
 class DetailXlinkStats(LabelFrame):
     def __init__(self, master, xlinkDataMgr, *args, **kwargs):
         LabelFrame.__init__(self, master, *args, **kwargs)
-
-        xlinkStats = xlinkDataMgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
+        self.xlinkDataMgr = xlinkDataMgr
+        self.xlinkStats = xlinkDataMgr.countSatisfied(xlinkanalyzer.XLINK_LEN_THRESHOLD)
 
         # Label(self, text='dupa', foreground='red').pack()
 
         buttonsFrame = Tkinter.Frame(self)
         buttonsFrame.pack(fill='both', pady='4')
 
-        xlinksHistogramBtn = Tkinter.Button(buttonsFrame, text="Histogram of distances", command=lambda: self.showHistogram(xlinkStats, xlinkDataMgr))
+        xlinksHistogramBtn = Tkinter.Button(buttonsFrame, text="Histogram of distances", command=self.showHistogram)
         xlinksHistogramBtn.pack(side='left', anchor='w', padx=4)
 
-        xlinksHistogramBtn = Tkinter.Button(buttonsFrame, text="Export xlinks with distances", command=lambda: self.exportXlinkList(xlinkStats, xlinkDataMgr))
-        xlinksHistogramBtn.pack(side='left', anchor='w', padx=4)
+        exportBtn = Tkinter.Button(buttonsFrame, text="Export xlinks with distances", command=self.exportXlinkList)
+        exportBtn.pack(side='left', anchor='w', padx=4)
 
         body = Pmw.ScrolledFrame(self,
             horizflex='expand',
@@ -549,17 +551,17 @@ class DetailXlinkStats(LabelFrame):
             )
         body.pack(fill='x', padx=4)
 
-        byCompViolatedListFrame = ByCompViolatedListFrame(body.interior(), xlinkStats, xlinkDataMgr)
-        byCompViolatedListFrame.pack(fill='x', padx=4)
+        self.byCompViolatedListFrame = ByCompViolatedListFrame(body.interior(), self.xlinkStats, self.xlinkDataMgr)
+        self.byCompViolatedListFrame.pack(fill='x', padx=4)
 
-        byPairViolatedListFrame = ByPairViolatedListFrame(body.interior(), xlinkStats, xlinkDataMgr)
-        byPairViolatedListFrame.pack(fill='x', padx=4)
+        self.byPairViolatedListFrame = ByPairViolatedListFrame(body.interior(), self.xlinkStats, self.xlinkDataMgr)
+        self.byPairViolatedListFrame.pack(fill='x', padx=4)
 
-    def showHistogram(self, xlinkStats, xlinkDataMgr):
-        XlinksHistogram(xlinkStats, xlinkDataMgr)
+    def showHistogram(self):
+        XlinksHistogram(self.xlinkStats, self.xlinkDataMgr)
 
-    def exportXlinkList(self, xlinkStats, xlinkDataMgr):
-        xlinksSet = xlinkDataMgr.getXlinksWithDistances(xlinkStats)
+    def exportXlinkList(self):
+        xlinksSet = self.xlinkDataMgr.getXlinksWithDistances(self.xlinkStats)
 
         if len(xlinksSet.data) > 0:
             #TODO: change initialdir to project dir
@@ -571,6 +573,7 @@ class DetailXlinkStats(LabelFrame):
         else:
             raise UserError("No cross-links.\n \
                 No crosslinks found in current data sets above current score threshold.")
+
 
 class ViolatedListFrame(LabelFrame):
     """Abstract class"""
@@ -586,11 +589,11 @@ class ViolatedListFrame(LabelFrame):
 
         buttonsFrame = Tkinter.Frame(self)
         buttonsFrame.pack(anchor='w')
-        highlightSelBtn = Tkinter.Button(buttonsFrame, text="Highlight selected in structure", command=self.highlightCB)
-        highlightSelBtn.pack(side='left')
+        self.highlightSelBtn = Tkinter.Button(buttonsFrame, text="Highlight selected in structure", command=self.highlightCB)
+        self.highlightSelBtn.pack(side='left')
 
-        exportSelBtn = Tkinter.Button(buttonsFrame, text="Export selected xlinks", command=self.exportSelectedXlinkList)
-        exportSelBtn.pack(side='left')
+        self.exportSelBtn = Tkinter.Button(buttonsFrame, text="Export selected xlinks", command=self.exportSelectedXlinkList)
+        self.exportSelBtn.pack(side='left')
 
     def createList(self):
         raise NotImplementedError("To implement in subclasses")
@@ -655,6 +658,16 @@ class ViolatedListFrame(LabelFrame):
         selection.setCurrent(selection.ItemizedSelection([x.pb for x in self.getSelected()]))
 
     def exportSelectedXlinkList(self):
+        #TODO: change initialdir to project dir
+        f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".csv", initialdir=None, parent=self)
+        if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+            return
+
+        self._exportSelectedXlinkList(f)
+
+        f.close()
+
+    def _exportSelectedXlinkList(self, f):
         xlinks = []
         for xlinkBond in self.getSelected():
             oriXlinks = self.xlinkDataMgr.getOriXlinks(xlinkBond.xlink, copiesWithSource=True)
@@ -677,11 +690,6 @@ class ViolatedListFrame(LabelFrame):
             if 'Subunit2' not in fieldnames:
                 fieldnames.insert(fieldnames.index('Protein2')+1, 'Subunit2')
             xlinksSet = pyxlinks.XlinksSet(xlink_set_data=xlinks, fieldnames=fieldnames)
-
-            #TODO: change initialdir to project dir
-            f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".csv", initialdir=None, parent=self)
-            if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
-                return
 
             xlinksSet.save_to_file(f, quoting=csv.QUOTE_NONNUMERIC)
 
@@ -1240,10 +1248,10 @@ class XlinkToolbar(Tkinter.Frame):
         curRow += 1
         lengthThresholdEntry = XlinkLengthThresholdEntry(lengthThresholdFrame, self.lengthThreshVar)
         lengthThresholdEntry.grid(row=1, column=0)
-        btn = Tkinter.Button(lengthThresholdFrame,
+        self.lengthThresholdFrameApplyBtn = Tkinter.Button(lengthThresholdFrame,
             text='Apply',
             command=lambda: chimera.triggers.activateTrigger('lengthThresholdChanged', lengthThresholdEntry.var.get()))
-        btn.grid(row=1, column=1)
+        self.lengthThresholdFrameApplyBtn.grid(row=1, column=1)
         LengthThresholdLabel(lengthThresholdFrame).grid(row=0, column=0, sticky='w')
 
 

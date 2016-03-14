@@ -1,6 +1,8 @@
 import os
-
+import tempfile
+import csv
 import chimera
+from chimera.specifier import evalSpec
 
 import XlaGuiTests
 
@@ -20,8 +22,8 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         cPath = 'Rvb12/Rvb12.json'
         super(TestTutorial, self).setUp(mPaths, cPath)
         ms = xla.get_gui().Subunits.table.modelSelect
-        m = chimera.openModels.list()[0]
-        ms.setvalue([m])
+        self.model = chimera.openModels.list()[0]
+        ms.setvalue([self.model])
 
         self.g = xla.get_gui()
 
@@ -48,7 +50,12 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
 
         self.g.Subunits.table.colorAll.invoke()
 
-        #TODO: test colors
+        for chain in ['A','C','E']:
+            color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
+            self.assertEqual(color, chimera.MaterialColor(0,255,0))
+        for chain in ['B','D','F']:
+            color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
+            self.assertEqual(color, chimera.MaterialColor(0.392,0.584,0.929))
 
         dataFrame = self.g.configFrame.dataFrame
         activeItemFrame = dataFrame.activeItemFrame
@@ -99,11 +106,140 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
                 subset.menus[0].var.set('Rvb2')
         mapFrame.onSave()
 
-
         xFrame.showModifiedFrame.showModifiedMap()
 
-        #TODO: test if stuff displayed correctly
+        for chain in ['A','C','E']:
+            color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
+            self.assertEqual(color, chimera.colorTable.getColorByName('light gray'))
+        for chain in ['B','D','F']:
+            color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
+            self.assertEqual(color, chimera.colorTable.getColorByName('light gray'))
+
+        some_red_resi = map(str, [81, 128, 161, 174, 276])
+        for resi in some_red_resi:
+            for chain in ['B','D','F']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('red'))
+
+        some_red_resi = map(str, [85, 116, 193, 210, 239, 377])
+        for resi in some_red_resi:
+            for chain in ['A','C','E']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('red'))
+
+        some_yellow_resi = map(str, [15, 130, 201, 285, 438])
+        for resi in some_yellow_resi:
+            for chain in ['B','D','F']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('yellow'))
+
+        some_blue_resi = map(str, [198, 331, 338, 357])
+        for resi in some_blue_resi:
+            for chain in ['B','D','F']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('blue'))
 
 
+        xFrame.ld_score_var.set(0.0)
+        xFrame.showModifiedFrame.showModifiedMap()
+        some_blue_resi = map(str, [377])
+        for resi in some_blue_resi:
+            for chain in ['A','C','E']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('blue'))
 
+        xFrame.ld_score_var.set(30.0)
+        xFrame.showModifiedFrame.showModifiedMap()
+
+
+        modelStatsTable = self.g.Xlinks.modelStatsTable
+        self.assertEqual(6, len(modelStatsTable.winfo_children()))
+
+        csvfilename = tempfile.mkstemp()[1]
+        with open(csvfilename, 'w') as f:
+            modelStatsTable._exportTable(f)
+
+        with open(csvfilename, 'rU') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.readline(), ['\t', ','])
+            csvfile.seek(0)
+
+            reader = csv.DictReader(csvfile, dialect=dialect)
+
+            self.assertListEqual(['All xlinks', 'Satisfied', 'Violated', 'Satisfied [%]', 'Violated [%]', 'model'], reader.fieldnames)
+
+            rows = list(reader)
+            self.assertEqual(1, len(rows))
+
+            row = rows[0]
+            self.assertEqual(2, int(row['Violated']))
+            self.assertEqual(18, int(row['All xlinks']))
+            self.assertEqual(16, int(row['Satisfied']))
+            self.assertEqual('88.9', row['Satisfied [%]'])
+            self.assertEqual('11.1', row['Violated [%]'])
+            self.assertEqual('yRvb12.hexamer.pdb', row['model'])
+
+        modelStatsTable.modelListFrame.winfo_children()[8].invoke()
+        detailsFrame = modelStatsTable.detailsFrame
+        self.assertEqual(2,len(detailsFrame.winfo_children()))
+        detailsFrame.showHistogram()
+        xlinksSet = detailsFrame.xlinkDataMgr.getXlinksWithDistances(detailsFrame.xlinkStats)
+        self.assertEqual(18,len(xlinksSet.data))
+        #TODO: test exportSelectedXlinkList
+
+        detailsFrame.byCompViolatedListFrame.highlightSelBtn.invoke()
+        self.assertEqual(6, len(chimera.selection.currentPseudobonds()))
+        csvfilename = tempfile.mkstemp()[1]
+        with open(csvfilename, 'w') as f:
+            detailsFrame.byCompViolatedListFrame._exportSelectedXlinkList(f)
+        with open(csvfilename, 'rU') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.readline(), ['\t', ','])
+            csvfile.seek(0)
+            reader = csv.DictReader(csvfile, dialect=dialect)
+            self.assertEqual(6, len(list(reader)))
+
+        chimera.selection.clearCurrent()
+        detailsFrame.byPairViolatedListFrame.highlightSelBtn.invoke()
+        self.assertEqual(6, len(chimera.selection.currentPseudobonds()))
+        csvfilename = tempfile.mkstemp()[1]
+        with open(csvfilename, 'w') as f:
+            detailsFrame.byCompViolatedListFrame._exportSelectedXlinkList(f)
+        with open(csvfilename, 'rU') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.readline(), ['\t', ','])
+            csvfile.seek(0)
+            reader = csv.DictReader(csvfile, dialect=dialect)
+            self.assertEqual(6, len(list(reader)))
+
+        chimera.selection.clearCurrent()
+
+        modelStatsTable.xlinkToolbar.lengthThreshVar.set(40.0)
+        modelStatsTable.xlinkToolbar.lengthThresholdFrameApplyBtn.invoke()
+        modelStatsTable.updateBtn.invoke()
+        self.assertEqual(6, len(modelStatsTable.winfo_children()))
+
+        csvfilename = tempfile.mkstemp()[1]
+        with open(csvfilename, 'w') as f:
+            modelStatsTable._exportTable(f)
+
+        with open(csvfilename, 'rU') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.readline(), ['\t', ','])
+            csvfile.seek(0)
+
+            reader = csv.DictReader(csvfile, dialect=dialect)
+
+            self.assertListEqual(['All xlinks', 'Satisfied', 'Violated', 'Satisfied [%]', 'Violated [%]', 'model'], reader.fieldnames)
+
+            rows = list(reader)
+            self.assertEqual(1, len(rows))
+
+            row = rows[0]
+            self.assertEqual(1, int(row['Violated']))
+            self.assertEqual(18, int(row['All xlinks']))
+            self.assertEqual(17, int(row['Satisfied']))
+            self.assertEqual('94.4', row['Satisfied [%]'])
+            self.assertEqual('5.6', row['Violated [%]'])
+            self.assertEqual('yRvb12.hexamer.pdb', row['model'])
+
+        modelStatsTable.xlinkToolbar.lengthThreshVar.set(30.0)
+        modelStatsTable.xlinkToolbar.lengthThresholdFrameApplyBtn.invoke()
+        modelStatsTable.updateBtn.invoke()
 
