@@ -48,6 +48,10 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         self.assertEqual(2, len(self.g.configFrame.config.subunits))
         self.assertEqual(2, len(subUnitFrame.frames))
 
+        configfilename = tempfile.mkstemp()[1]
+        self.g.configFrame.resMngr._saveAssembly(configfilename)
+        self.assertEqual(configfilename, xla.getRecentPaths()[0])
+
         self.g.Subunits.table.colorAll.invoke()
 
         for chain in ['A','C','E']:
@@ -57,9 +61,77 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
             color = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).atoms()[0].color
             self.assertEqual(color, chimera.MaterialColor(0.392,0.584,0.929))
 
-        configfilename = tempfile.mkstemp()[1]
-        self.g.configFrame.resMngr._saveAssembly(configfilename)
+        ctable = self.g.Subunits.table
+        ctable.table.tixTable.hlist.selection_clear()
+        ctable.table.tixTable.hlist.selection_set(0)
+        ctable.hide.invoke()
+        for chain in ['A','C','E']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, False)
+        for chain in ['B','D','F']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, True)
+        ctable.showAll.invoke()
+        ctable.table.tixTable.hlist.selection_clear()
+        ctable.table.tixTable.hlist.selection_set(1)
+        ctable.hide.invoke()
+        for chain in ['A','C','E']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, True)
+        for chain in ['B','D','F']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, False)
+        ctable.show.invoke()
+        for chain in ['B','D','F']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, True)
 
+        ctable.showAll.invoke()
+        ctable.table.tixTable.hlist.selection_clear()
+        ctable.table.tixTable.hlist.selection_set(0)
+        ctable.showOnly.invoke()
+        for chain in ['A','C','E']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, True)
+        for chain in ['B','D','F']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, False)
+
+        ctable.showAll.invoke()
+        ctable.table.tixTable.hlist.selection_clear()
+        ctable.table.tixTable.hlist.selection_set(0)
+        chimera.selection.clearCurrent()
+        ctable.select.invoke()
+        self.assertListEqual(['A', 'C', 'E'], [s.chain for s in chimera.selection.currentChains()])
+        chimera.selection.clearCurrent()
+
+        self.assertEqual(2, len(ctable.table._sortedData()))
+        ctable.chainVar.set(1)
+        self.assertEqual(6, len(ctable.table._sortedData()))
+
+        ctable.showAll.invoke()
+        ctable.table.tixTable.hlist.selection_clear()
+        ctable.table.tixTable.hlist.selection_set(0)
+        ctable.hide.invoke()
+        for chain in ['A']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, False)
+        for chain in ['C','E']:
+            ribbonDisplay = evalSpec('#{0}:.{1}'.format(self.model.id, chain)).residues()[0].ribbonDisplay
+            self.assertEqual(ribbonDisplay, True)
+
+        ctable.table.tixTable.hlist.selection_set(1)
+        ctable.hide.invoke()
+        ctable.table.tixTable.hlist.selection_set(2)
+        ctable.hide.invoke()
+        ctable.chainVar.set(0)
+        self.assertEqual(False, self.g.configFrame.config.subunits[0].show)
+        self.assertEqual(2, len(ctable.table._sortedData()))
+
+
+        ctable.showAll.invoke()
+        self.assertEqual(True, self.g.configFrame.config.subunits[0].show)
+        
         dataFrame = self.g.configFrame.dataFrame
         activeItemFrame = dataFrame.activeItemFrame
         activeItemFrame.fields['name'][1].insert(0, 'xlinks')
@@ -109,8 +181,7 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
                 subset.menus[0].var.set('Rvb2')
         mapFrame.onSave()
 
-        configfilename = tempfile.mkstemp()[1]
-        self.g.configFrame.resMngr._saveAssembly(configfilename)
+        self.g.configFrame.resMngr._saveAssembly(self.g.configFrame.config.file)
 
         xFrame.showModifiedFrame.showModifiedMap()
 
@@ -159,6 +230,9 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
 
 
         modelStatsTable = self.g.Xlinks.modelStatsTable
+        modelStatsTable.xlinkToolbar.resetView()
+        self.g.Subunits.table.colorAll.invoke()
+
         self.assertEqual(6, len(modelStatsTable.winfo_children()))
 
         csvfilename = tempfile.mkstemp()[1]
@@ -258,3 +332,16 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
         self.assertEqual(27, displayed)
         xFrame.ld_score_var.set(30.0)
+
+
+        colorXlinkedFrame = xFrame.colorXlinkedFrame
+        colorXlinkedFrame.compOptMenuFrom.var.set('Rvb1')
+        colorXlinkedFrame.compOptMenuTo.var.set('Rvb2')
+        colorXlinkedFrame.colorOptionVar.set(2)
+        colorXlinkedFrame.colorBtn.invoke()
+
+        some_test_resi = map(str, [31, 171, 174, 432, 450, 454])
+        for resi in some_test_resi:
+            for chain in ['A','C','E']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.MaterialColor(0.392,0.584,0.929))

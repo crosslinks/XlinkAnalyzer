@@ -1331,12 +1331,12 @@ class ColorXlinkedFrame(Tkinter.Frame):
         self.uncolorOthersBtn.grid(row = curRow, columnspan=2, sticky='w')
         curRow += 1
 
-        btn = Tkinter.Button(self,
+        self.colorBtn = Tkinter.Button(self,
             text='Color',
             # foreground=color,
             command=self.colorXlinked)
 
-        btn.grid(row = curRow, column=1, sticky='e')
+        self.colorBtn.grid(row = curRow, column=1, sticky='e')
         curRow += 1
 
     def colorXlinked(self):
@@ -1986,9 +1986,9 @@ class ComponentTable(Frame):
         self.showOnly.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
-        self.showOnly = Button(self,text="Show all", \
+        self.showAll = Button(self,text="Show all", \
                                        command=self.onShowAll)
-        self.showOnly.grid(row=curRow,column=2,sticky="W")
+        self.showAll.grid(row=curRow,column=2,sticky="W")
 
         curRow = curRow + 1
         self.colorAll = Button(self,text="Color", \
