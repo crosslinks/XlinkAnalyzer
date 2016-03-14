@@ -1477,37 +1477,37 @@ class XlinkMgrTabFrame(TabFrame):
             modelSelect.grid(row = curRow, columnspan=totalCols, sticky="we")
             curRow += 1
 
-            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+            self.displayDefaultBtn = Tkinter.Button(xlNotebook.page(generalTabName),
                 text='Display crosslinks',
                 # foreground=color,
                 command=self.displayDefault)
-            btn.grid(row = curRow, columnspan=totalCols)
+            self.displayDefaultBtn.grid(row = curRow, columnspan=totalCols)
             curRow += 1
 
-            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+            self.showAllXlinksBtn = Tkinter.Button(xlNotebook.page(generalTabName),
                 text='Show all xlinks',
                 # foreground=color,
                 command=self.showAllXlinks)
-            btn.grid(row = curRow, column = 0)
+            self.showAllXlinksBtn.grid(row = curRow, column = 0)
 
-            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+            self.hideAllXlinksBtn = Tkinter.Button(xlNotebook.page(generalTabName),
                 text='Hide all xlinks',
                 # foreground=color,
                 command=self.hideAllXlinks)
-            btn.grid(row = curRow, column = 1)
+            self.hideAllXlinksBtn.grid(row = curRow, column = 1)
             curRow += 1
 
-            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+            self.hideIntraXlinksBtn = Tkinter.Button(xlNotebook.page(generalTabName),
                 text='Hide intra xlinks',
                 # foreground=color,
                 command=self.hideIntraXlinks)
-            btn.grid(row = curRow, column = 0)
+            self.hideIntraXlinksBtn.grid(row = curRow, column = 0)
 
-            btn = Tkinter.Button(xlNotebook.page(generalTabName),
+            self.hideInterXlinksBtn = Tkinter.Button(xlNotebook.page(generalTabName),
                 text='Hide inter xlinks',
                 # foreground=color,
                 command=self.hideInterXlinks)
-            btn.grid(row = curRow, column = 1)
+            self.hideInterXlinksBtn.grid(row = curRow, column = 1)
             curRow += 1
 
             self.smartModeBtn = Tkinter.Checkbutton(xlNotebook.page(generalTabName),
@@ -1516,8 +1516,8 @@ class XlinkMgrTabFrame(TabFrame):
                 command=self.onSmartModeChange)
             self.smartModeBtn.var = self.smartMode
             self.smartModeBtn.grid(sticky='E', row=curRow, column=0)
-            Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)\
-                .grid(sticky='W', row=curRow, column=1)
+            self.confOligBtn = Button(xlNotebook.page(generalTabName), text="Configure", command=self.configureOligomeric)
+            self.confOligBtn.grid(sticky='W', row=curRow, column=1)
 
             curRow += 1
             if self.ld_score_var is None:
@@ -1664,11 +1664,13 @@ class XlinkMgrTabFrame(TabFrame):
 
         frame.pack()
 
+        return menu
+
     def configureOligomeric(self):
-        self._configureOligomeric(self.showAllXlinks)
+        self.confOligWindow = self._configureOligomeric(self.showAllXlinks)
 
     def configureOligomericShowXlinksFrom(self):
-        self._configureOligomeric(self.showXlinksFrom)
+        self.confOligShowXlinksFromWindow = self._configureOligomeric(self.showXlinksFrom)
 
     def displayDefault(self):
         self.showAllXlinks()

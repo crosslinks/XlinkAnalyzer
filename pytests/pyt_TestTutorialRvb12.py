@@ -131,7 +131,7 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
 
         ctable.showAll.invoke()
         self.assertEqual(True, self.g.configFrame.config.subunits[0].show)
-        
+
         dataFrame = self.g.configFrame.dataFrame
         activeItemFrame = dataFrame.activeItemFrame
         activeItemFrame.fields['name'][1].insert(0, 'xlinks')
@@ -149,14 +149,46 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         self.assertEqual(1, len(self.g.configFrame.config.dataItems))
         self.assertEqual(1, len(dataFrame.frames))
 
+        dataMgrTab = self.g.__dict__['Data manager']
+        self.assertEqual(3, len(dataMgrTab.winfo_children()))
+
         xFrame = self.g.Xlinks
-        xFrame.displayDefault()
+        xFrame.displayDefaultBtn.invoke()
         self.assertEqual(1, len(xFrame.getXlinkDataMgrs()))
         xmgr = xFrame.getXlinkDataMgrs()[0]
         self.assertEqual(216, len(xmgr.pbg.pseudoBonds))
         xFrame.ld_score_var.set(30.0)
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
         self.assertEqual(57, displayed)
+
+        xFrame.hideAllXlinksBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(0, displayed)
+        xFrame.displayDefaultBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(57, displayed)
+        xFrame.hideIntraXlinksBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(24, displayed)
+
+        xFrame.displayDefaultBtn.invoke()
+        xFrame.hideInterXlinksBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(33, displayed)
+
+        xFrame.showAllXlinksBtn.invoke()
+        xFrame.smartModeBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(162, displayed)
+        xFrame.smartModeBtn.invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(57, displayed)
+
+        xFrame.confOligBtn.invoke()
+        xFrame.confOligWindow.winfo_children()[0].winfo_children()[0].invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(18, displayed)
+        xFrame.confOligWindow.winfo_children()[0].winfo_children()[0].invoke()
 
         activeItemFrame.fields['name'][1].insert(0, 'sequences')
         paths = ['sequences.yeast.fasta'
@@ -183,6 +215,15 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
 
         self.g.configFrame.resMngr._saveAssembly(self.g.configFrame.config.file)
 
+        self.assertEqual(5, len(dataMgrTab.winfo_children()))
+
+        dataMgrTab.winfo_children()[2].invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(0, displayed)
+        dataMgrTab.winfo_children()[2].invoke()
+        displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
+        self.assertEqual(57, displayed)
+        
         xFrame.showModifiedFrame.showModifiedMap()
 
         for chain in ['A','C','E']:
