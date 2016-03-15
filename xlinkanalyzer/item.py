@@ -420,9 +420,9 @@ class ItemFrame(LabelFrame):
                 _entry = Entry(self,textvariable=_var)
                 _entry.config(width=10)
                 self.fields[k] = (_data,_entry,_label,_var)
-                if isinstance(self.data,Item):
-                    if len(self.data.registry)>1:
-                        _entry.configure(state='disabled')
+                # if isinstance(self.data,Item):
+                #     if len(self.data.registry)>1:
+                #         _entry.configure(state='disabled')
 
             elif _UIClass == ColorOption:
                 self.fields[k] = (_data,_UIClass,None,None)
@@ -659,6 +659,9 @@ class ItemFrame(LabelFrame):
                         self.listFrame.toBottom()
             finally:
                 self.empty()
+
+        g = xlinkanalyzer.get_gui()
+        g.configFrame._disableHack()
 
     def validate(self):
         if self.fields.get("type"):

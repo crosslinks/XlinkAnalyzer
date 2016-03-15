@@ -1031,6 +1031,33 @@ class SetupFrame(TabFrame):
         top.title("Subcomplexes")
         ItemList(top,self.config,"subcomplexes",True)
 
+        self._disableHack()
+
+    def _disableHack(self):
+        ############### HACK to disable fields of Subcomplex components ############
+        #This is to prevent unintentional editing of Domains and Subunits within Subcomplex window.
+        subWind = self._getSubcomplexesWindow()
+        if subWind:
+            itemList = subWind.winfo_children()[0]
+            for frame in itemList.frames:
+                for k,v in frame.fields.items():
+                    _ui = v[1]
+                    if isinstance(_ui,ItemList):
+                        for compFrame in _ui.frames:
+                            for key in ('name', 'chainIds', 'ranges', 'subunit'):
+                                if key in compFrame.fields:
+                                    compFrame.fields[key][1].configure(state='disabled')
+
+                            if 'color' in compFrame.fields:
+                                compFrame.fields['color'][1].disable()
+        ############################################################################
+
+    def _getSubcomplexesWindow(self):
+        for child in self.winfo_children():
+            if hasattr(child, 'title'):
+                if child.title() == 'Subcomplexes':
+                    return child
+
     def onDomain(self):
         subunitNames = self.config.getSubunitNames()
         if not subunitNames:
