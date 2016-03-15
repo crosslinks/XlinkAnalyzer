@@ -371,7 +371,7 @@ class ItemFrame(LabelFrame):
                     self.fields[fK] = (data,self.classDict[type(data)],None,None)
                 else:
                     if "explore" in dir(self.data):
-                        classL = self.data.explore(data.__class__)
+                        classL = self.data.getAllInstances()
                         self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
@@ -382,7 +382,7 @@ class ItemFrame(LabelFrame):
             for name in itemNames:
                 item=self.data[name]
                 _class = item.__class__
-                allItems = item.explore(_class)
+                allItems = item.getAllInstances()
                 itemDict[name] = allItems
             self.fields["Type"] = (itemNames,OptionMenu,None,None)
             self.fields["Choose"] = (itemDict,OptionMenu,None,None)
