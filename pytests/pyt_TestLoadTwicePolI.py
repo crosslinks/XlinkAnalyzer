@@ -59,7 +59,10 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         domWind = self.g.configFrame._getDomainsWindow()
         self.assertIsNotNone(domWind)
         itemList = domWind.winfo_children()[0]
-        self.assertEqual(1, len(self.g.configFrame.config.domains))
-        self.assertEqual(1, len(itemList.frames))
         activeItemFrame = itemList.activeItemFrame
-        self.assertEqual(1, len(activeItemFrame.data.explore(activeItemFrame.data.__class__)))
+
+        from xlinkanalyzer.data import Subunit, Domain, Subcomplex
+        self.assertEqual(len(self.config.subunits), len(activeItemFrame.data.explore(Subunit)))
+        self.assertEqual(len(self.config.domains), len(activeItemFrame.data.explore(Domain)))
+        self.assertEqual(len(self.config.subcomplexes), len(activeItemFrame.data.explore(Subcomplex)))
+
