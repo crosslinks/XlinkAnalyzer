@@ -1027,6 +1027,10 @@ class SetupFrame(TabFrame):
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
 
+        prevWind = self._getSubcomplexesWindow()
+        if prevWind:
+            prevWind.destroy()
+
         top = Toplevel(self)
         top.title("Subcomplexes")
         ItemList(top,self.config,"subcomplexes",True)
@@ -1058,6 +1062,12 @@ class SetupFrame(TabFrame):
                 if child.title() == 'Subcomplexes':
                     return child
 
+    def _getDomainsWindow(self):
+        for child in self.winfo_children():
+            if hasattr(child, 'title'):
+                if child.title() == 'Domains':
+                    return child
+
     def onDomain(self):
         subunitNames = self.config.getSubunitNames()
         if not subunitNames:
@@ -1065,6 +1075,10 @@ class SetupFrame(TabFrame):
             message = "Please add some subunits before configuring."
             tkMessageBox.showinfo(title,message,parent=self.master)
             return
+
+        prevWind = self._getDomainsWindow()
+        if prevWind:
+            prevWind.destroy()
 
         top = Toplevel(self)
         top.title("Domains")

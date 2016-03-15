@@ -884,9 +884,13 @@ class ItemList(LabelFrame):
                 frame.grid(sticky="W")
                 self.frames.append(frame)
         
+        to_remove = []
         for f in self.frames:
             if not (f.data in self.container.__dict__[self.show]):
-                f.destroy()
+                to_remove.append(f)
+        for f in to_remove:
+            self.frames.remove(f)
+            f.destroy()
         self.scrolledFrame.grid()
         self.grid()
         try:

@@ -60,7 +60,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
     def testAddDomainsSubcomplexes(self):
         self.g.configFrame.domainsButton.invoke()
-        domWind = self._getDomainsWindow()
+        domWind = self.g.configFrame._getDomainsWindow()
         self.assertIsNotNone(domWind)
         itemList = domWind.winfo_children()[0]
         activeItemFrame = itemList.activeItemFrame
@@ -69,12 +69,11 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         activeItemFrame.fields['ranges'][1].insert(0, '1-200')
         activeItemFrame.fields['color'][1].set(chimera.MaterialColor(0,255,0))
         activeItemFrame.add.invoke()
-        domWind.destroy()
 
         self.assertEqual(2, len(self.g.configFrame.config.domains))
 
         self.g.configFrame.subCompButton.invoke()
-        subWind = self._getSubcomplexesWindow()
+        subWind = self.g.configFrame._getSubcomplexesWindow()
         self.assertIsNotNone(subWind)
 
     def testDeleteStuff(self):
@@ -87,7 +86,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.assertEqual(14, len(subUnitFrame.frames))
         self.assertEqual(14, len(self.g.configFrame.config.subunits))
         subUnitFrame.frames[0].delete.invoke()
-        # self.assertEqual(13, len(subUnitFrame.frames))
+        self.assertEqual(13, len(subUnitFrame.frames))
         self.assertEqual(13, len(self.g.configFrame.config.subunits))
         self.assertEqual(0, len(self.g.configFrame.config.domains))
 
@@ -95,7 +94,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.assertEqual(10, len(dataFrame.frames))
         self.assertEqual(10, len(self.g.configFrame.config.dataItems))
         dataFrame.frames[0].delete.invoke()
-        # self.assertEqual(9, len(dataFrame.frames))
+        self.assertEqual(9, len(dataFrame.frames))
         self.assertEqual(9, len(self.g.configFrame.config.dataItems))
         xmgr = xFrame.getXlinkDataMgrs()[0]
         self.assertEqual(74, len(xmgr.pbg.pseudoBonds))
@@ -144,41 +143,25 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
     def testDeleteStuffSubcomplexes(self):
         self.g.configFrame.subCompButton.invoke()
-        subWind = self._getSubcomplexesWindow()
+        subWind = self.g.configFrame._getSubcomplexesWindow()
         self.assertIsNotNone(subWind)
 
-        self.assertEqual(1, len(subWind.winfo_children()))
         itemList = subWind.winfo_children()[0]
+        self.assertEqual(1, len(itemList.frames))
+        self.assertEqual(1, len(self.g.configFrame.config.subcomplexes))
+        self.assertEqual(1, len(subWind.winfo_children()))
         itemList.frames[0].delete.invoke()
         self.assertEqual(0, len(self.g.configFrame.config.subcomplexes))
 
-        subWind.destroy()
-
     def testDeleteStuffDomains(self):
         self.g.configFrame.domainsButton.invoke()
-        domWind = self._getDomainsWindow()
+        domWind = self.g.configFrame._getDomainsWindow()
         self.assertIsNotNone(domWind)
 
         self.assertEqual(1, len(domWind.winfo_children()))
         itemList = domWind.winfo_children()[0]
         itemList.frames[0].delete.invoke()
         self.assertEqual(0, len(self.g.configFrame.config.domains))
-
-        domWind.destroy()
-
-    def _getSubcomplexesWindow(self):
-        c = self.g.configFrame
-        for child in c.winfo_children():
-            if hasattr(child, 'title'):
-                if child.title() == 'Subcomplexes':
-                    return child
-
-    def _getDomainsWindow(self):
-        c = self.g.configFrame
-        for child in c.winfo_children():
-            if hasattr(child, 'title'):
-                if child.title() == 'Domains':
-                    return child
 
     def tearDown(self):
         rc('close #0')

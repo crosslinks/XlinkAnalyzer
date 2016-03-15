@@ -73,7 +73,6 @@ class Item(object):
         _dict.pop("config")
         _dict.pop("fake")
         _dict.pop("sym")
-        _dict.pop("registry")
         if '_active' in _dict:
             _dict.pop("_active")
         if '_show' in _dict:
