@@ -62,7 +62,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         activeItemFrame = itemList.activeItemFrame
 
         from xlinkanalyzer.data import Subunit, Domain, Subcomplex
-        self.assertEqual(len(self.config.subunits), len(activeItemFrame.data.explore(Subunit)))
-        self.assertEqual(len(self.config.domains), len(activeItemFrame.data.explore(Domain)))
-        self.assertEqual(len(self.config.subcomplexes), len(activeItemFrame.data.explore(Subcomplex)))
+        self.assertEqual(len(self.config.subunits), len(activeItemFrame.data.config.getInstances(Subunit)))
+        self.assertEqual(len(self.config.domains), len(activeItemFrame.data.config.getInstances(Domain)))
+        self.assertEqual(len(self.config.subcomplexes), len(activeItemFrame.data.config.getInstances(Subcomplex)))
 
