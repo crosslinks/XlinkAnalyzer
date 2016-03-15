@@ -223,7 +223,7 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         dataMgrTab.winfo_children()[2].invoke()
         displayed = len([pb for pb in xmgr.pbg.pseudoBonds if pb.display == True])
         self.assertEqual(57, displayed)
-        
+
         xFrame.showModifiedFrame.showModifiedMap()
 
         for chain in ['A','C','E']:
@@ -378,6 +378,16 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
         colorXlinkedFrame = xFrame.colorXlinkedFrame
         colorXlinkedFrame.compOptMenuFrom.var.set('Rvb1')
         colorXlinkedFrame.compOptMenuTo.var.set('Rvb2')
+        colorXlinkedFrame.colorOptionVar.set(1)
+        colorXlinkedFrame.colorBtn.invoke()
+        some_test_resi = map(str, [31, 171, 174, 432, 450, 454])
+        for resi in some_test_resi:
+            for chain in ['A','C','E']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.colorTable.getColorByName('red'))
+                display = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].display
+                self.assertEqual(display, True)
+
         colorXlinkedFrame.colorOptionVar.set(2)
         colorXlinkedFrame.colorBtn.invoke()
 
@@ -386,3 +396,24 @@ class TestTutorial(XlaGuiTests.XlaJustOpenXlaTest):
             for chain in ['A','C','E']:
                 color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
                 self.assertEqual(color, chimera.MaterialColor(0.392,0.584,0.929))
+                display = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].display
+                self.assertEqual(display, True)
+
+        colorXlinkedFrame.compOptMenuFrom.var.set('Rvb2')
+        colorXlinkedFrame.compOptMenuTo.var.set('Rvb1')
+        colorXlinkedFrame.uncolorOthersBtn.var.set(True)
+        colorXlinkedFrame.colorOptionVar.set(2)
+        colorXlinkedFrame.colorBtn.invoke()
+        some_test_resi = map(str, [31, 171, 174, 432, 450, 454])
+        for resi in some_test_resi:
+            for chain in ['A','C','E']:
+                display = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].display
+                self.assertEqual(display, False)
+
+        some_test_resi = map(str, [123, 157, 198, 357, 414])
+        for resi in some_test_resi:
+            for chain in ['B','D','F']:
+                color = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].color
+                self.assertEqual(color, chimera.MaterialColor(0,255,0))
+                display = evalSpec('#{0}:{2}.{1}'.format(self.model.id, chain, resi)).atoms()[0].display
+                self.assertEqual(display, True)
