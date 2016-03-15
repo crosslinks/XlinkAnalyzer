@@ -58,7 +58,28 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.g.configFrame.domainsButton.invoke()
         self.g.configFrame.subCompButton.invoke()
 
+    def testAddDomainsSubcomplexes(self):
+        self.g.configFrame.domainsButton.invoke()
+        domWind = self._getDomainsWindow()
+        self.assertIsNotNone(domWind)
+        itemList = domWind.winfo_children()[0]
+        activeItemFrame = itemList.activeItemFrame
+        activeItemFrame.fields['name'][1].insert(0, 'testdom')
+        activeItemFrame.fields['subunit'][3].set('A135')
+        activeItemFrame.fields['ranges'][1].insert(0, '1-200')
+        activeItemFrame.fields['color'][1].set(chimera.MaterialColor(0,255,0))
+        activeItemFrame.add.invoke()
+        domWind.destroy()
+
+        self.assertEqual(2, len(self.g.configFrame.config.domains))
+
+        self.g.configFrame.subCompButton.invoke()
+        subWind = self._getSubcomplexesWindow()
+        self.assertIsNotNone(subWind)
+
     def testDeleteStuff(self):
+        '''Test deletion of Subunits and Data, adding them back, setting mapping, and mapping copy from.
+        '''
         xFrame = self.g.Xlinks
         xFrame.displayDefault()
 
