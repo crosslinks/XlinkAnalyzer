@@ -370,9 +370,8 @@ class ItemFrame(LabelFrame):
                 if type(data) in self.classDict:
                     self.fields[fK] = (data,self.classDict[type(data)],None,None)
                 else:
-                    if "explore" in dir(self.data):
-                        classL = self.data.getAllInstances()
-                        self.fields[fK] = (data,OptionMenu,classL,None)
+                    classL = self.data.getAllInstances(data.__class__)
+                    self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
         if self.differs:
