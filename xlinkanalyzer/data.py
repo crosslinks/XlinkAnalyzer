@@ -100,8 +100,11 @@ class Item(object):
         """
         return True if type(self.name) == str and len(self.name) > 0 else False
 
-    def getAllInstances(self):
-        return self.config.getInstances(self.__class__)
+    def getAllInstances(self,_class=None):
+        if _class is None:
+            return self.config.getInstances(self.__class__)
+        else:
+            return self.config.getInstances(_class)
     
 class Chain(Item):
     """
