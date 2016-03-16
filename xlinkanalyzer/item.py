@@ -18,7 +18,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import FileGroup,Mapping
+from data import FileGroup,Mapping,Item
 from __builtin__ import True
 
 import xlinkanalyzer
@@ -370,8 +370,9 @@ class ItemFrame(LabelFrame):
                 if type(data) in self.classDict:
                     self.fields[fK] = (data,self.classDict[type(data)],None,None)
                 else:
-                    classL = self.data.getAllInstances(data.__class__)
-                    self.fields[fK] = (data,OptionMenu,classL,None)
+                    if isinstance(self.data,Item):
+                        classL = self.data.getAllInstances(data.__class__)
+                        self.fields[fK] = (data,OptionMenu,classL,None)
 
         #redo keys for different types
         if self.differs:
