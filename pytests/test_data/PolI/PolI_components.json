@@ -1,7 +1,6 @@
 {
     "data": [
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_1_Inter.xls",
@@ -43,7 +42,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_2_Inter.xls",
@@ -97,7 +95,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_3_Inter.xls",
@@ -151,7 +148,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_4_Inter.xls",
@@ -208,7 +204,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_5_Inter.xls",
@@ -265,7 +260,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_6_Inter.xls",
@@ -322,7 +316,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_a_Inter.xls",
@@ -376,7 +369,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_b_Inter.xls",
@@ -433,7 +425,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "xlinks/Pol1_c_Inter.xls",
@@ -487,7 +478,6 @@
             "type": "xquest"
         },
         {
-            "active": true,
             "fileGroup": {
                 "files": [
                     "PolI_sequences.fasta"
@@ -553,8 +543,7 @@
                 "A135",
                 "testdom"
             ],
-            "name": "testsubcomplex",
-            "type": "item"
+            "name": "testsubcomplex"
         }
     ],
     "subunits": [

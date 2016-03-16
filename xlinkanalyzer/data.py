@@ -1601,7 +1601,7 @@ class ResourceManager(object):
         else:
             _file = self.config.file
 
-        self._saveAssembly(_file)
+        return self._saveAssembly(_file)
 
     def _saveAssembly(self, _file):
         if _file:
