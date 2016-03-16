@@ -26,7 +26,7 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
 
         self.g.modelSelect.doSync(ms)
 
-    def testPolI_1(self):
+    def testPolI(self):
         xFrame = self.g.Xlinks
 
         xFrame.displayDefault()
@@ -62,7 +62,23 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         activeItemFrame = itemList.activeItemFrame
 
         from xlinkanalyzer.data import Subunit, Domain, Subcomplex
+        self.assertEqual(14, len(self.config.subunits))
+        self.assertEqual(1, len(self.config.domains))
+        self.assertEqual(1, len(self.config.subcomplexes))
+        self.assertEqual(10, len(self.config.dataItems))
+
         self.assertEqual(len(self.config.subunits), len(activeItemFrame.data.config.getInstances(Subunit)))
         self.assertEqual(len(self.config.domains), len(activeItemFrame.data.config.getInstances(Domain)))
         self.assertEqual(len(self.config.subcomplexes), len(activeItemFrame.data.config.getInstances(Subcomplex)))
 
+        subUnitFrame = self.g.configFrame.subUnitFrame
+        self.assertEqual(14, len(subUnitFrame.frames))
+
+        ctable = self.g.Subunits.table
+        self.assertEqual(15, len(ctable.table._sortedData()))
+
+        dataFrame = self.g.configFrame.dataFrame
+        self.assertEqual(10, len(dataFrame.frames))
+
+        dataMgrTab = self.g.__dict__['Data manager']
+        self.assertEqual(21, len(dataMgrTab.winfo_children())) #1 x text label + 10 x (text label + checkbox)
