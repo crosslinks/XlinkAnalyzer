@@ -281,11 +281,6 @@ class ShowModifiedFrame(Tkinter.Frame):
         style.configure("Yellow.TCheckbutton", foreground="yellow")
 
         if is_mac():
-            btnCls = ttk.Checkbutton
-        else:
-            btnCls = Button(self,text=unichr(10004),command=self.onApply)
-
-        if is_mac():
             btn = ttk.Checkbutton(self, text='Mono-linked', variable=self.showVars['Monolinked'])
             btn.configure(style="Blue.TCheckbutton")
         else:
