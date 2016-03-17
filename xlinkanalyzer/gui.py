@@ -47,7 +47,7 @@ from xlinkanalyzer import move as xmove
 from item import ItemList
 
 DEBUG_MODE = False
-DEV = True
+DEV = False
 
 
 class XlinkAnalyzer_Dialog(ModelessDialog):
