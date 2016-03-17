@@ -1,0 +1,273 @@
+{
+    "data": [
+        {
+            "fileGroup": {
+                "files": [
+                    "xlinks/XL_cell.csv"
+                ]
+            },
+            "mapping": {
+                "Elys": [],
+                "Nup107": [
+                    "nuclear pore complex protein NUP107"
+                ],
+                "Nup133": [
+                    "nuclear pore complex protein NUP133"
+                ],
+                "Nup155": [
+                    "nuclear pore complex protein NUP155"
+                ],
+                "Nup160": [
+                    "nuclear pore complex protein NUP160"
+                ],
+                "Nup188": [],
+                "Nup205": [],
+                "Nup358": [],
+                "Nup37": [
+                    "nucleoporin NUP37"
+                ],
+                "Nup43": [
+                    "nucleoporin NUP43"
+                ],
+                "Nup53": [],
+                "Nup62": [],
+                "Nup85": [
+                    "nuclear pore complex protein NUP85"
+                ],
+                "Nup88": [],
+                "Nup93": [],
+                "Nup96": [
+                    "nuclear pore complex protein NUP96"
+                ],
+                "POM121": [],
+                "Seh1": [
+                    "nucleoporin SEH1"
+                ]
+            },
+            "name": "xlinks_Cell2013",
+            "type": "xquest"
+        }
+    ],
+    "subcomplexes": [],
+    "subunits": [
+        {
+            "chainIds": [
+                "0",
+                "9",
+                "I",
+                "R"
+            ],
+            "color": [
+                0.5294117647058824,
+                0.807843137254902,
+                0.9215686274509803,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NUP43_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q8NFH3"
+            },
+            "name": "nucleoporin NUP43",
+            "selection": ":.0,.9,.I,.R"
+        },
+        {
+            "chainIds": [
+                "1",
+                "J",
+                "S",
+                "a"
+            ],
+            "color": [
+                0.8235294117647058,
+                0.7058823529411765,
+                0.5490196078431373,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NU160_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q12769"
+            },
+            "name": "nuclear pore complex protein NUP160",
+            "selection": ":.1,.J,.S,.a"
+        },
+        {
+            "chainIds": [
+                "2",
+                "K",
+                "T",
+                "b"
+            ],
+            "color": [
+                0.6470588235294118,
+                0.16470588235294117,
+                0.16470588235294117,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NUP37_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q8NFH4"
+            },
+            "name": "nucleoporin NUP37",
+            "selection": ":.2,.K,.T,.b"
+        },
+        {
+            "chainIds": [
+                "3",
+                "C",
+                "L",
+                "U"
+            ],
+            "color": [
+                0.5450980392156862,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NU133_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q8WUM0"
+            },
+            "name": "nuclear pore complex protein NUP133",
+            "selection": ":.3,.C,.L,.U"
+        },
+        {
+            "chainIds": [
+                "4",
+                "D",
+                "M",
+                "V"
+            ],
+            "color": [
+                0.4117647058823529,
+                0.4117647058823529,
+                0.4117647058823529,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NU107_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P57740"
+            },
+            "name": "nuclear pore complex protein NUP107",
+            "selection": ":.4,.D,.M,.V"
+        },
+        {
+            "chainIds": [
+                "5",
+                "E",
+                "N",
+                "W"
+            ],
+            "color": [
+                0.6274509803921569,
+                0.3215686274509804,
+                0.17647058823529413,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NUP98_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P52948"
+            },
+            "name": "nuclear pore complex protein NUP96",
+            "selection": ":.5,.E,.N,.W"
+        },
+        {
+            "chainIds": [
+                "6",
+                "F",
+                "O",
+                "X"
+            ],
+            "color": [
+                1.0,
+                0.4117647058823529,
+                0.7058823529411765,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "SEC13_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "P55735"
+            },
+            "name": "protein SEC13 homolog",
+            "selection": ":.6,.F,.O,.X"
+        },
+        {
+            "chainIds": [
+                "7",
+                "G",
+                "P",
+                "Y"
+            ],
+            "color": [
+                0.5450980392156862,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "SEH1_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q96EE3"
+            },
+            "name": "nucleoporin SEH1",
+            "selection": ":.7,.G,.P,.Y"
+        },
+        {
+            "chainIds": [
+                "8",
+                "H",
+                "Q",
+                "Z"
+            ],
+            "color": [
+                0.745,
+                0.745,
+                0.745,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NUP85_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "Q9BW27"
+            },
+            "name": "nuclear pore complex protein NUP85",
+            "selection": ":.8,.H,.Q,.Z"
+        },
+        {
+            "chainIds": [
+                "A",
+                "B"
+            ],
+            "color": [
+                0.0,
+                0.0,
+                0.5019607843137255,
+                1.0
+            ],
+            "domains": [],
+            "info": {
+                "db_code": "NU155_HUMAN",
+                "db_name": "UNP",
+                "pdbx_db_accession": "O75694"
+            },
+            "name": "nuclear pore complex protein NUP155",
+            "selection": ":.A,.B"
+        }
+    ],
+    "xlinkanalyzerVersion": "1.1"
+}

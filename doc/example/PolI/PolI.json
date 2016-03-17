@@ -1,7 +1,14 @@
 {
     "data": [
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_1_Inter.xls",
+                    "xlinks/Pol1_1_Intra.xls",
+                    "xlinks/Pol1_1_Loop.xls",
+                    "xlinks/Pol1_1_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -39,21 +46,17 @@
                 "xlinks/Pol1_1_Loop.xls",
                 "xlinks/Pol1_1_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_2_Inter.xls",
+                    "xlinks/Pol1_2_Intra.xls",
+                    "xlinks/Pol1_2_Loop.xls",
+                    "xlinks/Pol1_2_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -103,25 +106,17 @@
                 "xlinks/Pol1_2_Loop.xls",
                 "xlinks/Pol1_2_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_3_Inter.xls",
+                    "xlinks/Pol1_3_Intra.xls",
+                    "xlinks/Pol1_3_Loop.xls",
+                    "xlinks/Pol1_3_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -171,25 +166,17 @@
                 "xlinks/Pol1_3_Loop.xls",
                 "xlinks/Pol1_3_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_4_Inter.xls",
+                    "xlinks/Pol1_4_Intra.xls",
+                    "xlinks/Pol1_4_Loop.xls",
+                    "xlinks/Pol1_4_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -242,26 +229,17 @@
                 "xlinks/Pol1_4_Loop.xls",
                 "xlinks/Pol1_4_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_5_Inter.xls",
+                    "xlinks/Pol1_5_Intra.xls",
+                    "xlinks/Pol1_5_Loop.xls",
+                    "xlinks/Pol1_5_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -314,26 +292,17 @@
                 "xlinks/Pol1_5_Loop.xls",
                 "xlinks/Pol1_5_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_6_Inter.xls",
+                    "xlinks/Pol1_6_Intra.xls",
+                    "xlinks/Pol1_6_Loop.xls",
+                    "xlinks/Pol1_6_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -386,26 +355,17 @@
                 "xlinks/Pol1_6_Loop.xls",
                 "xlinks/Pol1_6_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_a_Inter.xls",
+                    "xlinks/Pol1_a_Intra.xls",
+                    "xlinks/Pol1_a_Loop.xls",
+                    "xlinks/Pol1_a_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -455,25 +415,17 @@
                 "xlinks/Pol1_a_Loop.xls",
                 "xlinks/Pol1_a_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_b_Inter.xls",
+                    "xlinks/Pol1_b_Intra.xls",
+                    "xlinks/Pol1_b_Loop.xls",
+                    "xlinks/Pol1_b_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -526,26 +478,17 @@
                 "xlinks/Pol1_b_Loop.xls",
                 "xlinks/Pol1_b_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P20436|RPAB3_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "xlinks/Pol1_c_Inter.xls",
+                    "xlinks/Pol1_c_Intra.xls",
+                    "xlinks/Pol1_c_Loop.xls",
+                    "xlinks/Pol1_c_Mono.xls"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST": [
@@ -595,25 +538,14 @@
                 "xlinks/Pol1_c_Loop.xls",
                 "xlinks/Pol1_c_Mono.xls"
             ],
-            "type": "xquest",
-            "xQuestNames": [
-                "sp|P32529|RPA12_YEAST",
-                "sp|P20434|RPAB1_YEAST",
-                "sp|P22139|RPAB5_YEAST",
-                "sp|P46669|RPA43_YEAST",
-                "sp|P22138|RPA2_YEAST",
-                "sp|P07703|RPAC1_YEAST",
-                "sp|P40422|RPAB4_YEAST",
-                "sp|P47006|RPA34_YEAST",
-                "sp|P50106|RPA14_YEAST",
-                "sp|P10964|RPA1_YEAST",
-                "sp|P28000|RPAC2_YEAST",
-                "sp|P20435|RPAB2_YEAST",
-                "sp|Q01080|RPA49_YEAST"
-            ]
+            "type": "xquest"
         },
         {
-            "active": true,
+            "fileGroup": {
+                "files": [
+                    "PolI_sequences.fasta"
+                ]
+            },
             "informed": false,
             "mapping": {
                 "sp|P07703|RPAC1_YEAST DNA-directed RNA polymerases I and III subunit RPAC1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) GN=RPC40 PE=1 SV=1": [
@@ -666,6 +598,7 @@
             "type": "sequences"
         }
     ],
+    "subcomplexes": [],
     "subunits": [
         {
             "chainIds": [
@@ -681,11 +614,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A190",
-            "selection": ":.A",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.A"
         },
         {
             "chainIds": [
@@ -701,11 +633,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A135",
-            "selection": ":.B",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.B"
         },
         {
             "chainIds": [
@@ -721,11 +652,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "AC40",
-            "selection": ":.C",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.C"
         },
         {
             "chainIds": [
@@ -741,11 +671,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A14",
-            "selection": ":.D",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.D"
         },
         {
             "chainIds": [
@@ -761,11 +690,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "ABC27",
-            "selection": ":.E",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.E"
         },
         {
             "chainIds": [
@@ -781,11 +709,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "ABC23",
-            "selection": ":.F",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.F"
         },
         {
             "chainIds": [
@@ -801,11 +728,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A43",
-            "selection": ":.G",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.G"
         },
         {
             "chainIds": [
@@ -821,11 +747,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "ABC14.5",
-            "selection": ":.H",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.H"
         },
         {
             "chainIds": [
@@ -841,11 +766,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A12",
-            "selection": ":.I",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.I"
         },
         {
             "chainIds": [
@@ -861,11 +785,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "ABC10beta",
-            "selection": ":.J",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.J"
         },
         {
             "chainIds": [
@@ -881,11 +804,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "AC19",
-            "selection": ":.K",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.K"
         },
         {
             "chainIds": [
@@ -901,11 +823,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "ABC10alpha",
-            "selection": ":.L",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.L"
         },
         {
             "chainIds": [
@@ -921,11 +842,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A49",
-            "selection": ":.M",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.M"
         },
         {
             "chainIds": [
@@ -941,11 +861,10 @@
                 1.0
             ],
             "componentToChain": {},
-            "domains": null,
+            "domains": [],
+            "info": {},
             "name": "A34.5",
-            "selection": ":.N",
-            "sequence": "",
-            "type": "component"
+            "selection": ":.N"
         }
     ],
     "xlinkanalyzerVersion": "0.1"
