@@ -275,25 +275,50 @@ class ShowModifiedFrame(Tkinter.Frame):
         def updateCB(name, *args):
             pass
 
-        btn = Tkinter.Checkbutton(self, text='Mono-linked', foreground='blue', variable=self.showVars['Monolinked'])
+        style = ttk.Style()
+        style.configure("Blue.TCheckbutton", foreground="blue")
+        style.configure("Red.TCheckbutton", foreground="red")
+        style.configure("Yellow.TCheckbutton", foreground="yellow")
+
+        if is_mac():
+            btnCls = ttk.Checkbutton
+        else:
+            btnCls = Button(self,text=unichr(10004),command=self.onApply)
+
+        if is_mac():
+            btn = ttk.Checkbutton(self, text='Mono-linked', variable=self.showVars['Monolinked'])
+            btn.configure(style="Blue.TCheckbutton")
+        else:
+            btn = Tkinter.Checkbutton(self, text='Mono-linked', foreground='blue', variable=self.showVars['Monolinked'])
         btn.pack(anchor='w')
         btn.var = self.showVars['Monolinked']
         btn.var.trace("w", updateCB)
 
-        btn = Tkinter.Checkbutton(self, text='Cross-linked', foreground='blue', variable=self.showVars['Cross-linked'])
+        if is_mac():
+            btn = ttk.Checkbutton(self, text='Cross-linked', variable=self.showVars['Cross-linked'])
+            btn.configure(style="Blue.TCheckbutton")
+        else:
+            btn = Tkinter.Checkbutton(self, text='Cross-linked', foreground='blue', variable=self.showVars['Cross-linked'])
         btn.pack(anchor='w')
         btn.var = self.showVars['Cross-linked']
         btn.var.trace("w", updateCB)
 
-        btn = Tkinter.Checkbutton(self, text='Expected to be mono-linked', foreground='red', variable=self.showVars['Expected'])
+        if is_mac():
+            btn = ttk.Checkbutton(self, text='Expected to be mono-linked', variable=self.showVars['Expected'])
+            btn.configure(style="Red.TCheckbutton")
+        else:
+            btn = Tkinter.Checkbutton(self, text='Expected to be mono-linked', foreground='red', variable=self.showVars['Expected'])
         btn.pack(anchor='w')
         btn.var = self.showVars['Expected']
         btn.var.trace("w", updateCB)
         if not self._isSequenceMappingComplete():
             btn.configure(state='disabled')
 
-
-        btn = Tkinter.Checkbutton(self, text='Not expected to be mono-linked', foreground='yellow', variable=self.showVars['NotExpected'])
+        if is_mac():
+            btn = ttk.Checkbutton(self, text='Not expected to be mono-linked', variable=self.showVars['NotExpected'])
+            btn.configure(style="Yellow.TCheckbutton")
+        else:
+            btn = Tkinter.Checkbutton(self, text='Not expected to be mono-linked', foreground='yellow', variable=self.showVars['NotExpected'])
         btn.pack(anchor='w')
         btn.var = self.showVars['NotExpected']
         btn.var.trace("w", updateCB)
