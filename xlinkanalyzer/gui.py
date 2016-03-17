@@ -47,7 +47,7 @@ from xlinkanalyzer import move as xmove
 from item import ItemList
 
 DEBUG_MODE = False
-DEV = True
+DEV = False
 
 
 class XlinkAnalyzer_Dialog(ModelessDialog):
@@ -770,7 +770,7 @@ class XlinksHistogram(MPLDialog):
                 No crosslinks found in current data sets above current score threshold.")
 
     def fillInUI(self, parent):
-        Label(parent, text='control stuff here').pack(pady=5)
+        Label(parent, text='Histogram of distances').pack(pady=5)
 
         f = Tkinter.Frame(parent)
         f.pack(fill="both", expand=True)

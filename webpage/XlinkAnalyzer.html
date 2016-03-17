@@ -6,7 +6,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
 		<title>Xlink Analyzer</title>
-		<meta name="description" content="">
+		<meta name="description" content="Analyze cross-links on 3D structures. XL-MS, mass spectrometry, cross-linking.">
 		<meta name="author" content="Kai Karius">
 
 		<meta name="viewport" content="width=device-width" initial-scale="1.0">
@@ -29,55 +29,62 @@
 		   <li><a href='contact.html'><span>Contact</span></a></li>
 		</ul>
 	</div>
-	
-	<div id="slider1_container" style="margin: 7px auto; width: 640px; height: 480px;">
-    	<div u="slides" style="cursor: move; overflow: hidden; width: 640px; height: 480px;">
-        	<div><img u="image" src="img/GraphicalAbstract.png" /></div>
-        	<div><img u="image" src="img/Automatic.png" /></div>
+	<div style="margin: 0 auto; width: 70%; right: -70px">
+    	<div id="slider1_container" style="margin: 7px auto; width: 320px; height: 240px;float: left;">
+        	<div u="slides" style="cursor: move; overflow: hidden; width: 320px; height: 240px;">
+            	<div><img u="image" src="img/GraphicalAbstract.png" /></div>
+            	<div><img u="image" src="img/Automatic.png" /></div>
+                <div><img u="image" src="img/interface.jpg" /></div>
+                <div><img u="image" src="img/statistics.jpg" /></div>
+                
+        	</div>
+        	  <!-- Arrow Navigator Skin Begin -->
+            <style>
+                /* jssor slider arrow navigator skin 03 css */
+                /*
+                .jssora03l              (normal)
+                .jssora03r              (normal)
+                .jssora03l:hover        (normal mouseover)
+                .jssora03r:hover        (normal mouseover)
+                .jssora03ldn            (mousedown)
+                .jssora03rdn            (mousedown)
+                */
+                .jssora03l, .jssora03r, .jssora03ldn, .jssora03rdn
+                {
+                	position: absolute;
+                	cursor: pointer;
+                	display: block;
+                    background: url(img/a03.png) no-repeat;
+                    overflow:hidden;
+                }
+                .jssora03l { background-position: -3px -33px; }
+                .jssora03r { background-position: -63px -33px; }
+                .jssora03l:hover { background-position: -123px -33px; }
+                .jssora03r:hover { background-position: -183px -33px; }
+                .jssora03ldn { background-position: -243px -33px; }
+                .jssora03rdn { background-position: -303px -33px; }
+            </style>
+            <!-- Arrow Left -->
+            <span u="arrowleft" class="jssora03l" style="width: 55px; height: 55px; top: 91px; left: -60px;">
+            </span>
+            <!-- Arrow Right -->
+            <span u="arrowright" class="jssora03r" style="width: 55px; height: 55px; top: 91px; right: -60px">
+            </span>
+            <!-- Arrow Navigator Skin End -->
     	</div>
-    	  <!-- Arrow Navigator Skin Begin -->
-        <style>
-            /* jssor slider arrow navigator skin 03 css */
-            /*
-            .jssora03l              (normal)
-            .jssora03r              (normal)
-            .jssora03l:hover        (normal mouseover)
-            .jssora03r:hover        (normal mouseover)
-            .jssora03ldn            (mousedown)
-            .jssora03rdn            (mousedown)
-            */
-            .jssora03l, .jssora03r, .jssora03ldn, .jssora03rdn
-            {
-            	position: absolute;
-            	cursor: pointer;
-            	display: block;
-                background: url(img/a03.png) no-repeat;
-                overflow:hidden;
-            }
-            .jssora03l { background-position: -3px -33px; }
-            .jssora03r { background-position: -63px -33px; }
-            .jssora03l:hover { background-position: -123px -33px; }
-            .jssora03r:hover { background-position: -183px -33px; }
-            .jssora03ldn { background-position: -243px -33px; }
-            .jssora03rdn { background-position: -303px -33px; }
-        </style>
-        <!-- Arrow Left -->
-        <span u="arrowleft" class="jssora03l" style="width: 55px; height: 55px; top: 212px; left: 8px;">
-        </span>
-        <!-- Arrow Right -->
-        <span u="arrowright" class="jssora03r" style="width: 55px; height: 55px; top: 212px; right: 8px">
-        </span>
-        <!-- Arrow Navigator Skin End -->
-	</div>
-	<div class="text">
+        <div style="margin: auto 70px; float: left;"><iframe style="margin: 14px 0px;" width="427" height="240" src="https://www.youtube.com/embed/EmLYXAN8X1I" frameborder="0" allowfullscreen></iframe>
+    	</div>
+        <br style="clear: left;" />
+    </div>
+    <div class="text">
 		<p>Xlink Analyzer is an interactive software for visualizing cross-links on structures and analyzing how the structures agree with the cross-links.</p>
 
-        <h2>New version! <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="New XlinkAnalyzer version! Interactive docking, crosslink database and more! <add url> <add #>" data-via="jankosinski">Tweet</a>
+        <h2>New version! <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="New XlinkAnalyzer version! Interactive docking, crosslink database and more! http://www.beck.embl.de/XlinkAnalyzer.html #EMBL" data-via="jankosinski">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></h2>
         <p>Version 1.1 released with</p>
         <ul>
             <li>Interactive docking based on cross-links</li>
-            <li>Huge database of cross-linked datasets mapped to structures</li>
+            <li>Database of published cross-linked datasets mapped to structures</li>
             <li>Numerous fixes and improvements</li>
         </ul>
         <p><a href='downloads.html'>Download now!</a></p>
