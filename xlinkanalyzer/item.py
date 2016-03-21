@@ -185,6 +185,11 @@ class SubsetFrame(Frame):
             self.synchronize()
         self.initFlag = False
         
+    def deleteItem(self,i):
+        if i<len(self.menus):
+            self.menus[i].delete = True
+        self.synchronize()
+        
 class MapFrame(Frame):
     def __init__(self,parent,mapping,active=False,copy=None,*args,**kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
