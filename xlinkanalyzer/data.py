@@ -33,15 +33,24 @@ class Item(object):
     SHOW: properties to be interpreted and view by the ItemFrame
     """
     SHOW = ["name"]
+    OMIT = ["config","fake","_active","_show","_sym","defaults"]
     _show = True
     _active = True
+    _sym = True
     def __init__(self,name="",config=None,fake=False,*args,**kwargs):
         self.type = "item"
         self.name = name
         self.config = config
         self.fake = fake
-        self.sym = True
+    
+    @property
+    def sym(self):
+        return self._active
 
+    @sym.setter
+    def sym(self, val):
+        self._sym = val
+    
     @property
     def show(self):
         return self._show
@@ -69,20 +78,7 @@ class Item(object):
         '''
         Save the defining parameters of this object in a dict
         ''' 
-        _dict = dict([(k,v) for k,v in self.__dict__.items()])
-        _dict.pop("config")
-        _dict.pop("fake")
-        _dict.pop("sym")
-        if '_active' in _dict:
-            _dict.pop("_active")
-        if '_show' in _dict:
-            _dict.pop("_show")
-
-        #for cleaning old format jsons
-        if 'defaults' in _dict:
-            _dict.pop("defaults")
-    
-        return _dict
+        return dict([(k,v) for k,v in self.__dict__.items() if not k in self.OMIT])
 
     def deserialize(self,_dict):
         """
