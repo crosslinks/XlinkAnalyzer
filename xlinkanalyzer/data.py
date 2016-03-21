@@ -73,12 +73,15 @@ class Item(object):
 
     def __str__(self):
         return self.name
+    
+    def __repr__(self):
+        return self.name
 
     def serialize(self):
         '''
         Save the defining parameters of this object in a dict
         ''' 
-        return dict([(k,v) for k,v in self.__dict__.items() if not k in self.OMIT])
+        return dict([(k,v) for k,v in self.__dict__.items() if not k in Item.OMIT])
 
     def deserialize(self,_dict):
         """
@@ -96,6 +99,20 @@ class Item(object):
         """
         return True if type(self.name) == str and len(self.name) > 0 else False
 
+    def convert(self,_input):
+        """
+        Encodes Unicode, List and Dict instances to utf-8
+        """
+        if isinstance(_input, dict):
+            return dict([(self.convert(key), self.convert(value)) \
+                        for key, value in _input.iteritems()])
+        elif isinstance(_input, list):
+            return [self.convert(element) for element in _input]
+        elif isinstance(_input, unicode):
+            return _input.encode('utf-8')
+        else:
+            return _input
+    
     def getAllInstances(self,_class=None):
         if _class is None:
             return self.config.getInstances(self.__class__)
@@ -115,6 +132,7 @@ class Chain(Item):
 
         self.setSelection(':.'+_id)
 
+
     @Item.active.setter
     def active(self, val):
         self._active = val
@@ -133,11 +151,7 @@ class Chain(Item):
                         chain._show = val # _show to not to activate children's triggers
         Item.show.fset(self, val)
 
-    def __repr__(self):
-        return self.name
 
-    def __str__(self):
-        return self.name
 
     def setSelection(self,sel):
         self.selection = sel
@@ -147,6 +161,7 @@ class Chain(Item):
 
 class Subunit(Item):
     SHOW = ["name","chainIds","color"]
+    OMIT = ["sequence","type","chains","subunitToChain","chainToSubunit"]
     def __init__(self,*args,**kwargs):
         super(Subunit,self).__init__(*args,**kwargs)
         self.type = "subunit"
@@ -232,35 +247,11 @@ class Subunit(Item):
             chainIds = self.chainIds
         return ':'+','.join(['.'+s for s in chainIds])
 
-    def convert(self,_input):
-        """
-        Encodes Unicode, List and Dict instances to utf-8
-        """
-        if isinstance(_input, dict):
-            return dict([(self.convert(key), self.convert(value)) \
-                        for key, value in _input.iteritems()])
-        elif isinstance(_input, list):
-            return [self.convert(element) for element in _input]
-        elif isinstance(_input, unicode):
-            return _input.encode('utf-8')
-        else:
-            return _input
-
     def serialize(self):
         _dict = super(Subunit,self).serialize()
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in Subunit.OMIT])
         _dict["color"] = self.color.rgba()
         _dict["domains"] = [d.serialize() for d in self.domains]
-        if "chainToSubunit" in _dict:
-            _dict.pop("chainToSubunit")
-        if "subunitToChain" in _dict:
-            _dict.pop("subunitToChain")
-        if "chains" in _dict:
-            _dict.pop("chains")
-        if "type" in _dict:
-            _dict.pop("type")
-        if "sequence" in _dict:
-            _dict.pop("sequence")
-
         return _dict
 
     def deserialize(self,_dict):
@@ -317,6 +308,7 @@ class Domain(Item):
     """
     
     SHOW = ["name","subunit","ranges","color"]
+    OMIT = ["type","_chainIds","chainIds","chains","subunit"]
     def __init__(self,subunit=None,ranges=[[]],\
                  color=MaterialColor(*[1.0,1.0,1.0,0.0]),**kwargs):
         super(Domain,self).__init__(**kwargs)
@@ -449,19 +441,8 @@ class Domain(Item):
 
     def serialize(self):
         _dict = super(Domain,self).serialize()
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in Domain.OMIT])
         _dict["color"] = self.color.rgba()
-        _dict.pop("subunit")
-
-        #for cleaning old format jsons:
-        if "chains" in _dict:
-            _dict.pop("chains")
-        if 'chainIds' in _dict:
-            _dict.pop("chainIds")
-        if '_chainIds' in _dict:
-            _dict.pop("_chainIds")
-        if "type" in _dict:
-            _dict.pop("type")
-
         return _dict
 
     def deserialize(self,_dict):
@@ -515,6 +496,7 @@ class Subcomplex(Item):
     """
     
     SHOW = ["name","color","items"]
+    OMIT = ["type","dataMap"]
     def __init__(self,config,fake=False):
         super(Subcomplex,self).__init__(config=config)
         self.name = ""
@@ -585,12 +567,9 @@ class Subcomplex(Item):
 
     def serialize(self):
         _dict = super(Subcomplex,self).serialize()
-        _dict.pop("dataMap")
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in Subcomplex.OMIT])
         _dict["items"] = [item.name for item in self.items]
         _dict["color"] = self.color.rgba()
-        if "type" in _dict:
-            _dict.pop("type")
-
         return _dict
 
     def getChains(self):
@@ -912,6 +891,7 @@ class DataItem(Item):
     to parse and interprete the data files
     """
     SHOW = ["name","fileGroup","mapping"]
+    OMIT = ["data"]
     def __init__(self,fileGroup=FileGroup(),**kwargs):
         super(DataItem,self).__init__(**kwargs)
         self.type = "data"
@@ -993,10 +973,9 @@ class DataItem(Item):
 
     def serialize(self):
         _dict = super(DataItem,self).serialize()
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in DataItem.OMIT])
         _dict["fileGroup"] = self.fileGroup.serialize()
         _dict["mapping"] = self.mapping.serialize()
-        if "data" in _dict:
-            _dict.pop("data")
         return _dict
 
     def validate(self):
@@ -1022,6 +1001,7 @@ class DataItem(Item):
 
 class XQuestItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
+    OMIT = ["xQuestNames","xlinksSets"]
     def __init__(self,**kwargs):
         super(XQuestItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.XQUEST_DATA_TYPE
@@ -1053,8 +1033,7 @@ class XQuestItem(DataItem):
 
     def serialize(self):
         _dict = super(XQuestItem,self).serialize()
-        _dict.pop("xlinksSets")
-        _dict.pop("xQuestNames")
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in XQuestItem.OMIT])
         return _dict
     
     def getElements(self):
@@ -1071,6 +1050,7 @@ class XlinkAnalyzerItem(XQuestItem):
 
 class SequenceItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
+    OMIT = ["sequences"]
     def __init__(self,**kwargs):
         super(SequenceItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.SEQUENCES_DATA_TYPE
@@ -1089,7 +1069,7 @@ class SequenceItem(DataItem):
 
     def serialize(self):
         _dict = super(SequenceItem,self).serialize()
-        _dict.pop("sequences")
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in SequenceItem.OMIT])
         return _dict
 
     def getElements(self):
@@ -1102,6 +1082,7 @@ class SequenceItem(DataItem):
 
 class ConsurfItem(DataItem):
     SHOW = ["name","fileGroup","mapping"]
+    OMIT = ["scores"]
     def __init__(self,**kwargs):
         super(ConsurfItem,self).__init__(**kwargs)
         self.type = xlinkanalyzer.CONSURF_DATA_TYPE
@@ -1125,7 +1106,7 @@ class ConsurfItem(DataItem):
 
     def serialize(self):
         _dict = super(ConsurfItem,self).serialize()
-        _dict.pop("scores")
+        _dict = dict([(k,v) for k,v in _dict.items() if not k in ConsurfItem.OMIT])
         return _dict
 
     def getMappingElements(self):
@@ -1221,9 +1202,9 @@ class Assembly(Item):
                          (xlinkanalyzer.SEQUENCES_DATA_TYPE,SequenceItem),\
                          (xlinkanalyzer.INTERACTING_RESI_DATA_TYPE,InteractingResidueItem),\
                          (xlinkanalyzer.CONSURF_DATA_TYPE,ConsurfItem)])
-        subunits = _dict.pop("subunits")
+        subunits = _dict.pop("subunits",[])
         subcomplexes = _dict.pop("subcomplexes", [])
-        dataItems = _dict.pop("data")
+        dataItems = _dict.pop("data",[])
         
         
         for k,v in _dict.items():
@@ -1310,19 +1291,7 @@ class Assembly(Item):
                     oldSubunit.addChain(str(s.chain))
     
     
-    def convert(self,_input):
-        """
-        Encodes Unicode, List and Dict instances to utf-8
-        """
-        if isinstance(_input, dict):
-            return dict([(self.convert(key), self.convert(value)) \
-                        for key, value in _input.iteritems()])
-        elif isinstance(_input, list):
-            return [self.convert(element) for element in _input]
-        elif isinstance(_input, unicode):
-            return _input.encode('utf-8')
-        else:
-            return _input
+    
 
 
     def getColor(self, name):
