@@ -59,7 +59,7 @@ templ1 = '''
             <p>Crosslinks: <a target="_blank" href="{ref_url}">{ref}</a> via <a target="_blank" href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0073411">XLdb</a></p>
             <p>Structure: <a target="_blank" href="http://www.rcsb.org/pdb/explore.do?structureId={pdbcode}">X-ray</a></p>
           </td>
-          <td class="tg-p5oz"><a href="http://www.beck.embl.de/downloads/{name}.zip">Download</a></td>
+          <td class="tg-p5oz"><a href="http://www.beck.embl.de/downloads/XlinkAnalyzerDB/{name}.zip">Download</a></td>
         </tr>
 '''
 templ2 = '''
@@ -70,7 +70,7 @@ templ2 = '''
             <p>Crosslinks: <a target="_blank" href="{ref_url}">{ref}</a> via <a target="_blank" href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0073411">XLdb</a></p>
             <p>Structure: <a target="_blank" href="http://www.rcsb.org/pdb/explore.do?structureId={pdbcode}">X-ray</a></p>
           </td>
-          <td class="tg-lqy6"><a href="http://www.beck.embl.de/downloads/{name}.zip">Download</a></td>
+          <td class="tg-lqy6"><a href="http://www.beck.embl.de/downloads/XlinkAnalyzerDB/{name}.zip">Download</a></td>
         </tr>
 '''
 

@@ -93,70 +93,70 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         self.assertEqual(0, len(newSubcomplex.items))
         subFrame = itemList.frames[-1]
 
-    # def testDeleteStuff(self):
-    #     '''Test deletion of Subunits and Data, adding them back, setting mapping, and mapping copy from.
-    #     '''
-    #     xFrame = self.g.Xlinks
-    #     xFrame.displayDefault()
+    def testDeleteStuff(self):
+        '''Test deletion of Subunits and Data, adding them back, setting mapping, and mapping copy from.
+        '''
+        xFrame = self.g.Xlinks
+        xFrame.displayDefault()
 
-    #     subUnitFrame = self.g.configFrame.subUnitFrame
-    #     self.assertEqual(14, len(subUnitFrame.frames))
-    #     self.assertEqual(14, len(self.g.configFrame.config.subunits))
-    #     subUnitFrame.frames[0].delete.invoke()
-    #     self.assertEqual(13, len(subUnitFrame.frames))
-    #     self.assertEqual(13, len(self.g.configFrame.config.subunits))
-    #     self.assertEqual(0, len(self.g.configFrame.config.domains))
+        subUnitFrame = self.g.configFrame.subUnitFrame
+        self.assertEqual(14, len(subUnitFrame.frames))
+        self.assertEqual(14, len(self.g.configFrame.config.subunits))
+        subUnitFrame.frames[0].delete.invoke()
+        self.assertEqual(13, len(subUnitFrame.frames))
+        self.assertEqual(13, len(self.g.configFrame.config.subunits))
+        self.assertEqual(0, len(self.g.configFrame.config.domains))
 
-    #     dataFrame = self.g.configFrame.dataFrame
-    #     self.assertEqual(10, len(dataFrame.frames))
-    #     self.assertEqual(10, len(self.g.configFrame.config.dataItems))
-    #     dataFrame.frames[0].delete.invoke()
-    #     self.assertEqual(9, len(dataFrame.frames))
-    #     self.assertEqual(9, len(self.g.configFrame.config.dataItems))
-    #     xmgr = xFrame.getXlinkDataMgrs()[0]
-    #     self.assertEqual(74, len(xmgr.pbg.pseudoBonds))
+        dataFrame = self.g.configFrame.dataFrame
+        self.assertEqual(10, len(dataFrame.frames))
+        self.assertEqual(10, len(self.g.configFrame.config.dataItems))
+        dataFrame.frames[0].delete.invoke()
+        self.assertEqual(9, len(dataFrame.frames))
+        self.assertEqual(9, len(self.g.configFrame.config.dataItems))
+        xmgr = xFrame.getXlinkDataMgrs()[0]
+        self.assertEqual(74, len(xmgr.pbg.pseudoBonds))
 
-    #     #Test adding after deleting:
-    #     activeItemFrame = subUnitFrame.activeItemFrame
-    #     activeItemFrame.fields['name'][1].insert(0, 'A190')
-    #     activeItemFrame.fields['chainIds'][1].insert(0, 'A')
-    #     activeItemFrame.fields['color'][1].set(chimera.MaterialColor(0,255,0))
-    #     activeItemFrame.add.invoke()
-    #     self.assertEqual(14, len(self.g.configFrame.config.subunits))
-    #     self.assertEqual(170, len(xmgr.pbg.pseudoBonds))
+        #Test adding after deleting:
+        activeItemFrame = subUnitFrame.activeItemFrame
+        activeItemFrame.fields['name'][1].insert(0, 'A190')
+        activeItemFrame.fields['chainIds'][1].insert(0, 'A')
+        activeItemFrame.fields['color'][1].set(chimera.MaterialColor(0,255,0))
+        activeItemFrame.add.invoke()
+        self.assertEqual(14, len(self.g.configFrame.config.subunits))
+        self.assertEqual(170, len(xmgr.pbg.pseudoBonds))
 
-    #     dataFrame = self.g.configFrame.dataFrame
-    #     activeItemFrame = dataFrame.activeItemFrame
-    #     activeItemFrame.fields['name'][1].insert(0, '0.05 mM X-linker, 30min at 37 C')
-    #     paths = ['xlinks/Pol1_1_Inter.xls',
-    #         'xlinks/Pol1_1_Intra.xls',
-    #         'xlinks/Pol1_1_Loop.xls,',
-    #         'xlinks/Pol1_1_Mono.xls'
-    #     ]
-    #     dirname = os.path.dirname(self.xlaTestCPath)
-    #     paths = [os.path.join(dirname, p) for p in paths]
-    #     fileFrame = activeItemFrame.fields['fileGroup'][1]
-    #     map(fileFrame.fileGroup.addFile,paths)
-    #     fileFrame.resetFileMenu(paths,0)
-    #     activeItemFrame.fields['type'][3].set('xquest')
-    #     activeItemFrame.add.invoke()
+        dataFrame = self.g.configFrame.dataFrame
+        activeItemFrame = dataFrame.activeItemFrame
+        activeItemFrame.fields['name'][1].insert(0, '0.05 mM X-linker, 30min at 37 C')
+        paths = ['xlinks/Pol1_1_Inter.xls',
+            'xlinks/Pol1_1_Intra.xls',
+            'xlinks/Pol1_1_Loop.xls,',
+            'xlinks/Pol1_1_Mono.xls'
+        ]
+        dirname = os.path.dirname(self.xlaTestCPath)
+        paths = [os.path.join(dirname, p) for p in paths]
+        fileFrame = activeItemFrame.fields['fileGroup'][1]
+        map(fileFrame.fileGroup.addFile,paths)
+        fileFrame.resetFileMenu(paths,0)
+        activeItemFrame.fields['type'][3].set('xquest')
+        activeItemFrame.add.invoke()
 
-    #     for frame in dataFrame.frames[1:]:
-    #         mapFrame = frame.fields['mapping'][1]
-    #         mapFrame.mapButton.invoke()
-    #         for seqName, subset in mapFrame.subsetframes.iteritems():
-    #             if 'sp|P10964|RPA1_YEAST' in seqName:
-    #                 subset.menus[0].var.set('A190')
-    #         mapFrame.onSave()
+        for frame in dataFrame.frames[1:]:
+            mapFrame = frame.fields['mapping'][1]
+            mapFrame.mapButton.invoke()
+            for seqName, subset in mapFrame.subsetframes.iteritems():
+                if 'sp|P10964|RPA1_YEAST' in seqName:
+                    subset.menus[0].var.set('A190')
+            mapFrame.onSave()
 
-    #     lastFrame = dataFrame.frames[-1]
-    #     mapFrame = lastFrame.fields['mapping'][1]
-    #     mapFrame.mapButton.invoke()
-    #     mapFrame.mapVar.set('0.2 mM X-linker, 30min at 37 C')
-    #     mapFrame.onSave()
+        lastFrame = dataFrame.frames[-1]
+        mapFrame = lastFrame.fields['mapping'][1]
+        mapFrame.mapButton.invoke()
+        mapFrame.mapVar.set('0.2 mM X-linker, 30min at 37 C')
+        mapFrame.onSave()
 
-    #     xFrame.displayDefault()
-    #     self.assertEqual(171, len(xmgr.pbg.pseudoBonds))
+        xFrame.displayDefault()
+        self.assertEqual(171, len(xmgr.pbg.pseudoBonds))
 
     def testDeleteStuffSubcomplexes(self):
         self.g.configFrame.subCompButton.invoke()

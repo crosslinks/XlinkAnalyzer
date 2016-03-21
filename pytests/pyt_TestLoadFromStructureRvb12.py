@@ -19,3 +19,7 @@ class TestRvb12(XlaGuiTests.TestLoadFromStructure):
 
     def testRvb12(self):
         self.assertEqual(len(self.config.getSubunits()), 2)
+        self.assertEqual(len(self.config.getSubunits()[0].chainIds), 3)
+        self.assertEqual(len(self.config.getSubunits()[1].chainIds), 3)
+        self.assertEqual(self.config.getSubunits()[0].chainIds, ['A','C','E'])
+        self.assertEqual(self.config.getSubunits()[1].chainIds, ['B','D','F'])
