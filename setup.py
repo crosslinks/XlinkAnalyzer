@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='XlinkAnalyzer',
-    version='1.1.1',
+    version='1.2',
     author='Jan Kosinski',
     author_email='jan.kosinski@embl.de',
     packages=['xlinkanalyzer'
