@@ -15,7 +15,7 @@ XLINK_LEN_THRESHOLD = 30
 
 DEBUG_MODE = False
 
-__version__ = '1.2'
+__version__ = '1.1.1'
 
 def get_gui():
     for insta in chimera.extension.manager.instances:
