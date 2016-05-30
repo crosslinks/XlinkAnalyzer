@@ -1,5 +1,6 @@
 import os
 import chimera
+import unittest
 
 import XlaGuiTests
 
@@ -57,6 +58,17 @@ class TestPolI(XlaGuiTests.XlaBaseTest):
         #just test open windows
         self.g.configFrame.domainsButton.invoke()
         self.g.configFrame.subCompButton.invoke()
+
+    @unittest.skip("Skip because it opens (itentionally) the error message that unittest cannot close.")
+    def testAddDomainWrong(self):
+        self.g.configFrame.domainsButton.invoke()
+        domWind = self.g.configFrame._getDomainsWindow()
+        self.assertIsNotNone(domWind)
+        itemList = domWind.winfo_children()[0]
+        self.assertEqual(1, len(self.g.configFrame.config.domains))
+        self.assertEqual(1, len(itemList.frames))
+        activeItemFrame = itemList.activeItemFrame
+        activeItemFrame.add.invoke()
 
     def testAddDomainsSubcomplexes(self):
         self.g.configFrame.domainsButton.invoke()

@@ -301,7 +301,7 @@ class Subunit(Item):
     def getChildren(self):
         return self.domains + self.getChains()
 
-
+class DomainRangesException(Exception): pass
 class Domain(Item):
     """
     An Item which can contain Ranges of a subunit. Has to implement addItem and deleteItem
@@ -409,7 +409,10 @@ class Domain(Item):
         ret = []
         if rangeS and type(rangeS) == str:
             ret = [s.split("-") for s in rangeS.split(",")]
-            ret = [[int(s) for s in l] for l in ret]
+            try:
+                ret = [[int(s) for s in l] for l in ret]
+            except ValueError:
+                raise DomainRangesException('Wrong ranges format. Use e.g.: "1-100", "1-100,150,200-300"')
         elif type(rangeS) and type(rangeS) == list:
             ret = rangeS
         return ret

@@ -18,7 +18,7 @@ import chimera
 from chimera import MaterialColor
 from chimera.tkoptions import ColorOption
 
-from data import FileGroup,Mapping,Item
+from data import FileGroup,Mapping,Item,DomainRangesException
 from __builtin__ import True
 
 import xlinkanalyzer
@@ -664,12 +664,13 @@ class ItemFrame(LabelFrame):
         g.configFrame._disableHack()
 
     def validate(self):
+        """TODO: Validation should be peformed by underlying data objects"""
         if self.fields.get("type"):
             if not self.fields["type"][3].get() or \
             not self.fields["name"][3].get():
                 title = "Empty Fields"
                 message = "Please fill in all fields."
-                tkMessageBox.showinfo(title,message,parent=self)
+                tkMessageBox.showerror(title,message,parent=self)
 
                 return False
 
@@ -677,9 +678,39 @@ class ItemFrame(LabelFrame):
                 if getConfig().getDataItems(xlinkanalyzer.SEQUENCES_DATA_TYPE):
                     title = "Error"
                     message = "You cannot add more than one Sequence file."
-                    tkMessageBox.showinfo(title,message,parent=self)
+                    tkMessageBox.showerror(title,message,parent=self)
 
                     return False                
+
+        if hasattr(self.data, 'ranges') and hasattr(self.data, 'subunit'): #i.e. is is a domain
+            wrong = False
+            missingFields = []
+            message = ''
+            if not self.fields["name"][3].get():
+                missingFields.append('name')
+                wrong = True
+
+            if not self.fields["subunit"][3].get():
+                missingFields.append('subunit')
+                wrong = True
+            if not self.fields["ranges"][3].get():
+                missingFields.append('ranges')
+                wrong = True
+
+            if not wrong:
+                try:
+                    self.data.parseRanges(self.fields["ranges"][3].get())
+                except DomainRangesException, e:
+                    message = str(e)
+                    wrong = True
+
+            if wrong:
+                title = "Error"
+                if not message:
+                    message = "Missing {0} for the domain.".format(', '.join(missingFields))
+                out = tkMessageBox.showerror(title,message,parent=self)
+
+                return False
 
         return True
 
