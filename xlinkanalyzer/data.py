@@ -436,7 +436,7 @@ class Domain(Item):
             else:
                 return ""
         else:
-            if self.ranges[0]:
+            if self.ranges and self.ranges[0]:
                 return reduce(lambda x,y:x+y+",",[str(l[0])+"-"+str(l[1]) \
                     if len(l)>1 else str(l[0]) for l in self.ranges],"")[:-1]
             else:
@@ -459,11 +459,12 @@ class Domain(Item):
 
     def getRangesAsResiList(self):
         l = []
-        for r in self.ranges:
-            if len(r) == 2:
-                l.extend(range(r[0], r[1]+1))
-            else:
-                l.append(r[0])
+        if self.ranges:
+            for r in self.ranges:
+                if len(r) == 2:
+                    l.extend(range(r[0], r[1]+1))
+                else:
+                    l.append(r[0])
 
         return l
 
