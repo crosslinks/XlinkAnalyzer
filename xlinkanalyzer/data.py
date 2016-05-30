@@ -10,7 +10,7 @@ import re
 import chimera
 import tkFileDialog
 import pyxlinks
-from os.path import relpath, normpath, dirname, commonprefix, samefile
+from os.path import relpath, normpath, dirname, commonprefix
 from chimera import MaterialColor
 from MultAlignViewer.parsers import readFASTA
 from pyxlinks import XlinksSet
@@ -21,6 +21,13 @@ from xlinkanalyzer import minify_json
 from xlinkanalyzer import getConfig
 from xlinkanalyzer import utils as xutils
 
+def samefileCrossplatform(file1, file2):
+    try:
+        from os.path import samefile
+    except ImportError:
+        return os.stat(file1) == os.stat(file2)
+    else:
+        return samefile(file1, file2)
 
 class Item(object):
     """
@@ -686,7 +693,7 @@ class File(object):
         #Normalize just in case:
         path = normpath(self.path)
         root = normpath(getConfig().root)
-        if samefile(commonprefix([root, path]), root): #i.e. if is contained in the project dir
+        if samefileCrossplatform(commonprefix([root, path]), root): #i.e. if is contained in the project dir
             return relpath(path, root)
         else:
             return self.path
