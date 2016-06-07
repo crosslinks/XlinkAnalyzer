@@ -692,8 +692,13 @@ class File(object):
         '''
         #Normalize just in case:
         path = normpath(self.path)
-        root = normpath(getConfig().root)
-        if samefileCrossplatform(commonprefix([root, path]), root): #i.e. if is contained in the project dir
+        cfg = getConfig()
+        if cfg is not None:
+            root = normpath(getConfig().root)
+        else:
+            root = ''
+        
+        if root and samefileCrossplatform(commonprefix([root, path]), root): #i.e. if is contained in the project dir
             return relpath(path, root)
         else:
             return self.path
@@ -987,6 +992,11 @@ class DataItem(Item):
         _dict = dict([(k,v) for k,v in _dict.items() if not k in DataItem.OMIT])
         _dict["fileGroup"] = self.fileGroup.serialize()
         _dict["mapping"] = self.mapping.serialize()
+        if 'resource' in _dict:
+            _dict.pop("resource")
+        if 'informed' in _dict:
+            _dict.pop("informed")
+
         return _dict
 
     def validate(self):
