@@ -332,9 +332,13 @@ class RMF_Model(Model):
         for bead in self.iterate_beads():
             # chain_id = rmf_viewer.rmf.getParentChainId(bead)
             chain_id = bead.residue.id.chainId
-            start, end = self.get_bead_indexes(bead)
-            cmps_to_connect.append([bead, chain_id, start, end])
-
+            # start, end = self.get_bead_indexes(bead)
+            start, end = self.get_bead_residue_indexes(bead)
+            
+            if start is not None and end is not None:
+                cmps_to_connect.append([bead, chain_id, start, end])
+            else:
+                cmps_to_connect.append([bead, chain_id, bead.residue.id.position, bead.residue.id.position+1])
         cas = []
         for ca in self.iterate_CAs():
 
