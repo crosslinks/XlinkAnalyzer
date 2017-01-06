@@ -874,7 +874,7 @@ class XlinkDataMgr(DataMgr):
                         except TypeError:  # may happen if at1 is at2, happens for beads
                             # print 'TypeError for at1, at2'
                             # import traceback
-                            traceback.print_exc()
+                            # traceback.print_exc()
                             pb = None
                         else:
                             pb.drawMode = Bond.Spring
