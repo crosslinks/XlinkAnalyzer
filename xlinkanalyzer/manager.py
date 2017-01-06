@@ -253,9 +253,13 @@ class RMF_Model(Model):
 
         for bead in self.iterate_beads():
             start, end = self.get_bead_residue_indexes(bead)
+
             if start is not None and end is not None:
                 for i in range(start, end):
                     yield RMFFakeResi(bead.residue, bead.residue.id.chainId, i)
+            else:
+                # yield RMFFakeResi(bead.residue, bead.residue.id.chainId, bead.residue.id.position)
+                yield bead.residue
 
     def iterate_CAs(self):
         if self.moleculeModel is not None:
@@ -861,7 +865,6 @@ class XlinkDataMgr(DataMgr):
                 for resi1, resi2 in product(resi_list1, resi_list2):
                     at1 = self.getAtomToLink(resi1)
                     at2 = self.getAtomToLink(resi2)
-
                     if at1 is not at2 and not (pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2)): #cannot check this way because of beads
                         # if pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2):
                         #     continue
@@ -869,6 +872,9 @@ class XlinkDataMgr(DataMgr):
                         try:
                             pb = self.pbg.newPseudoBond(at1, at2)
                         except TypeError:  # may happen if at1 is at2, happens for beads
+                            # print 'TypeError for at1, at2'
+                            # import traceback
+                            traceback.print_exc()
                             pb = None
                         else:
                             pb.drawMode = Bond.Spring
@@ -894,7 +900,11 @@ class XlinkDataMgr(DataMgr):
         for atom in resi.atoms:
             if atom.name == 'CA':
                 return atom
-        return resi.atoms[0]
+
+        if len(resi.atoms) > 0:
+            return resi.atoms[0]
+        else:
+            return resi #may happen for bead models
 
     def iterXlinkPseudoBonds(self):
         if self.pbg:
