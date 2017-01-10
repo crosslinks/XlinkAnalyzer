@@ -369,10 +369,9 @@ class RMF_Model(Model):
             for key, igroup in groupby(sorted(cmps_to_connect, key=lambda x: x[1]), lambda x: x[1]):
                 beads_sorted = sorted(igroup, key=lambda x: x[2])
                 for b1, b2 in pairwise(beads_sorted):
-                    if b2[2] == b1[3]:
-                        at1 = b1[0]
-                        at2 = b2[0]
-                        grp.newPseudoBond(at1, at2)
+                    at1 = b1[0]
+                    at2 = b2[0]
+                    grp.newPseudoBond(at1, at2)
 
                 for b in beads_sorted:
                     chain_id = b[1]
