@@ -527,7 +527,7 @@ class XlinkDataMgr(DataMgr):
         if 'configUpdated' in chimera.triggers.triggerNames():
             handler = chimera.triggers.addHandler('configUpdated', self.onConfigUpdated, None)
             self._handlers.append((chimera.triggers, 'configUpdated', handler))
-        self.minLdScore = 0
+        self.minScore = 0
         self.smartMode = False
         self.show_only_one = False
         self.load()
@@ -548,7 +548,7 @@ class XlinkDataMgr(DataMgr):
         '''
         xb - XlinkBond instance
         '''
-        return ('ld-Score' in xb.xlink) and xb.xlink['ld-Score'] != '-' and float(xb.xlink['ld-Score']) >= self.minLdScore
+        return pyxlinks.get_score(xb.xlink) != '-' and pyxlinks.get_score(xb.xlink) >= self.minScore
 
     def compFilter(self, xb):
         return True
@@ -618,7 +618,7 @@ class XlinkDataMgr(DataMgr):
                 xlinks_for_resi = xlinks_for_prot.get(str(resId))
                 if xlinks_for_resi is not None:
                     for xlink in xlinks_for_resi:
-                        if ('ld-Score' in xlink) and xlink['ld-Score'] != '-' and float(xlink['ld-Score']) >= self.minLdScore:
+                        if pyxlinks.get_score(xlink) and pyxlinks.get_score(xlink) != '-' and pyxlinks.get_score(xlink) >= self.minScore:
                             if not pyxlinks.is_mono_link(xlink):
                                 isCrosslinked = True
                             break
@@ -633,7 +633,7 @@ class XlinkDataMgr(DataMgr):
 
         if monolinks is not None:
             for monolink in monolinks:
-                if ('ld-Score' in monolink) and monolink['ld-Score'] != '-' and float(monolink['ld-Score']) >= self.minLdScore:
+                if pyxlinks.get_score(monolink) and pyxlinks.get_score(monolink) != '-' and pyxlinks.get_score(monolink) >= self.minScore:
                     isMonolinked = True
                     break
 
@@ -698,7 +698,7 @@ class XlinkDataMgr(DataMgr):
             self.predictMonolinkable(min_pept_length=5, max_pept_length=50)
 
         for xlink in self.xlinkAnalyzer.xlinks.data:
-            if ('ld-Score' in xlink) and xlink['ld-Score'] != '-' and float(xlink['ld-Score']) < self.minLdScore:
+            if pyxlinks.get_score(xlink) and pyxlinks.get_score(xlink) != '-' and pyxlinks.get_score(xlink) < self.minScore:
                 xlink['Observed'] = 'No'
 
 
@@ -750,7 +750,7 @@ class XlinkDataMgr(DataMgr):
 
         self.xlinkAnalyzer.add_seq_features_to_xlinks()
 
-        self.xlinkAnalyzer.predict_monolinkable(min_pept_length=min_pept_length, max_pept_length=max_pept_length, min_ld_score=self.minLdScore)
+        self.xlinkAnalyzer.predict_monolinkable(min_pept_length=min_pept_length, max_pept_length=max_pept_length, min_ld_score=self.minScore)
 
     def _make_PBG(self):
 
@@ -1005,7 +1005,7 @@ class XlinkDataMgr(DataMgr):
         if hasattr(self.model, 'show_missing_loops'):
             self.model.show_missing_loops()
 
-    def color_xlinked(self, to=None, toDomain=None, fromComp=None, minLdScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
+    def color_xlinked(self, to=None, toDomain=None, fromComp=None, minScore=None, color=None, colorByCompTo=False, uncolorOthers=False):
         """
         toDomain - xlinkanalyzer.Domain object or domain name
         color - chimera.MaterialColor or string (overrides colorByCompTo)
@@ -1049,7 +1049,7 @@ class XlinkDataMgr(DataMgr):
 
             xlinked_to_comp = self.model.config.getSubunitByName(xlinked_to)
 
-            if minLdScore is not None and float(f['ld-Score']) < minLdScore:
+            if minScore is not None and pyxlinks.get_score(f) < minScore:
                 bad.append([obj, xlinked_to])
                 continue
 
@@ -1141,7 +1141,7 @@ class XlinkDataMgr(DataMgr):
                     b.display = False
 
     def hide_by_ld_score(self, threshold):
-        self.minLdScore = threshold
+        self.minScore = threshold
         for x in self.iter_all_xlinks():
             if x.pb is not None:
                 if not self.scoreFilter(x):
@@ -1167,7 +1167,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             # found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) >= self.minLdScore:
+            if pyxlinks.get_score(xlink) >= self.minScore:
                 for x in x_set:
                     if x.pb:
                         at1 = x.pb.atoms[0]
@@ -1260,7 +1260,7 @@ class XlinkDataMgr(DataMgr):
                 b = link.pb
                 if b is not None:
                     score = pyxlinks.get_score(link.xlink)
-                    if is_satisfied(b, threshold) and ((score is None) or (score >= self.minLdScore)):
+                    if is_satisfied(b, threshold) and ((score is None) or (score >= self.minScore)):
                         show_groups[-1]['satisfied'].append(link)
                         found_satisfied = True
 
@@ -1269,7 +1269,7 @@ class XlinkDataMgr(DataMgr):
                 shortest = inter_intra_ambig_list_sorted[0]
                 if shortest is not None:
                     score = pyxlinks.get_score(shortest.xlink)
-                    if score is None or score >= self.minLdScore:
+                    if score is None or score >= self.minScore:
                         # to_show.append(shortest)
                         show_groups[-1]['shortest'].append(shortest)
 
@@ -1364,7 +1364,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) >= self.minLdScore:
+            if pyxlinks.get_score(xlink) >= self.minScore:
                 for x in x_set:
                     if x.pb:
                         if is_satisfied(x.pb, threshold):
@@ -1488,7 +1488,7 @@ class XlinkDataMgr(DataMgr):
         for x_set in self.ambig_xlink_sets:
             found_satisfied = False
             xlink = x_set[0].xlink
-            if float(xlink['ld-Score']) >= self.minLdScore:
+            if pyxlinks.get_score(xlink) >= self.minScore:
                 all_xlink_sets.append(x_set)
                 for x in x_set:
                     if x.pb:

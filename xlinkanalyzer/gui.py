@@ -1195,7 +1195,7 @@ class SubunitsTabFrame(TabFrame):
     def reload(self, name, userData, o):
         self.table.reload()
 
-class LdScoreFilterEntry(EntryField):
+class ScoreFilterEntry(EntryField):
     def __init__(self, parent, var):
         self.var = var
         EntryField.__init__(self, parent,
@@ -1206,7 +1206,7 @@ class LdScoreFilterEntry(EntryField):
                         'min' : 0, 'max' : 100, 'minstrict' : 1},
                 entry_textvariable = self.var)
 
-class LdScoreFilterScale(Tkinter.Scale):
+class ScoreFilterScale(Tkinter.Scale):
     def __init__(self, parent, var):
         self.var = var
         Tkinter.Scale.__init__(self, parent,
@@ -1294,14 +1294,14 @@ class XlinkToolbar(Tkinter.Frame):
         customScoresFrame.pack()
         curRow += 1
 
-        self.generalTabldScoreFilter = LdScoreFilterEntry(customScoresFrame, ld_score_var)
-        self.generalTabldScoreFilter.pack()
+        self.generalTabScoreFilter = ScoreFilterEntry(customScoresFrame, ld_score_var)
+        self.generalTabScoreFilter.pack()
 
 
-        self.generalTabldScoreFilterScale = LdScoreFilterScale(
+        self.generalTabScoreFilterScale = ScoreFilterScale(
             customScoresFrame,
             ld_score_var)
-        self.generalTabldScoreFilterScale.pack()
+        self.generalTabScoreFilterScale.pack()
 
 
         lengthThresholdFrame = Tkinter.Frame(self, borderwidth=2, relief='groove', padx=4, pady=4)
@@ -1425,7 +1425,7 @@ class ColorXlinkedFrame(Tkinter.Frame):
 
         for mgr in dataMgrs:
             if hasattr(mgr, 'objToXlinksMap'):
-                mgr.color_xlinked(to=to, fromComp=fromComp, minLdScore=mgr.minLdScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
+                mgr.color_xlinked(to=to, fromComp=fromComp, minScore=mgr.minScore, color=color, colorByCompTo=colorByCompTo, uncolorOthers=uncolorOthers)
 
 
 class XlinkMgrTabFrame(TabFrame):
@@ -1512,7 +1512,7 @@ class XlinkMgrTabFrame(TabFrame):
                 except ValueError:
                     pass
                 else:
-                    mgr.minLdScore = minScore
+                    mgr.minScore = minScore
         self.restyleXlinks()
 
         return dataMgrsForActive
@@ -1584,7 +1584,7 @@ class XlinkMgrTabFrame(TabFrame):
             if self.ld_score_var is None:
                 self.ld_score_var = Tkinter.DoubleVar()
                 self.ld_score_var.set(0.0)
-                self.ld_score_var.trace('w', self.reshowByLdScore)
+                self.ld_score_var.trace('w', self.reshowByScore)
 
             self.lengthThreshVar = Tkinter.DoubleVar()
 
@@ -1688,7 +1688,7 @@ class XlinkMgrTabFrame(TabFrame):
         else:
             self.renderEmpty()
 
-    def reshowByLdScore(self, x, y, z):
+    def reshowByScore(self, x, y, z):
         val = self.ld_score_var.get()
         dataMgrs = self.getXlinkDataMgrs()
         try:
@@ -1698,7 +1698,7 @@ class XlinkMgrTabFrame(TabFrame):
         else:
             for mgr in dataMgrs:
                 if hasattr(mgr, 'objToXlinksMap'):
-                    mgr.minLdScore = minScore
+                    mgr.minScore = minScore
                     mgr.updateDisplayed(threshold=xlinkanalyzer.XLINK_LEN_THRESHOLD, smart=self.smartMode.get(), show_only_one=self.showFirstOnlyOliMode.get())
 
     def _configureOligomeric(self, command):
