@@ -874,7 +874,7 @@ class ModelSelect(object):
         return box
 
     def isRMFmodel(self, chimeraModel):
-        return hasattr(chimeraModel, 'openedAs') and chimeraModel.openedAs[0].endswith('.rmf')
+        return hasattr(chimeraModel, 'openedAs') and (chimeraModel.openedAs[0].endswith('.rmf') or chimeraModel.openedAs[0].endswith('.rmf3'))
 
     def createRMFmodel(self, chimeraModel):
         '''

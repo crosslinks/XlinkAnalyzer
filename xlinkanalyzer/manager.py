@@ -183,7 +183,7 @@ class RMF_Model(Model):
         super(RMF_Model, self).__init__(chimeraModel, config)
 
         self.removeSelHandler()
-        self.set_beads(radius=None, opacity=1.0, radius_scale=0.5)
+        self.set_beads(radius=None, opacity=1.0, radius_scale=1.0)
         if moleculeModel is not None and beadModel is not None:
             self.show_missing_loops()
         hideGroup('missing segments')
@@ -193,7 +193,7 @@ class RMF_Model(Model):
         self._handlers.append((chimera.triggers, 'CoordSet', handler))
 
     def afterAllUpdateHandler(self, trigName, myData, frame):
-        self.set_beads(radius=None, opacity=1.0, radius_scale=0.5)
+        self.set_beads(radius=None, opacity=1.0, radius_scale=1.0)
 
     def _deleteHandlers(self):
         if not self._handlers:
@@ -318,7 +318,9 @@ class RMF_Model(Model):
         return start, end
 
     def get_bead_residue_indexes(self, bead_resi):
-        m = re.search('\[([0-9]+)-([0-9]+)\)', bead_resi.residue.type)
+        m = re.search('([0-9]+)-([0-9]+)_bead', bead_resi.residue.type)
+        if m is None:
+            m = re.search('\[([0-9]+)-([0-9]+)\)', bead_resi.residue.type)
 
         start = end = None
         if m is not None:
@@ -326,7 +328,7 @@ class RMF_Model(Model):
 
         return start, end
 
-    def show_missing_loops(self, change_radius=True):
+    def show_missing_loops(self, change_radius=False):
         self.missingLoopsPbgName = str(self.beadModel.id) + " missing_loops"
         cmps_to_connect = []
         for bead in self.iterate_beads():
