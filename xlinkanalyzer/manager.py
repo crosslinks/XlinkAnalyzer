@@ -870,9 +870,11 @@ class XlinkDataMgr(DataMgr):
                 for resi1, resi2 in product(resi_list1, resi_list2):
                     at1 = self.getAtomToLink(resi1)
                     at2 = self.getAtomToLink(resi2)
+                    if pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2):
+                        continue
+
                     if at1 is not at2 and not (pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2)): #cannot check this way because of beads
-                        # if pyxlinks.is_clearly_dimeric(xlink) and (chain1 == chain2):
-                        #     continue
+
                     # if not ((link_resid1 == link_resid2) and (chain1 == chain2)):
                         try:
                             pb = self.pbg.newPseudoBond(at1, at2)
