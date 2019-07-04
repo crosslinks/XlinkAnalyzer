@@ -23,7 +23,7 @@ To enable the RMF support, you have to patch Chimera:
         4. Type print rmf.__file__ and press enter
         It should print a path to your share folder
 
-1. Download the latest Xlink Analyzer version from https://www.embl-hamburg.de/XlinkAnalyzer/downloads/latest.zip
+1. Download the latest Xlink Analyzer version from https://www.embl-hamburg.de/XlinkAnalyzer/downloads/XlinkAnalyzer_latest.zip
 1. Replace share/rmf/__init__.py file with XlinkAnalyzer/Chimera_RMF_patch/__init__.py. It includes a patch that adds chain IDs to beads.
 1. Open your RMF file and load your Xlink Analyzer project.
  1. Make sure chain IDs in the RMF file match the chain IDs in your XlinkAnalyzer project. Standard IMP and PMI pipelines usually do not preserve chain IDs from input structures.
