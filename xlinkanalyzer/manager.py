@@ -1099,10 +1099,11 @@ class XlinkDataMgr(DataMgr):
                         atom.drawMode = chimera.Atom.Sphere
                         atom.display = True
 
-                if atom.display:
-                    atom.color = to_color
+                if not to_color.rgba() == (0.0, 0.0, 0.0, 0.0): #it is (0.0, 0.0, 0.0, 0.0) if the crosslink is to a subunit not added to the project.
+                    if atom.display:
+                        atom.color = to_color
 
-                atom.surfaceColor = to_color
+                    atom.surfaceColor = to_color
 
     def color_visible_xlinking_resi(self, color):
         for obj, f in self.iter_obj_xlinks():
