@@ -169,9 +169,14 @@ class XlinkAnalyzer_Dialog(ModelessDialog):
         name = self.currAddSubunitFrame.subunitNameEntryField.get()
         color = self.currAddSubunitFrame.coloropt.get()
         chains = self.currAddSubunitFrame.chainEntryField.get()
-        chains = [x.strip() for x in chains.split(',')]
+        renam_chains = []
+        for c in  chains.split(','):
+            c = x.strip()
+            if c == '':
+                c = ' ' #allow for space or empty string being chain id
+            renam_chains.append(c)
 
-        self.addSubunitToCfg(cfgName, name, color=color, chains=chains)
+        self.addSubunitToCfg(cfgName, name, color=color, chains=renam_chains)
 
     def getDataMgrsForModel(self, model):
         out = []
