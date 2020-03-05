@@ -68,13 +68,78 @@ class Model(object):
             colors_by_chain = color
             for chain in colors_by_chain:
                 color = colors_by_chain[chain]
-                runCommand('color ' + color + ' #' + str(self.getModelId()) + ':.' + chain)
+
+                if isinstance(color, str):
+                    color = chimera.colorTable.getColorByName(color)
+                if isinstance(color, tuple) or isinstance(color, list):
+                    color = chimera.MaterialColor(*color)
+                self.color(comp, color)
+
+        elif isinstance(color, str):
+                color = chimera.colorTable.getColorByName(color)
+                self.color(comp, color)
+
+        elif isinstance(color, tuple) or isinstance(color, list):
+                color = chimera.MaterialColor(*color)
+                self.color(comp, color)
+
         else:
-            if hasattr(color, 'rgba'):
-                color = color.rgba()
-            if isinstance(color, tuple) or isinstance(color, list):
-                color = ','.join(map(str,color))
-            runCommand('color ' + color + ' #' + str(self.getModelId()) + comp.getSelection())
+            if hasattr(comp, 'getRangesAsResiList'): #is domain or range
+                for chain in comp.subunit.chainIds:
+                    try:
+                        seq = self.chimeraModel.sequence(chain)
+                    except KeyError:
+                        print("No chain '{0}' found".format(chain))
+                    else:
+                        for residue in seq.residues:
+                            if residue and residue.id.position in comp.getRangesAsResiList():
+                                residue.ribbonColor = color
+
+                                for a in residue.atoms:
+                                    a.color = color
+
+            elif hasattr(comp, 'items'): #is subcomplex
+                for item in comp.items:
+                    if hasattr(item, 'getRangesAsResiList'): #is domain or range
+                        for chain in item.subunit.chainIds:
+                            try:
+                                seq = self.chimeraModel.sequence(chain)
+                            except KeyError:
+                                print("No chain '{0}' found".format(chain))
+                            else:
+                                for residue in seq.residues:
+                                    if residue and residue.id.position in item.getRangesAsResiList():
+                                        residue.ribbonColor = color
+
+                                        for a in residue.atoms:
+                                            a.color = color
+                    else:
+                        for chain in item.chainIds:
+                            try:
+                                seq = self.chimeraModel.sequence(chain)
+                            except KeyError:
+                                print("No chain '{0}' found".format(chain))
+                            else:
+                                for residue in seq.residues:
+                                    if residue:
+                                        residue.ribbonColor = color
+
+                                        for a in residue.atoms:
+                                            a.color = color
+
+            else:
+                for chain in comp.chainIds:
+                    try:
+                        seq = self.chimeraModel.sequence(chain)
+                    except KeyError:
+                        print("No chain '{0}' found".format(chain))
+                    else:
+                        for residue in seq.residues:
+                            if residue:
+                                residue.ribbonColor = color
+
+                                for a in residue.atoms:
+                                    a.color = color
 
     def colorByDomains(self, name):
         self.color(name, color='gray')
