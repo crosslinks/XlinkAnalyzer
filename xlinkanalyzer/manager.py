@@ -1066,7 +1066,7 @@ class XlinkDataMgr(DataMgr):
                 bad.append([obj, xlinked_to])
                 continue
 
-            if xlinked_to is not None:
+            if xlinked_to is not None and xlinked_to_comp is not None:
                 good.append([obj, xlinked_to])
 
         if uncolorOthers:
@@ -1090,6 +1090,7 @@ class XlinkDataMgr(DataMgr):
                     to_color = to.color
                 else:
                     to_color = self.model.config.getColor(xlinked_to)
+
 
             obj_atoms = get_atoms_for_obj(obj)
             for atom in obj_atoms:
